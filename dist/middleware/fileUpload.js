@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
-// Define the storage destination for uploaded files
-const uploadDir = path_1.default.join(__dirname, '../uploads');
+// FIX: Define the upload directory relative to the project's root folder.
+// This creates a single, consistent 'uploads' folder that works both in
+// development (from src) and after compilation (from dist).
+const uploadDir = path_1.default.resolve(process.cwd(), 'uploads');
 // Ensure the upload directory exists
 if (!fs_1.default.existsSync(uploadDir)) {
     fs_1.default.mkdirSync(uploadDir, { recursive: true });
@@ -15,7 +17,7 @@ if (!fs_1.default.existsSync(uploadDir)) {
 // Configure multer storage
 const storage = multer_1.default.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadDir); // Save files to the 'uploads' directory
+        cb(null, uploadDir); // Save files to the correct 'uploads' directory
     },
     filename: (req, file, cb) => {
         // Create a unique filename to avoid overwrites
@@ -23,7 +25,7 @@ const storage = multer_1.default.diskStorage({
         cb(null, file.fieldname + '-' + uniqueSuffix + path_1.default.extname(file.originalname));
     }
 });
-// NEW: File filter to allow only specific file types (png, jpeg, pdf)
+// File filter to allow only specific file types
 const fileFilter = (req, file, cb) => {
     // Allowed extensions
     const allowedTypes = /jpeg|jpg|png|pdf/;
@@ -33,12 +35,13 @@ const fileFilter = (req, file, cb) => {
     const mimetype = allowedTypes.test(file.mimetype);
     if (mimetype && extname) {
         // If the file type is allowed, accept the file
-        return cb(null, true);
+        cb(null, true);
     }
     else {
         // If the file type is not allowed, reject the file
         // This error will be passed to your error-handling middleware
-        cb(new Error('Error: File upload only supports the following filetypes - ' + allowedTypes));
+        const error = new Error('Error: File upload only supports the following filetypes - ' + allowedTypes);
+        cb(error);
     }
 };
 // Create the multer instance with storage and the new fileFilter

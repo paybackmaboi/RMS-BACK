@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateRequestStatus = exports.getAllRequests = exports.getStudentRequests = exports.getRequestDocument = exports.createRequest = void 0;
+exports.getRequestDocument = exports.updateRequestStatus = exports.getAllRequests = exports.getStudentRequests = exports.createRequest = void 0;
 const database_1 = require("../database");
 const path_1 = __importDefault(require("path"));
 const createRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -24,7 +24,8 @@ const createRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             res.status(401).json({ message: 'Unauthorized: Student ID not found.' });
             return;
         }
-        const filePath = req.file ? req.file.path : undefined;
+        // Store only the filename in the database, not the full system path.
+        const filePath = req.file ? req.file.filename : undefined;
         const newRequest = yield database_1.Request.create({
             studentId,
             documentType,
@@ -39,26 +40,6 @@ const createRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.createRequest = createRequest;
-const getRequestDocument = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { id } = req.params;
-        const request = yield database_1.Request.findByPk(id);
-        if (!request || !request.filePath) {
-            res.status(404).json({ message: 'Document not found.' });
-            return;
-        }
-        const filePath = path_1.default.resolve(request.filePath);
-        res.download(filePath, (err) => {
-            if (err && !res.headersSent) {
-                next(err);
-            }
-        });
-    }
-    catch (error) {
-        next(error);
-    }
-});
-exports.getRequestDocument = getRequestDocument;
 const getStudentRequests = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -67,10 +48,7 @@ const getStudentRequests = (req, res, next) => __awaiter(void 0, void 0, void 0,
             res.status(401).json({ message: 'Unauthorized' });
             return;
         }
-        const requests = yield database_1.Request.findAll({
-            where: { studentId },
-            order: [['createdAt', 'DESC']],
-        });
+        const requests = yield database_1.Request.findAll({ where: { studentId }, order: [['createdAt', 'DESC']] });
         res.json(requests);
     }
     catch (error) {
@@ -95,8 +73,9 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
     try {
         const { id } = req.params;
         const { status, notes } = req.body;
-        if (!['pending', 'approved', 'rejected', 'ready for pick-up'].includes(status)) {
-            res.status(400).json({ message: 'Invalid status.' });
+        // Ensure the new status is one of the allowed values.
+        if (!status || !['pending', 'approved', 'rejected', 'ready for pick-up'].includes(status)) {
+            res.status(400).json({ message: 'Invalid status provided.' });
             return;
         }
         const request = yield database_1.Request.findByPk(id);
@@ -105,7 +84,9 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
             return;
         }
         request.status = status;
-        request.notes = notes || null;
+        if (notes !== undefined) {
+            request.notes = notes;
+        }
         yield request.save();
         res.json(request);
     }
@@ -114,3 +95,27 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.updateRequestStatus = updateRequestStatus;
+const getRequestDocument = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const request = yield database_1.Request.findByPk(id);
+        if (!request || !request.filePath) {
+            res.status(404).json({ message: 'Document not found for this request.' });
+            return;
+        }
+        // Construct the absolute path to the file at runtime.
+        const absoluteFilePath = path_1.default.resolve(process.cwd(), 'uploads', request.filePath);
+        res.download(absoluteFilePath, (err) => {
+            if (err) {
+                console.error("File download error:", err);
+                if (!res.headersSent) {
+                    res.status(404).json({ message: "File not found on server." });
+                }
+            }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.getRequestDocument = getRequestDocument;

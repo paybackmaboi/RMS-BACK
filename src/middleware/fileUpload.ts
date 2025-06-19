@@ -3,8 +3,10 @@ import path from 'path';
 import fs from 'fs';
 import { Request } from 'express';
 
-// Define the storage destination for uploaded files
-const uploadDir = path.join(__dirname, '../uploads');
+// FIX: Define the upload directory relative to the project's root folder.
+// This creates a single, consistent 'uploads' folder that works both in
+// development (from src) and after compilation (from dist).
+const uploadDir = path.resolve(process.cwd(), 'uploads');
 
 // Ensure the upload directory exists
 if (!fs.existsSync(uploadDir)) {
@@ -14,7 +16,7 @@ if (!fs.existsSync(uploadDir)) {
 // Configure multer storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadDir); // Save files to the 'uploads' directory
+        cb(null, uploadDir); // Save files to the correct 'uploads' directory
     },
     filename: (req, file, cb) => {
         // Create a unique filename to avoid overwrites
@@ -23,7 +25,7 @@ const storage = multer.diskStorage({
     }
 });
 
-// NEW: File filter to allow only specific file types (png, jpeg, pdf)
+// File filter to allow only specific file types
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     // Allowed extensions
     const allowedTypes = /jpeg|jpg|png|pdf/;
@@ -34,11 +36,12 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
 
     if (mimetype && extname) {
         // If the file type is allowed, accept the file
-        return cb(null, true);
+        cb(null, true);
     } else {
         // If the file type is not allowed, reject the file
         // This error will be passed to your error-handling middleware
-        cb(new Error('Error: File upload only supports the following filetypes - ' + allowedTypes));
+        const error = new Error('Error: File upload only supports the following filetypes - ' + allowedTypes);
+        cb(error);
     }
 };
 
