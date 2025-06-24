@@ -59,6 +59,11 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
             defaults: { idNumber: 'A001', password: 'adminpass', role: 'admin' }
         });
         console.log('Dummy admin A001 created or exists.');
+        yield User.findOrCreate({
+            where: { idNumber: 'AC001' },
+            defaults: { idNumber: 'AC001', password: 'accountingpass', role: 'accounting' }
+        });
+        console.log('Dummy accounting AC001 created or exists.');
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
