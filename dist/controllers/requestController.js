@@ -24,14 +24,14 @@ const createRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             res.status(401).json({ message: 'Unauthorized: Student ID not found.' });
             return;
         }
-        // Store only the filename in the database, not the full system path.
-        const filePath = req.file ? req.file.filename : undefined;
+        const files = req.files;
+        const filePaths = files ? files.map(file => file.filename) : undefined;
         const newRequest = yield database_1.Request.create({
             studentId,
             documentType,
             purpose,
             status: 'pending',
-            filePath,
+            filePath: filePaths,
         });
         res.status(201).json(newRequest);
     }
@@ -73,7 +73,6 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
     try {
         const { id } = req.params;
         const { status, notes } = req.body;
-        // Ensure the new status is one of the allowed values.
         if (!status || !['pending', 'approved', 'rejected', 'ready for pick-up'].includes(status)) {
             res.status(400).json({ message: 'Invalid status provided.' });
             return;
@@ -97,14 +96,20 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
 exports.updateRequestStatus = updateRequestStatus;
 const getRequestDocument = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = req.params;
+        const { id, docIndex } = req.params;
         const request = yield database_1.Request.findByPk(id);
-        if (!request || !request.filePath) {
+        if (!request || !request.filePath || !Array.isArray(request.filePath) || request.filePath.length === 0) {
             res.status(404).json({ message: 'Document not found for this request.' });
             return;
         }
-        // Construct the absolute path to the file at runtime.
-        const absoluteFilePath = path_1.default.resolve(process.cwd(), 'uploads', request.filePath);
+        const index = parseInt(docIndex, 10);
+        if (isNaN(index) || index < 0 || index >= request.filePath.length) {
+            // FIX: Removed the 'return' from res.status().json() to match the Promise<void> return type.
+            res.status(400).json({ message: 'Invalid document index.' });
+            return;
+        }
+        const singleFilePath = request.filePath[index];
+        const absoluteFilePath = path_1.default.resolve(process.cwd(), 'uploads', singleFilePath);
         res.download(absoluteFilePath, (err) => {
             if (err) {
                 console.error("File download error:", err);

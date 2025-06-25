@@ -25,7 +25,6 @@ const initRequest = (sequelize) => {
             allowNull: false,
         },
         status: {
-            // FIX: Added 'ready for pick-up' to the ENUM definition
             type: sequelize_1.DataTypes.ENUM('pending', 'approved', 'rejected', 'ready for pick-up'),
             defaultValue: 'pending',
             allowNull: false,
@@ -35,7 +34,8 @@ const initRequest = (sequelize) => {
             allowNull: true,
         },
         filePath: {
-            type: new sequelize_1.DataTypes.STRING(255),
+            // FIX: Changed to JSON type to store an array of strings
+            type: sequelize_1.DataTypes.JSON,
             allowNull: true,
         },
     }, {

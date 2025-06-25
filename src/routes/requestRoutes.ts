@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { Request, Response, NextFunction } from 'express';
 import express from 'express';
 import { createRequest, getStudentRequests, getAllRequests, updateRequestStatus, getRequestDocument } from '../controllers/requestController';
-// This import will now work correctly
 import { authMiddleware, adminMiddleware} from '../middleware/authMiddleware';
 import upload from '../middleware/fileUpload';
 
@@ -21,8 +20,9 @@ const adminOrAccountingMiddleware = (
     });
   }
 };
-// Student creates a request.
-router.post('/', authMiddleware, upload.single('document'), createRequest);
+
+// FIX: Changed to handle multiple documents, up to 5.
+router.post('/', authMiddleware, upload.array('documents', 5), createRequest);
 
 // Student gets their own requests.
 router.get('/my-requests', authMiddleware, getStudentRequests);
@@ -32,10 +32,11 @@ router.get('/my-requests', authMiddleware, getStudentRequests);
 
 // Admin gets all requests.
 router.get('/', authMiddleware, adminOrAccountingMiddleware, getAllRequests);
+
 // Admin updates a request's status. It expects a JSON body.
 router.patch('/:id', express.json(), authMiddleware, adminMiddleware, updateRequestStatus);
 
-// Admin gets a specific document for a request.
-router.get('/:id/document', authMiddleware, adminMiddleware, getRequestDocument);
+// FIX: Updated route to get a specific document by its index.
+router.get('/:id/document/:docIndex', authMiddleware, adminMiddleware, getRequestDocument);
 
 export default router;

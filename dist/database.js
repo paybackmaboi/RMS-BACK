@@ -22,7 +22,7 @@ const Request_1 = require("./models/Request");
 dotenv_1.default.config();
 const DB_NAME = process.env.DB_NAME || 'test_db';
 const DB_USER = process.env.DB_USER || 'root';
-const DB_PASSWORD = process.env.DB_PASSWORD || ''; // Default to empty string for safety
+const DB_PASSWORD = process.env.DB_PASSWORD || 'root'; // Default to empty string for safety
 const DB_HOST = process.env.DB_HOST || 'localhost';
 const DB_DIALECT = process.env.DB_DIALECT || 'mysql';
 /**

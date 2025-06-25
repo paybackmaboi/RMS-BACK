@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_2 = __importDefault(require("express"));
 const requestController_1 = require("../controllers/requestController");
-// This import will now work correctly
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const fileUpload_1 = __importDefault(require("../middleware/fileUpload"));
 const router = (0, express_1.Router)();
@@ -22,8 +21,8 @@ const adminOrAccountingMiddleware = (req, res, next) => {
         });
     }
 };
-// Student creates a request.
-router.post('/', authMiddleware_1.authMiddleware, fileUpload_1.default.single('document'), requestController_1.createRequest);
+// FIX: Changed to handle multiple documents, up to 5.
+router.post('/', authMiddleware_1.authMiddleware, fileUpload_1.default.array('documents', 5), requestController_1.createRequest);
 // Student gets their own requests.
 router.get('/my-requests', authMiddleware_1.authMiddleware, requestController_1.getStudentRequests);
 // --- Admin-Only Routes ---
@@ -32,6 +31,6 @@ router.get('/my-requests', authMiddleware_1.authMiddleware, requestController_1.
 router.get('/', authMiddleware_1.authMiddleware, adminOrAccountingMiddleware, requestController_1.getAllRequests);
 // Admin updates a request's status. It expects a JSON body.
 router.patch('/:id', express_2.default.json(), authMiddleware_1.authMiddleware, authMiddleware_1.adminMiddleware, requestController_1.updateRequestStatus);
-// Admin gets a specific document for a request.
-router.get('/:id/document', authMiddleware_1.authMiddleware, authMiddleware_1.adminMiddleware, requestController_1.getRequestDocument);
+// FIX: Updated route to get a specific document by its index.
+router.get('/:id/document/:docIndex', authMiddleware_1.authMiddleware, authMiddleware_1.adminMiddleware, requestController_1.getRequestDocument);
 exports.default = router;
