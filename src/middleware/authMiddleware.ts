@@ -8,7 +8,7 @@ declare global {
         interface Request {
             user?: {
                 id: number;
-                role: 'student' | 'admin';
+                role: 'student' | 'admin'| 'accounting';
             };
         }
     }
@@ -22,7 +22,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
     }
     const token = authHeader.split(' ')[1];
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; role: 'student' | 'admin' };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; role: 'student' | 'admin' | 'accounting' };
         req.user = decoded;
         next();
     } catch (error) {

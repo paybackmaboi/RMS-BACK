@@ -9,7 +9,7 @@ declare global {
         interface Request {
             user?: {
                 id: number;
-                role: 'student' | 'admin';
+                role: 'student' | 'admin'| 'accounting';
             };
         }
     }

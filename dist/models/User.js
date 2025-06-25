@@ -40,7 +40,7 @@ const initUser = (sequelize) => {
             allowNull: false,
         },
         role: {
-            type: sequelize_1.DataTypes.ENUM('student', 'admin'),
+            type: sequelize_1.DataTypes.ENUM('student', 'admin', 'accounting'),
             allowNull: false,
             defaultValue: 'student',
         },
