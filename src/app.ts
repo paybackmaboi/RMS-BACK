@@ -64,7 +64,7 @@ const startServer = async () => {
             where: { idNumber: 'AC001' },
             defaults: { idNumber: 'AC001', password: 'accountingpass', role: 'accounting' }
         });
-        console.log('Dummy accounting AC001 created or exists.');
+        console.log('Dummy accounting AC001 createdddd or exists.');
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
