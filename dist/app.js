@@ -19,6 +19,7 @@ const path_1 = __importDefault(require("path"));
 const database_1 = require("./database");
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const requestRoutes_1 = __importDefault(require("./routes/requestRoutes"));
+const studentRoutes_1 = __importDefault(require("./routes/studentRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -31,6 +32,7 @@ app.use('/uploads', express_1.default.static(path_1.default.resolve(process.cwd(
 // --- Routes ---
 app.use('/api/auth', authRoutes_1.default);
 app.use('/api/requests', requestRoutes_1.default);
+app.use('/api/students', studentRoutes_1.default);
 // --- Error Handling Middleware ---
 const errorHandler = (err, req, res, next) => {
     console.error("An error occurred:", err.message);

@@ -5,6 +5,7 @@ import path from 'path';
 import { sequelize, connectAndInitialize } from './database';
 import authRoutes from './routes/authRoutes';
 import requestRoutes from './routes/requestRoutes';
+import studentRoutes from './routes/studentRoutes'; 
 
 dotenv.config();
 
@@ -23,7 +24,7 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 // --- Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
-
+app.use('/api/students', studentRoutes);
 
 // --- Error Handling Middleware ---
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
