@@ -56,7 +56,11 @@ export const getStudentRequests = async (req: ExpressRequest, res: Response, nex
 export const getAllRequests = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         const requests = await RequestModel.findAll({
-            include: [{ model: User, attributes: ['idNumber'] }],
+            include: [{ 
+                model: User, 
+                // THIS IS THE FIX: Add the name fields to the attributes list
+                attributes: ['idNumber', 'firstName', 'lastName', 'middleName', 'course'] 
+            }],
             order: [['createdAt', 'DESC']],
         });
         res.json(requests);
@@ -84,7 +88,7 @@ export const updateRequestStatus = async (req: ExpressRequest, res: Response, ne
         request.status = status;
         if (notes !== undefined) {
             request.notes = notes;
-        }
+        }       
         await request.save();
         res.json(request);
     } catch (error) {
@@ -126,5 +130,6 @@ export const getRequestDocument = async (req: ExpressRequest, res: Response, nex
         next(error);
     }
 };
+
 
 export {};

@@ -38,22 +38,23 @@ const createAndEnrollStudent = (req, res, next) => __awaiter(void 0, void 0, voi
             return;
         }
         const idNumber = yield generateIdNumber();
-        const password = generatePassword(); // The plain-text password to return
-        // Create the new user. The password will be auto-hashed by the model's hook.
+        const password = generatePassword();
+        // --- START: Update the create call to include names ---
         const newUser = yield database_1.User.create({
             idNumber,
-            password, // Pass the plain-text password here
+            password,
             role: 'student',
-            // You might want to add other fields here to a 'profiles' table later
-            // For now, we'll just create the user for login purposes
+            firstName, // <-- Add this
+            lastName, // <-- Add this
+            middleName, // <-- Add this
         });
-        // Return the generated credentials so the admin can give them to the student
+        // --- END: Update the create call ---
         res.status(201).json({
             message: 'Student account created successfully!',
             user: {
                 id: newUser.id,
                 idNumber: newUser.idNumber,
-                password: password, // Return the un-hashed password
+                password: password,
                 name: `${lastName}, ${firstName} ${middleName || ''}`,
                 gender,
                 course,

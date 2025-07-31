@@ -59,7 +59,11 @@ exports.getStudentRequests = getStudentRequests;
 const getAllRequests = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const requests = yield database_1.Request.findAll({
-            include: [{ model: database_1.User, attributes: ['idNumber'] }],
+            include: [{
+                    model: database_1.User,
+                    // THIS IS THE FIX: Add the name fields to the attributes list
+                    attributes: ['idNumber', 'firstName', 'lastName', 'middleName', 'course']
+                }],
             order: [['createdAt', 'DESC']],
         });
         res.json(requests);
