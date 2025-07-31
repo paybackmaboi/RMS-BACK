@@ -20,9 +20,11 @@ const database_1 = require("./database");
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const requestRoutes_1 = __importDefault(require("./routes/requestRoutes"));
 const studentRoutes_1 = __importDefault(require("./routes/studentRoutes"));
+const accountRoutes_1 = __importDefault(require("./routes/accountRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
+app.set('json spaces', 2);
 // --- Global Middleware ---
 app.use((0, cors_1.default)());
 app.use(express_1.default.json({ limit: '10mb' }));
@@ -33,6 +35,7 @@ app.use('/uploads', express_1.default.static(path_1.default.resolve(process.cwd(
 app.use('/api/auth', authRoutes_1.default);
 app.use('/api/requests', requestRoutes_1.default);
 app.use('/api/students', studentRoutes_1.default);
+app.use('/api/accounts', accountRoutes_1.default);
 // --- Error Handling Middleware ---
 const errorHandler = (err, req, res, next) => {
     console.error("An error occurred:", err.message);
@@ -45,27 +48,45 @@ app.use(errorHandler);
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield (0, database_1.connectAndInitialize)();
-        // Using { alter: true } is safer for development as it tries to update tables
-        // without dropping them, preserving your data.
         yield database_1.sequelize.sync({ alter: true });
         console.log('All models were synchronized successfully.');
         const { User } = require('./database');
-        // Seeding dummy accounts if they don't exist
+        // --- START OF FIX ---
+        // Seeding dummy accounts if they don't exist, now with names
         yield User.findOrCreate({
             where: { idNumber: 'S001' },
-            defaults: { idNumber: 'S001', password: 'password', role: 'student' }
+            defaults: {
+                idNumber: 'S001',
+                password: 'password',
+                role: 'student',
+                firstName: 'Juan',
+                lastName: 'Dela Cruz'
+            }
         });
         console.log('Dummy student S001 created or already exists.');
         yield User.findOrCreate({
             where: { idNumber: 'A001' },
-            defaults: { idNumber: 'A001', password: 'adminpass', role: 'admin' }
+            defaults: {
+                idNumber: 'A001',
+                password: 'adminpass',
+                role: 'admin',
+                firstName: 'Admin',
+                lastName: 'User'
+            }
         });
         console.log('Dummy admin A001 created or exists.');
         yield User.findOrCreate({
             where: { idNumber: 'AC001' },
-            defaults: { idNumber: 'AC001', password: 'accountingpass', role: 'accounting' }
+            defaults: {
+                idNumber: 'AC001',
+                password: 'accountingpass',
+                role: 'accounting',
+                firstName: 'Accounting',
+                lastName: 'User'
+            }
         });
-        console.log('Dummy accounting AC001 createdddd or exists.');
+        console.log('Dummy accounting AC001 created or exists.');
+        // --- END OF FIX ---
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });

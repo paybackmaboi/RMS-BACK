@@ -33,24 +33,25 @@ export const createAndEnrollStudent = async (req: ExpressRequest, res: Response,
         }
 
         const idNumber = await generateIdNumber();
-        const password = generatePassword(); // The plain-text password to return
+        const password = generatePassword();
 
-        // Create the new user. The password will be auto-hashed by the model's hook.
+        // --- START: Update the create call to include names ---
         const newUser = await UserModel.create({
             idNumber,
-            password, // Pass the plain-text password here
+            password,
             role: 'student',
-            // You might want to add other fields here to a 'profiles' table later
-            // For now, we'll just create the user for login purposes
+            firstName,      // <-- Add this
+            lastName,       // <-- Add this
+            middleName,     // <-- Add this
         });
+        // --- END: Update the create call ---
 
-        // Return the generated credentials so the admin can give them to the student
         res.status(201).json({
             message: 'Student account created successfully!',
             user: {
                 id: newUser.id,
                 idNumber: newUser.idNumber,
-                password: password, // Return the un-hashed password
+                password: password,
                 name: `${lastName}, ${firstName} ${middleName || ''}`,
                 gender,
                 course,

@@ -44,6 +44,22 @@ const initUser = (sequelize) => {
             allowNull: false,
             defaultValue: 'student',
         },
+        firstName: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
+        lastName: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
+        middleName: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+        },
+        course: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true, // Allow null for non-student roles
+        },
     }, {
         sequelize,
         tableName: 'users',

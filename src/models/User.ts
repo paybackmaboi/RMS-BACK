@@ -6,6 +6,10 @@ interface UserAttributes {
     idNumber: string;
     password: string;
     role: 'student' | 'admin' | 'accounting';
+    firstName: string;
+    lastName: string;
+    middleName?: string;
+    course?: string;
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
@@ -15,7 +19,10 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
     public idNumber!: string;
     public password!: string;
     public role!: 'student' | 'admin' | 'accounting';
-
+    public firstName!: string;
+    public lastName!: string;
+    public middleName!: string;
+    public course!: string;
     // timestamps!
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -45,6 +52,22 @@ export const initUser = (sequelize: Sequelize) => {
             type: DataTypes.ENUM('student', 'admin', 'accounting'),
             allowNull: false,
             defaultValue: 'student',
+        },
+        firstName: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        lastName: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        middleName: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        course: {
+            type: DataTypes.STRING,
+            allowNull: true, // Allow null for non-student roles
         },
     }, {
         sequelize,
