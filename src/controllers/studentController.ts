@@ -35,17 +35,17 @@ export const createAndEnrollStudent = async (req: ExpressRequest, res: Response,
         const idNumber = await generateIdNumber();
         const password = generatePassword();
 
-        // --- START: Update the create call to include names ---
+        
         const newUser = await UserModel.create({
             idNumber,
             password,
             role: 'student',
-            firstName,      // <-- Add this
-            lastName,       // <-- Add this
-            middleName,     // <-- Add this
+            firstName,      
+            lastName,       
+            middleName,     
+            course,
         });
-        // --- END: Update the create call ---
-
+        
         res.status(201).json({
             message: 'Student account created successfully!',
             user: {

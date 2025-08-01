@@ -39,16 +39,15 @@ const createAndEnrollStudent = (req, res, next) => __awaiter(void 0, void 0, voi
         }
         const idNumber = yield generateIdNumber();
         const password = generatePassword();
-        // --- START: Update the create call to include names ---
         const newUser = yield database_1.User.create({
             idNumber,
             password,
             role: 'student',
-            firstName, // <-- Add this
-            lastName, // <-- Add this
-            middleName, // <-- Add this
+            firstName,
+            lastName,
+            middleName,
+            course,
         });
-        // --- END: Update the create call ---
         res.status(201).json({
             message: 'Student account created successfully!',
             user: {
