@@ -1,5 +1,8 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
+import mysql2 from 'mysql2/promise';
+import { Notification as NotificationModel, initNotification } from './models/Notification';
+
 
 // Import model initializers
 import { User as UserModel, initUser } from './models/User';
@@ -45,11 +48,16 @@ export const connectAndInitialize = async () => {
         // Initialize all models.
         initUser(sequelize);
         initRequest(sequelize);
+        initNotification(sequelize);
 
         // Define all associations.
         UserModel.hasMany(RequestModel, { foreignKey: 'studentId' });
         RequestModel.belongsTo(UserModel, { foreignKey: 'studentId' });
 
+        UserModel.hasMany(NotificationModel, { foreignKey: 'userId' });
+        NotificationModel.belongsTo(UserModel, { foreignKey: 'userId' });
+
+        // 5. Authenticate the connection.
         // Authenticate the connection.
         await sequelize.authenticate();
         console.log('Sequelize has connected to the Aiven database successfully.');
@@ -63,3 +71,6 @@ export const connectAndInitialize = async () => {
 // Export the models for use in other parts of the application.
 export const User = UserModel;
 export const Request = RequestModel;
+export const Notification = NotificationModel;
+export const Request = RequestModel;
+

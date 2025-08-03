@@ -33,6 +33,12 @@ const createRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             status: 'pending',
             filePath: filePaths,
         });
+        yield database_1.Notification.create({
+            userId: studentId,
+            requestId: newRequest.id,
+            message: `You have submitted your request for ${documentType}.`,
+            isRead: false,
+        });
         res.status(201).json(newRequest);
     }
     catch (error) {
@@ -91,6 +97,12 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
             request.notes = notes;
         }
         yield request.save();
+        yield database_1.Notification.create({
+            userId: request.studentId,
+            requestId: request.id,
+            message: `Your request for ${request.documentType} has been ${status.replace(/-/g, ' ')}.`,
+            isRead: false,
+        });
         res.json(request);
     }
     catch (error) {

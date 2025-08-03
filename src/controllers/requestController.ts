@@ -1,5 +1,5 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { Request as RequestModel, User } from '../database';
+import { Request as RequestModel, User, Notification as NotificationModel } from '../database';
 import path from 'path';
 
 declare global {
@@ -33,6 +33,14 @@ export const createRequest = async (req: ExpressRequest, res: Response, next: Ne
             status: 'pending',
             filePath: filePaths,
         });
+
+        await NotificationModel.create({
+            userId: studentId,
+            requestId: newRequest.id,
+            message: `You have submitted your request for ${documentType}.`,
+            isRead: false,
+        });
+
         res.status(201).json(newRequest);
     } catch (error) {
         next(error);
@@ -90,6 +98,13 @@ export const updateRequestStatus = async (req: ExpressRequest, res: Response, ne
             request.notes = notes;
         }       
         await request.save();
+
+        await NotificationModel.create({
+            userId: request.studentId,
+            requestId: request.id,
+            message: `Your request for ${request.documentType} has been ${status.replace(/-/g, ' ')}.`,
+            isRead: false,
+        });
         res.json(request);
     } catch (error) {
         next(error);
