@@ -1,5 +1,5 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { User as UserModel } from '../database';
+import { User as UserModel, Student as StudentModel } from '../database';
 
 // Helper function to generate a unique ID Number
 const generateIdNumber = async (): Promise<string> => {
@@ -57,6 +57,22 @@ export const createAndEnrollStudent = async (req: ExpressRequest, res: Response,
                 course,
             },
         });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getRegistrationStatus = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+
+        const student = await StudentModel.findOne({ where: { userId } });
+        res.json({ isRegistered: !!student });
 
     } catch (error) {
         next(error);

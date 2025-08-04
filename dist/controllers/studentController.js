@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAndEnrollStudent = void 0;
+exports.getRegistrationStatus = exports.createAndEnrollStudent = void 0;
 const database_1 = require("../database");
 // Helper function to generate a unique ID Number
 const generateIdNumber = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -65,3 +65,19 @@ const createAndEnrollStudent = (req, res, next) => __awaiter(void 0, void 0, voi
     }
 });
 exports.createAndEnrollStudent = createAndEnrollStudent;
+const getRegistrationStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+        const student = yield database_1.Student.findOne({ where: { userId } });
+        res.json({ isRegistered: !!student });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.getRegistrationStatus = getRegistrationStatus;

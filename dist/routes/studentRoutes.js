@@ -11,4 +11,5 @@ const router = express_1.default.Router();
 // Route for admin to create a new student account
 // FIX: Use the correctly named functions in the route definition
 router.post('/create-and-enroll', authMiddleware_1.authMiddleware, authMiddleware_1.adminMiddleware, studentController_1.createAndEnrollStudent);
+router.get('/registration-status', authMiddleware_1.authMiddleware, studentController_1.getRegistrationStatus);
 exports.default = router;
