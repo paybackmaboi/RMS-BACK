@@ -12,18 +12,42 @@ const initCourse = (sequelize) => {
             autoIncrement: true,
             primaryKey: true,
         },
-        courseCode: {
-            type: sequelize_1.DataTypes.STRING,
+        code: {
+            type: sequelize_1.DataTypes.STRING(20),
             allowNull: false,
             unique: true,
         },
-        courseName: {
-            type: sequelize_1.DataTypes.STRING,
+        name: {
+            type: sequelize_1.DataTypes.STRING(100),
             allowNull: false,
         },
-        department: {
-            type: sequelize_1.DataTypes.STRING,
+        description: {
+            type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+        },
+        departmentId: {
+            type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
+            allowNull: false,
+        },
+        totalUnits: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0,
+        },
+        duration: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 4,
+        },
+        level: {
+            type: sequelize_1.DataTypes.ENUM('Undergraduate', 'Graduate', 'Postgraduate'),
+            allowNull: false,
+            defaultValue: 'Undergraduate',
+        },
+        isActive: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
         },
     }, {
         tableName: 'courses',

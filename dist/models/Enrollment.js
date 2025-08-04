@@ -25,6 +25,11 @@ const initEnrollment = (sequelize) => {
             defaultValue: 'enrolled',
             allowNull: false,
         },
+        enrollmentDate: {
+            type: sequelize_1.DataTypes.DATE,
+            allowNull: false,
+            defaultValue: sequelize_1.DataTypes.NOW,
+        },
     }, {
         tableName: 'enrollments',
         sequelize: sequelize,

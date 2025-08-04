@@ -25,6 +25,11 @@ const accountRoutes_1 = __importDefault(require("./routes/accountRoutes"));
 const notificationRoutes_1 = __importDefault(require("./routes/notificationRoutes"));
 // Import the new registration routes
 const registrationRoutes_1 = __importDefault(require("./routes/registrationRoutes"));
+// Import new routes for enrollment and subject management
+const enrollmentRoutes_1 = __importDefault(require("./routes/enrollmentRoutes"));
+const subjectRoutes_1 = __importDefault(require("./routes/subjectRoutes"));
+const scheduleRoutes_1 = __importDefault(require("./routes/scheduleRoutes"));
+const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +48,11 @@ app.use('/api/accounts', accountRoutes_1.default);
 app.use('/api/notifications', notificationRoutes_1.default);
 // Add the new registration route
 app.use('/api/register', registrationRoutes_1.default);
+// Add new routes for enrollment and subject management
+app.use('/api/enrollments', enrollmentRoutes_1.default);
+app.use('/api/subjects', subjectRoutes_1.default);
+app.use('/api/schedules', scheduleRoutes_1.default);
+app.use('/api/courses', courseRoutes_1.default);
 // --- Error Handling Middleware ---
 const errorHandler = (err, req, res, next) => {
     console.error("An error occurred:", err.message);

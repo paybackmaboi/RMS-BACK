@@ -8,44 +8,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerStudent = void 0;
+exports.createStudentRegistration = void 0;
 const database_1 = require("../database");
-// Controller to handle the new student registration
-const registerStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const createStudentRegistration = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Get the ID of the currently logged-in user from the auth middleware
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-        if (!userId) {
-            res.status(401).json({ message: 'Unauthorized: You must be logged in to register.' });
+        const { idNumber, password, firstName, lastName, middleName, email, phoneNumber, courseId } = req.body;
+        // Check if user already exists
+        const existingUser = yield database_1.User.findOne({ where: { idNumber } });
+        if (existingUser) {
+            res.status(400).json({ message: 'User with this ID number already exists.' });
             return;
         }
-        // Check if this user already has a student record
-        const existingStudent = yield database_1.Student.findOne({ where: { userId } });
-        if (existingStudent) {
-            res.status(400).json({ message: 'This user has already completed their registration.' });
-            return;
-        }
-        // Get the personal data from the form
-        const { gender, dateOfBirth, placeOfBirth, civilStatus, religion, parentGuardian, permanentAddress, previousSchool, yearOfEntry } = req.body;
-        // Create the detailed student record and associate it with the logged-in user
-        const newStudent = yield database_1.Student.create({
-            userId, // Use the ID from the logged-in user
-            gender,
-            dateOfBirth,
-            placeOfBirth,
-            civilStatus,
-            religion,
-            parentGuardian,
-            permanentAddress,
-            previousSchool,
-            yearOfEntry
+        // Hash password
+        const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
+        // Create user first
+        const newUser = yield database_1.User.create({
+            idNumber,
+            password: hashedPassword,
+            firstName,
+            lastName,
+            middleName,
+            email,
+            phoneNumber,
+            role: 'student',
+            isActive: true
         });
-        res.status(201).json({ message: 'Student registered successfully!', studentId: newStudent.id });
+        res.status(201).json({
+            message: 'Student account created successfully. Please complete your registration.',
+            user: {
+                id: newUser.id,
+                idNumber: newUser.idNumber,
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                role: newUser.role
+            }
+        });
     }
     catch (error) {
         next(error);
     }
 });
-exports.registerStudent = registerStudent;
+exports.createStudentRegistration = createStudentRegistration;

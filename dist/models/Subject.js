@@ -12,18 +12,44 @@ const initSubject = (sequelize) => {
             autoIncrement: true,
             primaryKey: true,
         },
-        subjectCode: {
-            type: sequelize_1.DataTypes.STRING,
+        code: {
+            type: sequelize_1.DataTypes.STRING(20),
             allowNull: false,
             unique: true,
         },
-        description: {
-            type: sequelize_1.DataTypes.STRING,
+        name: {
+            type: sequelize_1.DataTypes.STRING(100),
             allowNull: false,
+        },
+        description: {
+            type: sequelize_1.DataTypes.TEXT,
+            allowNull: true,
         },
         units: {
             type: sequelize_1.DataTypes.INTEGER,
             allowNull: false,
+        },
+        courseId: {
+            type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
+            allowNull: false,
+        },
+        yearLevel: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+        },
+        semester: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+        },
+        subjectType: {
+            type: sequelize_1.DataTypes.ENUM('Core', 'Elective', 'General Education', 'NSTP', 'PE'),
+            allowNull: false,
+            defaultValue: 'Core',
+        },
+        isActive: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
         },
     }, {
         tableName: 'subjects',

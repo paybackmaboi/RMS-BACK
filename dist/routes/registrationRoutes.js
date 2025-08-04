@@ -7,6 +7,6 @@ const express_1 = __importDefault(require("express"));
 const registrationController_1 = require("../controllers/registrationController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
-// This route will handle the student registration form submission
-router.post('/student', authMiddleware_1.authMiddleware, registrationController_1.registerStudent);
+// Route for admin to create a new student account
+router.post('/create', authMiddleware_1.authMiddleware, authMiddleware_1.adminMiddleware, registrationController_1.createStudentRegistration);
 exports.default = router;

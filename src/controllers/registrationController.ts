@@ -1,52 +1,60 @@
-import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { Student } from '../database';
+import { Request, Response, NextFunction } from 'express';
+import { User } from '../database';
+import bcrypt from 'bcryptjs';
 
-// Controller to handle the new student registration
-export const registerStudent = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+interface ExpressRequest extends Request {
+    user?: {
+        id: number;
+        role: 'student' | 'admin' | 'accounting';
+    };
+}
+
+export const createStudentRegistration = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        // Get the ID of the currently logged-in user from the auth middleware
-        const userId = req.user?.id;
-        if (!userId) {
-            res.status(401).json({ message: 'Unauthorized: You must be logged in to register.' });
-            return;
-        }
-        
-        // Check if this user already has a student record
-        const existingStudent = await Student.findOne({ where: { userId } });
-        if (existingStudent) {
-            res.status(400).json({ message: 'This user has already completed their registration.' });
-            return;
-        }
-
-        // Get the personal data from the form
         const {
-            gender,
-            dateOfBirth,
-            placeOfBirth,
-            civilStatus,
-            religion,
-            parentGuardian,
-            permanentAddress,
-            previousSchool,
-            yearOfEntry
+            idNumber,
+            password,
+            firstName,
+            lastName,
+            middleName,
+            email,
+            phoneNumber,
+            courseId
         } = req.body;
 
-        // Create the detailed student record and associate it with the logged-in user
-        const newStudent = await Student.create({
-            userId, // Use the ID from the logged-in user
-            gender,
-            dateOfBirth,
-            placeOfBirth,
-            civilStatus,
-            religion,
-            parentGuardian,
-            permanentAddress,
-            previousSchool,
-            yearOfEntry
+        // Check if user already exists
+        const existingUser = await User.findOne({ where: { idNumber } });
+        if (existingUser) {
+            res.status(400).json({ message: 'User with this ID number already exists.' });
+            return;
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create user first
+        const newUser = await User.create({
+            idNumber,
+            password: hashedPassword,
+            firstName,
+            lastName,
+            middleName,
+            email,
+            phoneNumber,
+            role: 'student',
+            isActive: true
         });
 
-        res.status(201).json({ message: 'Student registered successfully!', studentId: newStudent.id });
-
+        res.status(201).json({
+            message: 'Student account created successfully. Please complete your registration.',
+            user: {
+                id: newUser.id,
+                idNumber: newUser.idNumber,
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                role: newUser.role
+            }
+        });
     } catch (error) {
         next(error);
     }

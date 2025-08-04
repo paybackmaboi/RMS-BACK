@@ -5,6 +5,7 @@ interface EnrollmentAttributes {
     studentId: number;
     scheduleId: number;
     status: 'enrolled' | 'assessed' | 'dropped';
+    enrollmentDate: Date;
 }
 
 interface EnrollmentCreationAttributes extends Optional<EnrollmentAttributes, 'id'> {}
@@ -14,6 +15,7 @@ export class Enrollment extends Model<EnrollmentAttributes, EnrollmentCreationAt
     public studentId!: number;
     public scheduleId!: number;
     public status!: 'enrolled' | 'assessed' | 'dropped';
+    public enrollmentDate!: Date;
 
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -38,6 +40,11 @@ export const initEnrollment = (sequelize: Sequelize) => {
             type: DataTypes.ENUM('enrolled', 'assessed', 'dropped'),
             defaultValue: 'enrolled',
             allowNull: false,
+        },
+        enrollmentDate: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
         },
     }, {
         tableName: 'enrollments',

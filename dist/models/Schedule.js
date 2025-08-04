@@ -16,29 +16,44 @@ const initSchedule = (sequelize) => {
             type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
         },
-        schoolYear: {
-            type: sequelize_1.DataTypes.STRING,
+        schoolYearId: {
+            type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
         },
-        semester: {
-            type: sequelize_1.DataTypes.STRING,
+        semesterId: {
+            type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
         },
-        days: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: true,
+        dayOfWeek: {
+            type: sequelize_1.DataTypes.STRING(20),
+            allowNull: false,
         },
-        time: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: true,
+        startTime: {
+            type: sequelize_1.DataTypes.STRING(10),
+            allowNull: false,
+        },
+        endTime: {
+            type: sequelize_1.DataTypes.STRING(10),
+            allowNull: false,
         },
         room: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.STRING(50),
             allowNull: true,
         },
-        teacherId: {
-            type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
+        maxStudents: {
+            type: sequelize_1.DataTypes.INTEGER,
             allowNull: true,
+            defaultValue: 50,
+        },
+        currentEnrolled: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0,
+        },
+        isActive: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
         },
     }, {
         tableName: 'schedules',

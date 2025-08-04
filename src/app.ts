@@ -12,6 +12,12 @@ import accountRoutes from './routes/accountRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 // Import the new registration routes
 import registrationRoutes from './routes/registrationRoutes';
+// Import new routes for enrollment and subject management
+import enrollmentRoutes from './routes/enrollmentRoutes';
+import subjectRoutes from './routes/subjectRoutes';
+import scheduleRoutes from './routes/scheduleRoutes';
+import courseRoutes from './routes/courseRoutes';
+
 
 dotenv.config();
 
@@ -35,6 +41,11 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/notifications', notificationRoutes);
 // Add the new registration route
 app.use('/api/register', registrationRoutes);
+// Add new routes for enrollment and subject management
+app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api/subjects', subjectRoutes);
+app.use('/api/schedules', scheduleRoutes);
+app.use('/api/courses', courseRoutes);
 
 // --- Error Handling Middleware ---
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

@@ -1,10 +1,10 @@
 import express from 'express';
-import { registerStudent } from '../controllers/registrationController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { createStudentRegistration } from '../controllers/registrationController';
+import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// This route will handle the student registration form submission
-router.post('/student', authMiddleware, registerStudent);
+// Route for admin to create a new student account
+router.post('/create', authMiddleware, adminMiddleware, createStudentRegistration);
 
 export default router;
