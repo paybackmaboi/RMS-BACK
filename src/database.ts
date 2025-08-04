@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 import mysql2 from 'mysql2/promise';
+import { Notification as NotificationModel, initNotification } from './models/Notification';
 
 // Import model initializers
 import { User as UserModel, initUser } from './models/User';
@@ -44,10 +45,14 @@ export const connectAndInitialize = async () => {
         // 3. Initialize all models.
         initUser(sequelize);
         initRequest(sequelize);
+        initNotification(sequelize);
 
         // 4. Define all associations.
         UserModel.hasMany(RequestModel, { foreignKey: 'studentId' });
         RequestModel.belongsTo(UserModel, { foreignKey: 'studentId' });
+
+        UserModel.hasMany(NotificationModel, { foreignKey: 'userId' });
+        NotificationModel.belongsTo(UserModel, { foreignKey: 'userId' });
 
         // 5. Authenticate the connection.
         await sequelize.authenticate();
@@ -63,3 +68,4 @@ export const connectAndInitialize = async () => {
 // Note: These are only usable *after* connectAndInitialize has been called.
 export const User = UserModel;
 export const Request = RequestModel;
+export const Notification = NotificationModel;

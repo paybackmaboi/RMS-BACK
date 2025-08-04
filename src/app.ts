@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes';
 import requestRoutes from './routes/requestRoutes';
 import studentRoutes from './routes/studentRoutes'; 
 import accountRoutes from './routes/accountRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/accounts', accountRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // --- Error Handling Middleware ---
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

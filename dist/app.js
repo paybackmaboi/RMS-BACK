@@ -21,6 +21,7 @@ const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const requestRoutes_1 = __importDefault(require("./routes/requestRoutes"));
 const studentRoutes_1 = __importDefault(require("./routes/studentRoutes"));
 const accountRoutes_1 = __importDefault(require("./routes/accountRoutes"));
+const notificationRoutes_1 = __importDefault(require("./routes/notificationRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes_1.default);
 app.use('/api/requests', requestRoutes_1.default);
 app.use('/api/students', studentRoutes_1.default);
 app.use('/api/accounts', accountRoutes_1.default);
+app.use('/api/notifications', notificationRoutes_1.default);
 // --- Error Handling Middleware ---
 const errorHandler = (err, req, res, next) => {
     console.error("An error occurred:", err.message);

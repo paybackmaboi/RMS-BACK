@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Request = exports.User = exports.connectAndInitialize = exports.sequelize = void 0;
+exports.Notification = exports.Request = exports.User = exports.connectAndInitialize = exports.sequelize = void 0;
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 const promise_1 = __importDefault(require("mysql2/promise"));
+const Notification_1 = require("./models/Notification");
 // Import model initializers
 const User_1 = require("./models/User");
 const Request_1 = require("./models/Request");
@@ -49,9 +50,12 @@ const connectAndInitialize = () => __awaiter(void 0, void 0, void 0, function* (
         // 3. Initialize all models.
         (0, User_1.initUser)(exports.sequelize);
         (0, Request_1.initRequest)(exports.sequelize);
+        (0, Notification_1.initNotification)(exports.sequelize);
         // 4. Define all associations.
         User_1.User.hasMany(Request_1.Request, { foreignKey: 'studentId' });
         Request_1.Request.belongsTo(User_1.User, { foreignKey: 'studentId' });
+        User_1.User.hasMany(Notification_1.Notification, { foreignKey: 'userId' });
+        Notification_1.Notification.belongsTo(User_1.User, { foreignKey: 'userId' });
         // 5. Authenticate the connection.
         yield exports.sequelize.authenticate();
         console.log('Sequelize has connected to the database successfully.');
@@ -66,3 +70,4 @@ exports.connectAndInitialize = connectAndInitialize;
 // Note: These are only usable *after* connectAndInitialize has been called.
 exports.User = User_1.User;
 exports.Request = Request_1.Request;
+exports.Notification = Notification_1.Notification;
