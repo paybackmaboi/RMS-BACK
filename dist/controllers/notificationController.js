@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markAllAsRead = exports.getMyNotifications = void 0;
+exports.clearAllNotifications = exports.markAllAsRead = exports.getMyNotifications = void 0;
 const database_1 = require("../database");
 // Get all notifications for the logged-in user
 const getMyNotifications = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -51,3 +51,21 @@ const markAllAsRead = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.markAllAsRead = markAllAsRead;
+const clearAllNotifications = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+        yield database_1.Notification.destroy({
+            where: { userId }
+        });
+        res.status(200).json({ message: 'All notifications cleared.' });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.clearAllNotifications = clearAllNotifications;

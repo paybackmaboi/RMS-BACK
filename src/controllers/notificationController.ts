@@ -36,3 +36,19 @@ export const markAllAsRead = async (req: ExpressRequest, res: Response, next: Ne
         next(error);
     }
 };
+
+export const clearAllNotifications = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+        await NotificationModel.destroy({
+            where: { userId }
+        });
+        res.status(200).json({ message: 'All notifications cleared.' });
+    } catch (error) {
+        next(error);
+    }
+};

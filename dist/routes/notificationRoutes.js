@@ -11,4 +11,5 @@ const router = express_1.default.Router();
 router.get('/', authMiddleware_1.authMiddleware, notificationController_1.getMyNotifications);
 // Route to mark all notifications as read
 router.patch('/read', authMiddleware_1.authMiddleware, notificationController_1.markAllAsRead);
+router.delete('/', authMiddleware_1.authMiddleware, notificationController_1.clearAllNotifications);
 exports.default = router;

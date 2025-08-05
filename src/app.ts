@@ -50,7 +50,6 @@ const startServer = async () => {
 
         const { User } = require('./database');
         
-        // --- START OF FIX ---
         // Seeding dummy accounts if they don't exist, now with names
         await User.findOrCreate({
             where: { idNumber: 'S001' },
@@ -87,7 +86,6 @@ const startServer = async () => {
             }
         });
         console.log('Dummy accounting AC001 created or exists.');
-        // --- END OF FIX ---
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);

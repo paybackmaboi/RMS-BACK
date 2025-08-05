@@ -16,11 +16,6 @@ exports.login = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const database_1 = require("../database");
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
-/**
- * FIX: The function signature was changed to explicitly define parameter types and a return type of Promise<void>.
- * This avoids the type conflict with the stricter 'RequestHandler' type.
- * 'RequestHandler' was removed from the function definition.
- */
 const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { idNumber, password } = req.body;
     try {
@@ -40,7 +35,18 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         const token = jsonwebtoken_1.default.sign(
         // NOTE: Using '(user as any)' to access model properties.
         { id: user.id, idNumber: user.idNumber, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token, user: { id: user.id, idNumber: user.idNumber, role: user.role } });
+        res.json({
+            token,
+            user: {
+                id: user.id,
+                idNumber: user.idNumber,
+                role: user.role,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                middleName: user.middleName,
+                course: user.course,
+            }
+        });
     }
     catch (error) {
         console.error('Login error:', error);
