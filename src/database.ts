@@ -72,5 +72,4 @@ export const connectAndInitialize = async () => {
 export const User = UserModel;
 export const Request = RequestModel;
 export const Notification = NotificationModel;
-export const Request = RequestModel;
 
