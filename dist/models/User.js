@@ -31,12 +31,13 @@ const initUser = (sequelize) => {
             primaryKey: true,
         },
         idNumber: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.STRING(20),
             allowNull: false,
-            unique: true,
+            // Removed unique constraint to avoid "Too many keys" error
+            // Uniqueness will be handled at application level
         },
         password: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.STRING(255),
             allowNull: false,
         },
         role: {
@@ -45,20 +46,30 @@ const initUser = (sequelize) => {
             defaultValue: 'student',
         },
         firstName: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.STRING(50),
             allowNull: false,
         },
         lastName: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.STRING(50),
             allowNull: false,
         },
         middleName: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.STRING(50),
             allowNull: true,
         },
-        course: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: true, // Allow null for non-student roles
+        email: {
+            type: sequelize_1.DataTypes.STRING(100),
+            allowNull: true,
+            // Removed unique constraint to avoid "Too many keys" error
+        },
+        phoneNumber: {
+            type: sequelize_1.DataTypes.STRING(20),
+            allowNull: true,
+        },
+        isActive: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
         },
     }, {
         sequelize,

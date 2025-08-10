@@ -9,7 +9,9 @@ interface UserAttributes {
     firstName: string;
     lastName: string;
     middleName?: string;
-    course?: string;
+    email?: string;
+    phoneNumber?: string;
+    isActive: boolean;
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
@@ -22,7 +24,9 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
     public firstName!: string;
     public lastName!: string;
     public middleName!: string;
-    public course!: string;
+    public email!: string;
+    public phoneNumber!: string;
+    public isActive!: boolean;
     // timestamps!
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -40,12 +44,13 @@ export const initUser = (sequelize: Sequelize) => {
             primaryKey: true,
         },
         idNumber: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(20),
             allowNull: false,
-            unique: true,
+            // Removed unique constraint to avoid "Too many keys" error
+            // Uniqueness will be handled at application level
         },
         password: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(255),
             allowNull: false,
         },
         role: {
@@ -54,20 +59,30 @@ export const initUser = (sequelize: Sequelize) => {
             defaultValue: 'student',
         },
         firstName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(50),
             allowNull: false,
         },
         lastName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(50),
             allowNull: false,
         },
         middleName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(50),
             allowNull: true,
         },
-        course: {
-            type: DataTypes.STRING,
-            allowNull: true, // Allow null for non-student roles
+        email: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            // Removed unique constraint to avoid "Too many keys" error
+        },
+        phoneNumber: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
+        isActive: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
         },
     }, {
         sequelize,

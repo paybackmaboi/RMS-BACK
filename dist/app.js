@@ -12,8 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config({ path: '.env' });
+const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const database_1 = require("./database");
@@ -22,6 +23,13 @@ const requestRoutes_1 = __importDefault(require("./routes/requestRoutes"));
 const studentRoutes_1 = __importDefault(require("./routes/studentRoutes"));
 const accountRoutes_1 = __importDefault(require("./routes/accountRoutes"));
 const notificationRoutes_1 = __importDefault(require("./routes/notificationRoutes"));
+// Import the new registration routes
+const registrationRoutes_1 = __importDefault(require("./routes/registrationRoutes"));
+// Import new routes for enrollment and subject management
+const enrollmentRoutes_1 = __importDefault(require("./routes/enrollmentRoutes"));
+const subjectRoutes_1 = __importDefault(require("./routes/subjectRoutes"));
+const scheduleRoutes_1 = __importDefault(require("./routes/scheduleRoutes"));
+const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -38,6 +46,13 @@ app.use('/api/requests', requestRoutes_1.default);
 app.use('/api/students', studentRoutes_1.default);
 app.use('/api/accounts', accountRoutes_1.default);
 app.use('/api/notifications', notificationRoutes_1.default);
+// Add the new registration route
+app.use('/api/register', registrationRoutes_1.default);
+// Add new routes for enrollment and subject management
+app.use('/api/enrollments', enrollmentRoutes_1.default);
+app.use('/api/subjects', subjectRoutes_1.default);
+app.use('/api/schedules', scheduleRoutes_1.default);
+app.use('/api/courses', courseRoutes_1.default);
 // --- Error Handling Middleware ---
 const errorHandler = (err, req, res, next) => {
     console.error("An error occurred:", err.message);
@@ -53,8 +68,7 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         yield database_1.sequelize.sync({ alter: true });
         console.log('All models were synchronized successfully.');
         const { User } = require('./database');
-        // --- START OF FIX ---
-        // Seeding dummy accounts if they don't exist, now with names
+        // Seeding dummy accounts if they don't exist
         yield User.findOrCreate({
             where: { idNumber: 'S001' },
             defaults: {
@@ -88,7 +102,6 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
             }
         });
         console.log('Dummy accounting AC001 created or exists.');
-        // --- END OF FIX ---
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });

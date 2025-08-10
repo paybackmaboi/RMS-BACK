@@ -1,5 +1,5 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { Request as RequestModel, User, Notification as NotificationModel } from '../database';
+import { Request as RequestModel, User, Student, Course, Notification as NotificationModel } from '../database';
 import path from 'path';
 
 declare global {
@@ -7,7 +7,7 @@ declare global {
         interface Request {
             user?: {
                 id: number;
-                role: 'student' | 'admin'| 'accounting';
+                role: 'student' | 'admin' | 'accounting';
             };
         }
     }
@@ -15,11 +15,17 @@ declare global {
 
 export const createRequest = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { documentType, purpose } = req.body;
+        const documentType = req.body.documentType;
+        const purpose = req.body.purpose;
         const studentId = req.user?.id;
 
         if (!studentId) {
             res.status(401).json({ message: 'Unauthorized: Student ID not found.' });
+            return;
+        }
+
+        if (!documentType || !purpose) {
+            res.status(400).json({ message: 'Document type and purpose are required.' });
             return;
         }
 
@@ -64,15 +70,26 @@ export const getStudentRequests = async (req: ExpressRequest, res: Response, nex
 export const getAllRequests = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         const requests = await RequestModel.findAll({
-            include: [{ 
-                model: User, 
-                // THIS IS THE FIX: Add the name fields to the attributes list
-                attributes: ['idNumber', 'firstName', 'lastName', 'middleName', 'course'] 
+            include: [{
+                model: User,
+                as: 'student',
+                attributes: ['idNumber', 'firstName', 'lastName', 'middleName'],
+                include: [{
+                    model: Student,
+                    as: 'studentDetails',
+                    attributes: ['courseId'], 
+                    include: [{
+                        model: Course,
+                        as: 'course',
+                        attributes: ['name'] 
+                    }]
+                }]
             }],
             order: [['createdAt', 'DESC']],
         });
         res.json(requests);
     } catch (error) {
+        console.error('Error fetching requests:', error);
         next(error);
     }
 };
@@ -111,36 +128,108 @@ export const updateRequestStatus = async (req: ExpressRequest, res: Response, ne
     }
 };
 
+export const getRequestsByStudentId = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { studentId } = req.params;
+        const requests = await RequestModel.findAll({
+            where: { studentId: parseInt(studentId, 10) },
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(requests);
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 export const getRequestDocument = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { id, docIndex } = req.params;
         const request = await RequestModel.findByPk(id);
-
-        if (!request || !request.filePath || !Array.isArray(request.filePath) || request.filePath.length === 0) {
-            res.status(404).json({ message: 'Document not found for this request.' });
+        
+        if (!request || !request.filePath) {
+            res.status(404).json({ message: 'Document not found.' });
             return;
         }
-        
-        const index = parseInt(docIndex, 10);
-        if (isNaN(index) || index < 0 || index >= request.filePath.length) {
-            // FIX: Removed the 'return' from res.status().json() to match the Promise<void> return type.
-            res.status(400).json({ message: 'Invalid document index.' });
+
+        const filePaths = Array.isArray(request.filePath) ? request.filePath : [request.filePath];
+        const docIndexNum = parseInt(docIndex, 10);
+
+        if (docIndexNum < 0 || docIndexNum >= filePaths.length) {
+            res.status(404).json({ message: 'Document index out of range.' });
             return;
         }
+
+        const fileName = filePaths[docIndexNum];
+        const filePath = path.join(process.cwd(), 'uploads', fileName);
         
-        const singleFilePath = request.filePath[index];
+        // Check if file exists
+        const fs = require('fs');
+        if (!fs.existsSync(filePath)) {
+            res.status(404).json({ message: 'File not found on server.' });
+            return;
+        }
 
-        const absoluteFilePath = path.resolve(process.cwd(), 'uploads', singleFilePath);
+        // Set appropriate headers for file download/viewing
+        const ext = path.extname(fileName).toLowerCase();
+        if (ext === '.pdf') {
+            res.setHeader('Content-Type', 'application/pdf');
+        } else if (['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
+            res.setHeader('Content-Type', `image/${ext.slice(1)}`);
+        } else {
+            res.setHeader('Content-Type', 'application/octet-stream');
+        }
+        
+        res.sendFile(filePath);
+    } catch (error) {
+        console.error('Error serving document:', error);
+        res.status(500).json({ message: 'Error serving document.' });
+    }
+};
 
-        res.download(absoluteFilePath, (err) => {
-            if (err) {
-                console.error("File download error:", err);
-                if (!res.headersSent) {
-                    res.status(404).json({ message: "File not found on server." });
-                }
-            }
+export const getRequestById = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const userId = req.user?.id;
+        const userRole = req.user?.role;
+
+        const request = await RequestModel.findByPk(id, {
+            include: [{ 
+                model: User, 
+                as: 'student',
+                attributes: ['idNumber', 'firstName', 'lastName', 'middleName'] 
+            }]
         });
+
+        if (!request) {
+            res.status(404).json({ message: 'Request not found.' });
+            return;
+        }
+
+        // Students can only view their own requests
+        if (userRole === 'student' && request.studentId !== userId) {
+            res.status(403).json({ message: 'Access denied.' });
+            return;
+        }
+
+        res.json(request);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteRequest = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const request = await RequestModel.findByPk(id);
+        if (!request) {
+            res.status(404).json({ message: 'Request not found.' });
+            return;
+        }
+
+        await request.destroy();
+        res.json({ message: 'Request deleted successfully.' });
     } catch (error) {
         next(error);
     }
