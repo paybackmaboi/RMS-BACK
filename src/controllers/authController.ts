@@ -4,11 +4,6 @@ import { User } from '../database';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
-/**
- * FIX: The function signature was changed to explicitly define parameter types and a return type of Promise<void>.
- * This avoids the type conflict with the stricter 'RequestHandler' type.
- * 'RequestHandler' was removed from the function definition.
- */
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { idNumber, password } = req.body;
 
@@ -37,7 +32,18 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
             { expiresIn: '1h' }
         );
 
-        res.json({ token, user: { id: (user as any).id, idNumber: (user as any).idNumber, role: (user as any).role } });
+        res.json({ 
+            token, 
+            user: { 
+                id: user.id, 
+                idNumber: user.idNumber, 
+                role: user.role,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                middleName: user.middleName,
+                course: user.course,
+            } 
+        });
 
     } catch (error) {
         console.error('Login error:', error);

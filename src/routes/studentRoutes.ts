@@ -14,7 +14,7 @@ import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware';
 const router = express.Router();
 
 // Student registration
-router.post('/register', authMiddleware, registerStudent);
+router.post('/register', registerStudent);
 
 // Debug endpoint
 router.get('/debug', authMiddleware, debugStudentRegistration);

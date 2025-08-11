@@ -1,5 +1,5 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { Request as RequestModel, User, Notification as NotificationModel } from '../database';
+import { Request as RequestModel, User, Student, Course, Notification as NotificationModel } from '../database';
 import path from 'path';
 
 declare global {
@@ -70,15 +70,26 @@ export const getStudentRequests = async (req: ExpressRequest, res: Response, nex
 export const getAllRequests = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         const requests = await RequestModel.findAll({
-            include: [{ 
-                model: User, 
+            include: [{
+                model: User,
                 as: 'student',
-                attributes: ['idNumber', 'firstName', 'lastName', 'middleName'] 
+                attributes: ['idNumber', 'firstName', 'lastName', 'middleName'],
+                include: [{
+                    model: Student,
+                    as: 'studentDetails',
+                    attributes: ['courseId'], 
+                    include: [{
+                        model: Course,
+                        as: 'course',
+                        attributes: ['name'] 
+                    }]
+                }]
             }],
             order: [['createdAt', 'DESC']],
         });
         res.json(requests);
     } catch (error) {
+        console.error('Error fetching requests:', error);
         next(error);
     }
 };
@@ -112,6 +123,19 @@ export const updateRequestStatus = async (req: ExpressRequest, res: Response, ne
             isRead: false,
         });
         res.json(request);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getRequestsByStudentId = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { studentId } = req.params;
+        const requests = await RequestModel.findAll({
+            where: { studentId: parseInt(studentId, 10) },
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(requests);
     } catch (error) {
         next(error);
     }

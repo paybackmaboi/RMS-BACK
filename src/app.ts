@@ -62,7 +62,6 @@ app.use(errorHandler);
 const startServer = async () => {
     try {
         await connectAndInitialize();
-        await sequelize.sync({ alter: true });
         console.log('All models were synchronized successfully.');
 
         const { User } = require('./database');

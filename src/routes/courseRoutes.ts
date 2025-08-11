@@ -12,7 +12,7 @@ import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware';
 const router = express.Router();
 
 // Public routes (no admin required for viewing courses)
-router.get('/', authMiddleware, getAllCourses);
+router.get('/', getAllCourses);
 router.get('/department/:departmentId', authMiddleware, getCoursesByDepartment);
 router.get('/:id', authMiddleware, getCourseById);
 

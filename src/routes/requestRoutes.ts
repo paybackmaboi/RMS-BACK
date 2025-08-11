@@ -6,7 +6,8 @@ import {
     createRequest,
     deleteRequest,
     getStudentRequests,
-    getRequestDocument
+    getRequestDocument,
+    getRequestsByStudentId
 } from '../controllers/requestController';
 import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware';
 import upload from '../middleware/fileUpload';
@@ -18,6 +19,7 @@ router.get('/', authMiddleware, getAllRequests);
 
 // Get student's own requests (must come before /:id route)
 router.get('/my-requests', authMiddleware, getStudentRequests);
+router.get('/student/:studentId', authMiddleware, adminMiddleware, getRequestsByStudentId);
 
 // Create new request (students only) - with file upload support
 router.post('/', authMiddleware, upload.array('documents', 5), createRequest);
