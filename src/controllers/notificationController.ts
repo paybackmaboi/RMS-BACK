@@ -1,5 +1,5 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { Notification as NotificationModel } from '../database';
+import { NotificationModel } from '../database';
 
 // Get all notifications for the logged-in user
 export const getMyNotifications = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {

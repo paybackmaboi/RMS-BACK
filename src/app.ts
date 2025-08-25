@@ -4,10 +4,12 @@ import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'e
 
 import cors from 'cors';
 import path from 'path';
+import cookieParser from 'cookie-parser';
 import { sequelize, connectAndInitialize } from './database';
 import authRoutes from './routes/authRoutes';
 import requestRoutes from './routes/requestRoutes';
 import studentRoutes from './routes/studentRoutes';
+import sessionRoutes from './routes/sessionRoutes';
 import accountRoutes from './routes/accountRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 // Import the new registration routes
@@ -17,6 +19,9 @@ import enrollmentRoutes from './routes/enrollmentRoutes';
 import subjectRoutes from './routes/subjectRoutes';
 import scheduleRoutes from './routes/scheduleRoutes';
 import courseRoutes from './routes/courseRoutes';
+import bsitCurriculumRoutes from './routes/bsitCurriculumRoutes';
+import dashboardRoutes from './routes/dashboardRoutes';
+import photoRoutes from './routes/photoRoutes';
 
 
 dotenv.config();
@@ -26,6 +31,7 @@ const PORT = process.env.PORT || 5000;
 app.set('json spaces', 2);
 // --- Global Middleware ---
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -36,16 +42,26 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 // --- Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
-app.use('/api/students', studentRoutes);
+app.use('/api/sessions', sessionRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/notifications', notificationRoutes);
 // Add the new registration route
 app.use('/api/register', registrationRoutes);
+
+// Student enrollment routes (for student dashboard) - register BEFORE studentRoutes to avoid conflicts
+app.use('/api/students', enrollmentRoutes);
+
+// Student management routes (for admin functions like viewing student details)
+app.use('/api/students', studentRoutes);
+
 // Add new routes for enrollment and subject management
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/bsit-curriculum', bsitCurriculumRoutes);
+app.use('/api/admin/dashboard', dashboardRoutes);
+app.use('/api/photos', photoRoutes);
 
 // --- Error Handling Middleware ---
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
@@ -61,54 +77,20 @@ app.use(errorHandler);
 
 const startServer = async () => {
     try {
+        // Initialize database and sync all models
         await connectAndInitialize();
-        console.log('All models were synchronized successfully.');
+        console.log('🚀 Server starting up...');
 
-        const { User } = require('./database');
-
-        // Seeding dummy accounts if they don't exist
-        await User.findOrCreate({
-            where: { idNumber: 'S001' },
-            defaults: {
-                idNumber: 'S001',
-                password: 'password',
-                role: 'student',
-                firstName: 'Juan',
-                lastName: 'Dela Cruz'
-            }
-        });
-        console.log('Dummy student S001 created or already exists.');
-
-        await User.findOrCreate({
-            where: { idNumber: 'A001' },
-            defaults: {
-                idNumber: 'A001',
-                password: 'adminpass',
-                role: 'admin',
-                firstName: 'Admin',
-                lastName: 'User'
-            }
-        });
-        console.log('Dummy admin A001 created or exists.');
-
-        await User.findOrCreate({
-            where: { idNumber: 'AC001' },
-            defaults: {
-                idNumber: 'AC001',
-                password: 'accountingpass',
-                role: 'accounting',
-                firstName: 'Accounting',
-                lastName: 'User'
-            }
-        });
-        console.log('Dummy accounting AC001 created or exists.');
-
+        // Start the server
         app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+            console.log(`✅ Server running on port ${PORT}`);
+            console.log(`🌐 API available at: http://localhost:${PORT}/api`);
+            console.log(`📚 Database tables created/verified automatically`);
+            console.log(`🔑 Sample users created for testing`);
         });
 
     } catch (err) {
-        console.error('Unable to start the server:', err);
+        console.error('❌ Unable to start the server:', err);
         process.exit(1);
     }
 };

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { User } from '../database';
+import { UserModel } from '../database';
 import bcrypt from 'bcryptjs';
 
 interface ExpressRequest extends Request {
@@ -23,7 +23,7 @@ export const createStudentRegistration = async (req: ExpressRequest, res: Respon
         } = req.body;
 
         // Check if user already exists
-        const existingUser = await User.findOne({ where: { idNumber } });
+        const existingUser = await UserModel.findOne({ where: { idNumber } });
         if (existingUser) {
             res.status(400).json({ message: 'User with this ID number already exists.' });
             return;
@@ -33,7 +33,7 @@ export const createStudentRegistration = async (req: ExpressRequest, res: Respon
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create user first
-        const newUser = await User.create({
+        const newUser = await UserModel.create({
             idNumber,
             password: hashedPassword,
             firstName,

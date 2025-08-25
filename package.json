@@ -6,7 +6,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
     "start": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "migrate": "node migrate-database.js",
+    "test-registration": "node test-registration.js",
+    "test-db": "node start-server.js"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +26,6 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.14.1",
     "nodemon": "^3.1.10",
     "sequelize": "^6.37.7",
     "ts-node": "^10.9.2",
@@ -31,8 +33,13 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
+    "@types/uuid": "^10.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "multer": "^2.0.1"
+    "multer": "^2.0.2",
+    "mysql2": "^2.3.3",
+    "uuid": "^11.1.0"
   }
 }

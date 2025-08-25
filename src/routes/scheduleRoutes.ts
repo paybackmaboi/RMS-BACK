@@ -1,32 +1,19 @@
 import express from 'express';
-import { 
-    getAllSchedules, 
-    getScheduleById, 
-    createSchedule, 
-    updateSchedule, 
-    deleteSchedule,
-    getSchedulesBySubject
-} from '../controllers/scheduleController';
-import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware';
+import { getStudentSchedule, getAllSchedules, getScheduleEnrolledStudents, checkDatabaseStructure } from '../controllers/scheduleController';
+import { adminSessionAuthMiddleware, studentSessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
 
 const router = express.Router();
 
-// Get all schedules
-router.get('/', authMiddleware, getAllSchedules);
+// Get student's personal schedule (requires student authentication)
+router.get('/student/:userId', studentSessionAuthMiddleware, getStudentSchedule);
 
-// Get schedules by subject
-router.get('/subject/:subjectId', authMiddleware, getSchedulesBySubject);
+// Get all schedules for admin view (requires admin authentication)
+router.get('/admin/all', adminSessionAuthMiddleware, getAllSchedules);
 
-// Get specific schedule
-router.get('/:id', authMiddleware, getScheduleById);
+// Get enrolled students for a specific schedule (requires admin authentication)
+router.get('/admin/enrolled-students/:scheduleId', adminSessionAuthMiddleware, getScheduleEnrolledStudents);
 
-// Create new schedule (admin only)
-router.post('/', authMiddleware, adminMiddleware, createSchedule);
-
-// Update schedule (admin only)
-router.put('/:id', authMiddleware, adminMiddleware, updateSchedule);
-
-// Delete schedule (admin only)
-router.delete('/:id', authMiddleware, adminMiddleware, deleteSchedule);
+// Diagnostic route to check database structure (requires admin authentication)
+router.get('/admin/diagnostic', adminSessionAuthMiddleware, checkDatabaseStructure);
 
 export default router; 

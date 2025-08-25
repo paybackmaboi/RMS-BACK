@@ -8,47 +8,47 @@ interface StudentAttributes {
     
     // I. PERSONAL DATA
     fullName: string;
-    gender: string;
-    maritalStatus: string;
-    dateOfBirth: Date;
-    placeOfBirth: string;
-    email: string;
-    contactNumber: string;
-    religion: string;
-    citizenship: string;
-    country: string;
-    acrNumber?: string; // for foreign students
+    gender?: string;
+    maritalStatus?: string; 
+    dateOfBirth?: Date;
+    placeOfBirth?: string; 
+    email?: string;
+    contactNumber?: string; 
+    religion?: string; 
+    citizenship?: string;
+    country?: string; 
+    acrNumber?: string; 
     
     // Address Information
-    cityAddress: string;
+    cityAddress?: string; 
     cityTelNumber?: string;
-    provincialAddress: string;
+    provincialAddress?: string; 
     provincialTelNumber?: string;
     
     // II. FAMILY BACKGROUND
     // Father's Information
-    fatherName: string;
-    fatherAddress: string;
-    fatherOccupation: string;
-    fatherCompany: string;
-    fatherContactNumber: string;
-    fatherIncome: string;
+    fatherName?: string; 
+    fatherAddress?: string;
+    fatherOccupation?: string; 
+    fatherCompany?: string; 
+    fatherContactNumber?: string; 
+    fatherIncome?: string; 
     
     // Mother's Information
-    motherName: string;
-    motherAddress: string;
-    motherOccupation: string;
-    motherCompany: string;
-    motherContactNumber: string;
-    motherIncome: string;
+    motherName?: string; 
+    motherAddress?: string;
+    motherOccupation?: string;
+    motherCompany?: string;
+    motherContactNumber?: string; 
+    motherIncome?: string; 
     
     // Guardian's Information
-    guardianName: string;
-    guardianAddress: string;
-    guardianOccupation: string;
-    guardianCompany: string;
-    guardianContactNumber: string;
-    guardianIncome: string;
+    guardianName?: string; 
+    guardianAddress?: string; 
+    guardianOccupation?: string; 
+    guardianCompany?: string; 
+    guardianContactNumber?: string; 
+    guardianIncome?: string; 
     
     // III. CURRENT ACADEMIC BACKGROUND
     major?: string;
@@ -60,23 +60,23 @@ interface StudentAttributes {
     
     // IV. ACADEMIC HISTORY
     // Elementary
-    elementarySchool: string;
-    elementaryAddress: string;
+    elementarySchool?: string;
+    elementaryAddress?: string; 
     elementaryHonor?: string;
-    elementaryYearGraduated: number;
+    elementaryYearGraduated?: number; 
     
     // Junior High School
-    juniorHighSchool: string;
-    juniorHighAddress: string;
+    juniorHighSchool?: string; 
+    juniorHighAddress?: string; 
     juniorHighHonor?: string;
-    juniorHighYearGraduated: number;
+    juniorHighYearGraduated?: number;
     
     // Senior High School
-    seniorHighSchool: string;
-    seniorHighAddress: string;
+    seniorHighSchool?: string; 
+    seniorHighAddress?: string;
     seniorHighStrand?: string;
     seniorHighHonor?: string;
-    seniorHighYearGraduated: number;
+    seniorHighYearGraduated?: number; 
     
     // Additional Academic Information
     ncaeGrade?: string;
@@ -105,83 +105,83 @@ export class Student extends Model<StudentAttributes, StudentCreationAttributes>
     
     // I. PERSONAL DATA
     public fullName!: string;
-    public gender!: string;
-    public maritalStatus!: string;
-    public dateOfBirth!: Date;
-    public placeOfBirth!: string;
-    public email!: string;
-    public contactNumber!: string;
-    public religion!: string;
-    public citizenship!: string;
-    public country!: string;
-    public acrNumber!: string;
+    public gender?: string;
+    public maritalStatus?: string;
+    public dateOfBirth?: Date;
+    public placeOfBirth?: string;
+    public email?: string;
+    public contactNumber?: string;
+    public religion?: string;
+    public citizenship?: string;
+    public country?: string;
+    public acrNumber?: string;
     
     // Address Information
-    public cityAddress!: string;
-    public cityTelNumber!: string;
-    public provincialAddress!: string;
-    public provincialTelNumber!: string;
+    public cityAddress?: string;
+    public cityTelNumber?: string;
+    public provincialAddress?: string;
+    public provincialTelNumber?: string;
     
     // II. FAMILY BACKGROUND
     // Father's Information
-    public fatherName!: string;
-    public fatherAddress!: string;
-    public fatherOccupation!: string;
-    public fatherCompany!: string;
-    public fatherContactNumber!: string;
-    public fatherIncome!: string;
+    public fatherName?: string;
+    public fatherAddress?: string;
+    public fatherOccupation?: string;
+    public fatherCompany?: string;
+    public fatherContactNumber?: string;
+    public fatherIncome?: string;
     
     // Mother's Information
-    public motherName!: string;
-    public motherAddress!: string;
-    public motherOccupation!: string;
-    public motherCompany!: string;
-    public motherContactNumber!: string;
-    public motherIncome!: string;
+    public motherName?: string;
+    public motherAddress?: string;
+    public motherOccupation?: string;
+    public motherCompany?: string;
+    public motherContactNumber?: string;
+    public motherIncome?: string;
     
     // Guardian's Information
-    public guardianName!: string;
-    public guardianAddress!: string;
-    public guardianOccupation!: string;
-    public guardianCompany!: string;
-    public guardianContactNumber!: string;
-    public guardianIncome!: string;
+    public guardianName?: string;
+    public guardianAddress?: string;
+    public guardianOccupation?: string;
+    public guardianCompany?: string;
+    public guardianContactNumber?: string;
+    public guardianIncome?: string;
     
     // III. CURRENT ACADEMIC BACKGROUND
-    public major!: string;
+    public major?: string;
     public studentType!: 'First' | 'Second' | 'Summer';
     public semesterEntry!: 'First' | 'Second' | 'Summer';
     public yearOfEntry!: number;
-    public estimatedYearOfGraduation!: number | null;
+    public estimatedYearOfGraduation?: number | null;
     public applicationType!: 'Freshmen' | 'Transferee' | 'Cross Enrollee';
     
     // IV. ACADEMIC HISTORY
     // Elementary
-    public elementarySchool!: string;
-    public elementaryAddress!: string;
-    public elementaryHonor!: string;
-    public elementaryYearGraduated!: number;
+    public elementarySchool?: string;
+    public elementaryAddress?: string;
+    public elementaryHonor?: string;
+    public elementaryYearGraduated?: number;
     
     // Junior High School
-    public juniorHighSchool!: string;
-    public juniorHighAddress!: string;
-    public juniorHighHonor!: string;
-    public juniorHighYearGraduated!: number;
+    public juniorHighSchool?: string;
+    public juniorHighAddress?: string;
+    public juniorHighHonor?: string;
+    public juniorHighYearGraduated?: number;
     
     // Senior High School
-    public seniorHighSchool!: string;
-    public seniorHighAddress!: string;
-    public seniorHighStrand!: string;
-    public seniorHighHonor!: string;
-    public seniorHighYearGraduated!: number;
+    public seniorHighSchool?: string;
+    public seniorHighAddress?: string;
+    public seniorHighStrand?: string;
+    public seniorHighHonor?: string;
+    public seniorHighYearGraduated?: number;
     
     // Additional Academic Information
-    public ncaeGrade!: string;
-    public specialization!: string;
-    public lastCollegeAttended!: string;
-    public lastCollegeYearTaken!: number | null;
-    public lastCollegeCourse!: string;
-    public lastCollegeMajor!: string;
+    public ncaeGrade?: string;
+    public specialization?: string;
+    public lastCollegeAttended?: string;
+    public lastCollegeYearTaken?: number | null;
+    public lastCollegeCourse?: string;
+    public lastCollegeMajor?: string;
     
     // Academic Status
     public academicStatus!: 'Regular' | 'Irregular' | 'Probationary' | 'Graduated' | 'Dropped';
@@ -224,40 +224,40 @@ export const initStudent = (sequelize: Sequelize) => {
         },
         gender: {
             type: DataTypes.STRING(10),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         maritalStatus: {
             type: DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         dateOfBirth: {
             type: DataTypes.DATE,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         placeOfBirth: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         email: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         contactNumber: {
             type: DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         religion: {
             type: DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         citizenship: {
             type: DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true, // Will be filled later
             defaultValue: 'Filipino',
         },
         country: {
             type: DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true, // Will be filled later
             defaultValue: 'Philippines',
         },
         acrNumber: {
@@ -268,7 +268,7 @@ export const initStudent = (sequelize: Sequelize) => {
         // Address Information
         cityAddress: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         cityTelNumber: {
             type: DataTypes.STRING(20),
@@ -276,7 +276,7 @@ export const initStudent = (sequelize: Sequelize) => {
         },
         provincialAddress: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         provincialTelNumber: {
             type: DataTypes.STRING(20),
@@ -287,15 +287,15 @@ export const initStudent = (sequelize: Sequelize) => {
         // Father's Information
         fatherName: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         fatherAddress: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         fatherOccupation: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         fatherCompany: {
             type: DataTypes.STRING(100),
@@ -303,7 +303,7 @@ export const initStudent = (sequelize: Sequelize) => {
         },
         fatherContactNumber: {
             type: DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         fatherIncome: {
             type: DataTypes.STRING(50),
@@ -313,15 +313,15 @@ export const initStudent = (sequelize: Sequelize) => {
         // Mother's Information
         motherName: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         motherAddress: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         motherOccupation: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, 
         },
         motherCompany: {
             type: DataTypes.STRING(100),
@@ -329,7 +329,7 @@ export const initStudent = (sequelize: Sequelize) => {
         },
         motherContactNumber: {
             type: DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         motherIncome: {
             type: DataTypes.STRING(50),
@@ -339,15 +339,15 @@ export const initStudent = (sequelize: Sequelize) => {
         // Guardian's Information
         guardianName: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         guardianAddress: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         guardianOccupation: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         guardianCompany: {
             type: DataTypes.STRING(100),
@@ -355,7 +355,7 @@ export const initStudent = (sequelize: Sequelize) => {
         },
         guardianContactNumber: {
             type: DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         guardianIncome: {
             type: DataTypes.STRING(50),
@@ -395,11 +395,11 @@ export const initStudent = (sequelize: Sequelize) => {
         // Elementary
         elementarySchool: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         elementaryAddress: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         elementaryHonor: {
             type: DataTypes.STRING(100),
@@ -407,17 +407,17 @@ export const initStudent = (sequelize: Sequelize) => {
         },
         elementaryYearGraduated: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         
         // Junior High School
         juniorHighSchool: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         juniorHighAddress: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         juniorHighHonor: {
             type: DataTypes.STRING(100),
@@ -425,17 +425,17 @@ export const initStudent = (sequelize: Sequelize) => {
         },
         juniorHighYearGraduated: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         
         // Senior High School
         seniorHighSchool: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         seniorHighAddress: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         seniorHighStrand: {
             type: DataTypes.STRING(100),
@@ -447,7 +447,7 @@ export const initStudent = (sequelize: Sequelize) => {
         },
         seniorHighYearGraduated: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         
         // Additional Academic Information
@@ -512,3 +512,5 @@ export const initStudent = (sequelize: Sequelize) => {
         sequelize: sequelize,
     });
 };
+
+export default initStudent;

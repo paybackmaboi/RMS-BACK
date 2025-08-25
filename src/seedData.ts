@@ -1,11 +1,11 @@
-import { Department, Course, SchoolYear, Semester } from './database';
+import { DepartmentModel, CourseModel, SchoolYearModel, SemesterModel } from './database';
 
 export const seedInitialData = async () => {
     try {
         console.log('🌱 Seeding initial data...');
 
         // Create departments
-        const departments = await Department.bulkCreate([
+        const departments = await DepartmentModel.bulkCreate([
             {
                 code: 'CIT',
                 name: 'College of Information Technology',
@@ -29,7 +29,7 @@ export const seedInitialData = async () => {
         console.log('✅ Departments created');
 
         // Create courses
-        const courses = await Course.bulkCreate([
+        const courses = await CourseModel.bulkCreate([
             {
                 code: 'BSIT',
                 name: 'Bachelor of Science in Information Technology',
@@ -62,7 +62,7 @@ export const seedInitialData = async () => {
         console.log('✅ Courses created');
 
         // Create school years
-        const schoolYears = await SchoolYear.bulkCreate([
+        const schoolYears = await SchoolYearModel.bulkCreate([
             {
                 year: '2024-2025',
                 description: 'Academic Year 2024-2025',
@@ -84,7 +84,7 @@ export const seedInitialData = async () => {
         console.log('✅ School years created');
 
         // Create semesters
-        const semesters = await Semester.bulkCreate([
+        const semesters = await SemesterModel.bulkCreate([
             {
                 name: 'First Semester',
                 code: '1ST',

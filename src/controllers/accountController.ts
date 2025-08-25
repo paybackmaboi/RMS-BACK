@@ -1,5 +1,11 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { User as UserModel } from '../database';
+import { 
+    UserModel, 
+    StudentModel, 
+    StudentRegistrationModel,
+    BsitCurriculumModel,
+    StudentEnrollmentModel
+} from '../database';
 import { Op } from 'sequelize';
 
 // Helper function to generate a new random password
@@ -7,16 +13,115 @@ const generatePassword = (length: number = 6): string => {
     return Math.random().toString().substring(2, 2 + length);
 };
 
-// This function will fetch all users with the 'student' role
+// Enhanced function to fetch all students with registration and enrollment data
 export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const studentAccounts = await UserModel.findAll({
-            where: { role: 'student' },
-            attributes: ['id', 'idNumber', 'firstName', 'lastName', 'middleName', 'createdAt'],
-            order: [['createdAt', 'DESC']],
+        console.log('Fetching students from database...');
+        
+        // Only fetch students who have completed their registration form
+        const students = await UserModel.findAll({
+            where: { role: 'student', isActive: true },
+            include: [
+                {
+                    model: StudentModel
+                    // No alias needed - uses default model name
+                }
+            ],
+            order: [['createdAt', 'DESC']]
         });
-        res.json(studentAccounts);
+
+        // Filter to only include students who have submitted registration form
+        const studentsWithRegistrations = await Promise.all(
+            students.map(async (student) => {
+                const registration = await StudentRegistrationModel.findOne({
+                    where: { userId: student.id },
+                    order: [['createdAt', 'DESC']]
+                });
+                return { student, registration };
+            })
+        );
+
+        // Only keep students who have registration data
+        const filteredStudents = studentsWithRegistrations
+            .filter(item => item.registration !== null)
+            .map(item => item.student);
+        console.log('Found students:', students.length);
+        console.log('Students with registrations:', filteredStudents.length);
+
+        // Get registration and enrollment data for students who completed registration
+        const studentsWithDetails = await Promise.all(filteredStudents.map(async (student, index) => {
+            const studentDetails = student.get('Student') as any;
+            
+            // Use the registration data we already fetched
+            const registration = studentsWithRegistrations[index].registration;
+
+            // Get student enrollment count
+            const enrollmentCount = await StudentEnrollmentModel.count({
+                where: { studentId: student.id }
+            });
+
+            // Get current year level and semester from registration
+            let currentYearLevel = 'Not registered';
+            let currentSemester = 'Not registered';
+            let totalUnits = 0;
+            let registrationStatus = 'Not registered';
+            let registrationDate = null;
+
+            if (registration) {
+                currentYearLevel = registration.yearLevel;
+                currentSemester = registration.semester;
+                registrationStatus = registration.registrationStatus;
+                registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
+                
+                // Calculate total units from curriculum
+                const curriculum = await BsitCurriculumModel.findAll({
+                    where: {
+                        yearLevel: registration.yearLevel,
+                        semester: registration.semester,
+                        isActive: true
+                    }
+                });
+                totalUnits = curriculum.reduce((sum, course) => sum + course.units, 0);
+            }
+
+            // 1. Create a 'name' field in the desired "Last, First M." format.
+            const name = `${student.lastName}, ${student.firstName} ${student.middleName || ''}`.trim();
+
+            // 2. Format the 'createdAt' date into a 'YYYY-MM-DD' string to prevent "Invalid Date".
+            const formattedDate = new Date(student.createdAt).toISOString().split('T')[0];
+
+            return {
+                id: student.id,
+                idNumber: student.idNumber,
+                firstName: student.firstName,
+                lastName: student.lastName,
+                middleName: student.middleName,
+                gender: studentDetails?.gender || 'N/A',
+                email: student.email,
+                phoneNumber: student.phoneNumber,
+                profilePhoto: student.profilePhoto, // Add profile photo field
+                isRegistered: !!studentDetails,
+                course: 'Bachelor of Science in Information Technology', // BSIT is the course
+                studentNumber: studentDetails?.studentNumber || student.idNumber,
+                fullName: studentDetails?.fullName || `${student.firstName} ${student.lastName}`,
+                academicStatus: studentDetails?.academicStatus || 'Not registered',
+                createdAt: formattedDate,
+                // New fields for registration and enrollment
+                registrationStatus: registrationStatus,
+                registrationDate: registrationDate,
+                currentYearLevel: currentYearLevel,
+                currentSemester: currentSemester,
+                totalUnits: totalUnits,
+                enrollmentCount: enrollmentCount,
+                isFullyEnrolled: enrollmentCount > 0
+            };
+        }));
+
+        console.log('Fetched students:', studentsWithDetails.length);
+        console.log('Sample student data:', studentsWithDetails[0]);
+        res.json(studentsWithDetails);
     } catch (error) {
+        console.error('Error fetching all students:', error);
         next(error);
     }
 };

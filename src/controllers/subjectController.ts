@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { Subject, Course } from '../database';
+import { SubjectModel, CourseModel } from '../database';
 
 interface ExpressRequest extends Request {
     user?: {
@@ -10,10 +10,10 @@ interface ExpressRequest extends Request {
 
 export const getAllSubjects = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const subjects = await Subject.findAll({
+        const subjects = await SubjectModel.findAll({
             include: [
                 {
-                    model: Course,
+                    model: CourseModel,
                     as: 'course'
                 }
             ],
@@ -28,10 +28,10 @@ export const getAllSubjects = async (req: ExpressRequest, res: Response, next: N
 export const getSubjectById = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { id } = req.params;
-        const subject = await Subject.findByPk(id, {
+        const subject = await SubjectModel.findByPk(id, {
             include: [
                 {
-                    model: Course,
+                    model: CourseModel,
                     as: 'course'
                 }
             ]
@@ -52,10 +52,10 @@ export const getSubjectsByCourse = async (req: ExpressRequest, res: Response, ne
     try {
         const { course } = req.params;
         
-        const subjects = await Subject.findAll({
+        const subjects = await SubjectModel.findAll({
             include: [
                 {
-                    model: Course,
+                    model: CourseModel,
                     as: 'course',
                     where: { code: course }
                 }
@@ -87,7 +87,7 @@ export const createSubject = async (req: ExpressRequest, res: Response, next: Ne
             return;
         }
 
-        const subject = await Subject.create({
+        const subject = await SubjectModel.create({
             code,
             name,
             description,
@@ -110,7 +110,7 @@ export const updateSubject = async (req: ExpressRequest, res: Response, next: Ne
         const { id } = req.params;
         const updateData = req.body;
 
-        const subject = await Subject.findByPk(id);
+        const subject = await SubjectModel.findByPk(id);
         if (!subject) {
             res.status(404).json({ message: 'Subject not found.' });
             return;
@@ -127,7 +127,7 @@ export const deleteSubject = async (req: ExpressRequest, res: Response, next: Ne
     try {
         const { id } = req.params;
 
-        const subject = await Subject.findByPk(id);
+        const subject = await SubjectModel.findByPk(id);
         if (!subject) {
             res.status(404).json({ message: 'Subject not found.' });
             return;

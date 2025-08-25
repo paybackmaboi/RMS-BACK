@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { Course, Department } from '../database';
+import { CourseModel, DepartmentModel } from '../database';
 
 interface ExpressRequest extends Request {
     user?: {
@@ -10,11 +10,11 @@ interface ExpressRequest extends Request {
 
 export const getAllCourses = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const courses = await Course.findAll({
+        const courses = await CourseModel.findAll({
             where: { isActive: true },
             include: [
                 {
-                    model: Department,
+                    model: DepartmentModel,
                     as: 'department'
                 }
             ],
@@ -31,10 +31,10 @@ export const getCourseById = async (req: ExpressRequest, res: Response, next: Ne
     try {
         const { id } = req.params;
 
-        const course = await Course.findByPk(id, {
+        const course = await CourseModel.findByPk(id, {
             include: [
                 {
-                    model: Department,
+                    model: DepartmentModel,
                     as: 'department'
                 }
             ]
@@ -55,14 +55,14 @@ export const getCoursesByDepartment = async (req: ExpressRequest, res: Response,
     try {
         const { departmentId } = req.params;
 
-        const courses = await Course.findAll({
+        const courses = await CourseModel.findAll({
             where: { 
                 departmentId: parseInt(departmentId),
                 isActive: true 
             },
             include: [
                 {
-                    model: Department,
+                    model: DepartmentModel,
                     as: 'department'
                 }
             ],
@@ -87,7 +87,7 @@ export const createCourse = async (req: ExpressRequest, res: Response, next: Nex
             level
         } = req.body;
 
-        const course = await Course.create({
+        const course = await CourseModel.create({
             code,
             name,
             description,
@@ -109,7 +109,7 @@ export const updateCourse = async (req: ExpressRequest, res: Response, next: Nex
         const { id } = req.params;
         const updateData = req.body;
 
-        const course = await Course.findByPk(id);
+        const course = await CourseModel.findByPk(id);
         if (!course) {
             res.status(404).json({ message: 'Course not found.' });
             return;
@@ -126,7 +126,7 @@ export const deleteCourse = async (req: ExpressRequest, res: Response, next: Nex
     try {
         const { id } = req.params;
 
-        const course = await Course.findByPk(id);
+        const course = await CourseModel.findByPk(id);
         if (!course) {
             res.status(404).json({ message: 'Course not found.' });
             return;

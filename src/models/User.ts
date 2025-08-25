@@ -12,6 +12,7 @@ interface UserAttributes {
     email?: string;
     phoneNumber?: string;
     isActive: boolean;
+    profilePhoto?: string; // URL to stored photo
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
@@ -23,10 +24,11 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
     public role!: 'student' | 'admin' | 'accounting';
     public firstName!: string;
     public lastName!: string;
-    public middleName!: string;
-    public email!: string;
-    public phoneNumber!: string;
+    public middleName?: string;
+    public email?: string;
+    public phoneNumber?: string;
     public isActive!: boolean;
+    public profilePhoto?: string; // Add profile photo property
     // timestamps!
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -83,6 +85,11 @@ export const initUser = (sequelize: Sequelize) => {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true,
+        },
+        profilePhoto: {
+            type: DataTypes.STRING(500),
+            allowNull: true,
+            comment: 'URL to stored profile photo'
         },
     }, {
         sequelize,

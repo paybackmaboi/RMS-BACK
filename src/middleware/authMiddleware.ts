@@ -3,16 +3,7 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
-declare global {
-    namespace Express {
-        interface Request {
-            user?: {
-                id: number;
-                role: 'student' | 'admin'| 'accounting';
-            };
-        }
-    }
-}
+
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
     const authHeader = req.headers.authorization;
@@ -37,6 +28,3 @@ export const adminMiddleware = (req: Request, res: Response, next: NextFunction)
     }
     next();
 };
-
-// This empty export ensures the file is treated as a module.
-export {};

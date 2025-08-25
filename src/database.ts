@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
-import mysql2 from 'mysql2/promise';
+import mysql2 from 'mysql2';
 
 // Import all model initializers
 import { User as UserModel, initUser } from './models/User';
@@ -12,132 +12,249 @@ import { SchoolYear as SchoolYearModel, initSchoolYear } from './models/SchoolYe
 import { Semester as SemesterModel, initSemester } from './models/Semester';
 import { Schedule as ScheduleModel, initSchedule } from './models/Schedule';
 import { Enrollment as EnrollmentModel, initEnrollment } from './models/Enrollment';
-import { Grade as GradeModel, initGrade } from './models/Grade';
+import { StudentRegistration as StudentRegistrationModel, initStudentRegistration } from './models/StudentRegistration';
+import { BsitCurriculum as BsitCurriculumModel, initBsitCurriculum } from './models/BsitCurriculum';
+import { BsitSchedule as BsitScheduleModel, initBsitSchedule } from './models/BsitSchedule';
+import { StudentEnrollment as StudentEnrollmentModel, initStudentEnrollment } from './models/StudentEnrollment';
+import { UserSession as UserSessionModel, initUserSession } from './models/UserSession';
 import { Request as RequestModel, initRequest } from './models/Request';
 import { Notification as NotificationModel, initNotification } from './models/Notification';
 
+// Load environment variables
 dotenv.config();
 
+// Database configuration
+const DB_HOST = process.env.DB_HOST || 'localhost';
+const DB_USER = process.env.DB_USER || 'root';
+const DB_PASSWORD = process.env.DB_PASSWORD || 'root';
 const DB_NAME = process.env.DB_NAME;
-const DB_USER = process.env.DB_USER;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const DB_HOST = process.env.DB_HOST;
-const DB_PORT = process.env.DB_PORT;
-const DB_DIALECT = process.env.DB_DIALECT || 'mysql';
+const DB_PORT = parseInt(process.env.DB_PORT || '3306');
 
-export let sequelize: Sequelize;
+// Create Sequelize instance
+export const sequelize = new Sequelize({
+    dialect: 'mysql',
+    host: DB_HOST,
+    username: DB_USER,
+    password: DB_PASSWORD,
+    database: DB_NAME,
+    port: DB_PORT,
+    dialectModule: mysql2,
+    dialectOptions: {
+        // MySQL2 configuration
+        supportBigNumbers: true,
+        bigNumberStrings: true,
+        dateStrings: true,
+        decimalNumbers: true,
+        connectTimeout: 60000,
+        acquireTimeout: 60000,
+        timeout: 60000
+    },
+    logging: console.log, // Enable logging for debugging
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+    }
+});
 
-/**
- * Initializes the Sequelize instance, connects to the database,
- * and sets up the models and their associations.
- */
-export const connectAndInitialize = async () => {
-    try {
-        // VALIDATION: Ensure all required environment variables are set for the database.
-        if (!DB_NAME || !DB_USER || !DB_PASSWORD || !DB_HOST || !DB_PORT) {
-            throw new Error('One or more database environment variables are not set.');
-        }
-
-        // Initialize Sequelize directly with all connection details.
-        sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-            host: DB_HOST,
-            port: Number(DB_PORT), // Port must be a number
-            dialect: DB_DIALECT as 'mysql',
-            logging: true, // Temporarily enable logging to see what's happening
-        });
-
-        // Initialize all models.
-        initUser(sequelize);
-        initStudent(sequelize);
-        initDepartment(sequelize);
-        initCourse(sequelize);
-        initSubject(sequelize);
-        initSchoolYear(sequelize);
-        initSemester(sequelize);
-        initSchedule(sequelize);
-        initEnrollment(sequelize);
-        initGrade(sequelize);
+// Initialize all models
+export const initializeModels = () => {
+    initUser(sequelize);
+    initStudent(sequelize);
+    initDepartment(sequelize);
+    initCourse(sequelize);
+    initSubject(sequelize);
+    initSchoolYear(sequelize);
+    initSemester(sequelize);
+    initSchedule(sequelize);
+    initEnrollment(sequelize);
+            initStudentRegistration(sequelize);
+        initBsitCurriculum(sequelize);
+        initBsitSchedule(sequelize);
+        initStudentEnrollment(sequelize);
+        initUserSession(sequelize);
         initRequest(sequelize);
         initNotification(sequelize);
+};
 
-        // --- Define all associations ---
+// Define associations
+export const defineAssociations = () => {
+    // User associations
+    UserModel.hasOne(StudentModel, { foreignKey: 'userId' });
+    StudentModel.belongsTo(UserModel, { foreignKey: 'userId' });
 
-        // Department -> Course (One-to-Many)
-        DepartmentModel.hasMany(CourseModel, { foreignKey: 'departmentId', as: 'courses' });
-        CourseModel.belongsTo(DepartmentModel, { foreignKey: 'departmentId', as: 'department' });
+    // Department associations
+    DepartmentModel.hasMany(CourseModel, { foreignKey: 'departmentId' });
+    CourseModel.belongsTo(DepartmentModel, { foreignKey: 'departmentId' });
 
-        // Course -> Subject (One-to-Many)
-        CourseModel.hasMany(SubjectModel, { foreignKey: 'courseId', as: 'subjects' });
-        SubjectModel.belongsTo(CourseModel, { foreignKey: 'courseId', as: 'course' });
+    // Course associations
+    CourseModel.hasMany(StudentModel, { foreignKey: 'courseId' });
+    StudentModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
 
-        // User -> Student (One-to-One)
-        UserModel.hasOne(StudentModel, { foreignKey: 'userId', as: 'studentDetails' });
-        StudentModel.belongsTo(UserModel, { foreignKey: 'userId', as: 'user' });
+    // Subject associations
+    SubjectModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
+    CourseModel.hasMany(SubjectModel, { foreignKey: 'courseId' });
 
-        // Course -> Student (One-to-Many)
-        CourseModel.hasMany(StudentModel, { foreignKey: 'courseId', as: 'students' });
-        StudentModel.belongsTo(CourseModel, { foreignKey: 'courseId', as: 'course' });
+    // Schedule associations
+    ScheduleModel.belongsTo(SubjectModel, { foreignKey: 'subjectId' });
+    SubjectModel.hasMany(ScheduleModel, { foreignKey: 'subjectId' });
 
-        // SchoolYear -> Schedule (One-to-Many)
-        SchoolYearModel.hasMany(ScheduleModel, { foreignKey: 'schoolYearId', as: 'schedules' });
-        ScheduleModel.belongsTo(SchoolYearModel, { foreignKey: 'schoolYearId', as: 'schoolYear' });
+    // Enrollment associations
+    EnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
+    StudentModel.hasMany(EnrollmentModel, { foreignKey: 'studentId' });
+    EnrollmentModel.belongsTo(ScheduleModel, { foreignKey: 'scheduleId' });
+    ScheduleModel.hasMany(EnrollmentModel, { foreignKey: 'scheduleId' });
 
-        // Semester -> Schedule (One-to-Many)
-        SemesterModel.hasMany(ScheduleModel, { foreignKey: 'semesterId', as: 'schedules' });
-        ScheduleModel.belongsTo(SemesterModel, { foreignKey: 'semesterId', as: 'semester' });
+    // Student Registration associations
+    StudentRegistrationModel.belongsTo(UserModel, { foreignKey: 'userId' });
+    UserModel.hasMany(StudentRegistrationModel, { foreignKey: 'userId' });
 
-        // Subject -> Schedule (One-to-Many)
-        SubjectModel.hasMany(ScheduleModel, { foreignKey: 'subjectId', as: 'schedules' });
-        ScheduleModel.belongsTo(SubjectModel, { foreignKey: 'subjectId', as: 'subject' });
+    // BSIT Curriculum associations
+    BsitCurriculumModel.hasMany(BsitScheduleModel, { foreignKey: 'curriculumId' });
+    BsitScheduleModel.belongsTo(BsitCurriculumModel, { foreignKey: 'curriculumId' });
 
-        // Student -> Enrollment (One-to-Many)
-        StudentModel.hasMany(EnrollmentModel, { foreignKey: 'studentId', as: 'enrollments' });
-        EnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId', as: 'student' });
+    // Student Enrollment associations
+    StudentEnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
+    StudentModel.hasMany(StudentEnrollmentModel, { foreignKey: 'studentId' });
+    StudentEnrollmentModel.belongsTo(BsitScheduleModel, { foreignKey: 'scheduleId' });
+    BsitScheduleModel.hasMany(StudentEnrollmentModel, { foreignKey: 'scheduleId' });
 
-        // Schedule -> Enrollment (One-to-Many)
-        ScheduleModel.hasMany(EnrollmentModel, { foreignKey: 'scheduleId', as: 'enrollments' });
-        EnrollmentModel.belongsTo(ScheduleModel, { foreignKey: 'scheduleId', as: 'schedule' });
+    // Request associations
+    RequestModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'student' });
+    UserModel.hasMany(RequestModel, { foreignKey: 'studentId', as: 'requests' });
 
-        // Enrollment -> Grade (One-to-One)
-        EnrollmentModel.hasOne(GradeModel, { foreignKey: 'enrollmentId', as: 'grade' });
-        GradeModel.belongsTo(EnrollmentModel, { foreignKey: 'enrollmentId', as: 'enrollment' });
+    // Notification associations
+    NotificationModel.belongsTo(UserModel, { foreignKey: 'userId' });
+    UserModel.hasMany(NotificationModel, { foreignKey: 'userId' });
+    NotificationModel.belongsTo(RequestModel, { foreignKey: 'requestId' });
+    RequestModel.hasMany(NotificationModel, { foreignKey: 'requestId' });
+};
 
-        // User -> Request (One-to-Many)
-        UserModel.hasMany(RequestModel, { foreignKey: 'studentId', as: 'requests' });
-        RequestModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'student' });
-
-        // User -> Notification (One-to-Many)
-        UserModel.hasMany(NotificationModel, { foreignKey: 'userId', as: 'notifications' });
-        NotificationModel.belongsTo(UserModel, { foreignKey: 'userId', as: 'user' });
-
-        // Authenticate the connection.
-        await sequelize.authenticate();
-        console.log('Sequelize has connected to the database successfully.');
+// Connect to database and initialize
+export const connectAndInitialize = async () => {
+    try {
+        console.log('🔌 Attempting to connect to database...');
+        console.log(`📍 Host: ${DB_HOST}:${DB_PORT}`);
+        console.log(`👤 User: ${DB_USER}`);
+        console.log(`🗄️  Database: ${DB_NAME}`);
         
-        // Sync database
-        await sequelize.sync({ force: false, alter: false });
-        console.log('All models were synchronized successfully.');
+        // Validate required environment variables
+        if (!DB_NAME) {
+            throw new Error('DB_NAME environment variable is required. Please check your .env file.');
+        }
+        
+        // Test connection
+        await sequelize.authenticate();
+        console.log('✅ Database connection established successfully.');
 
-        // Seed initial data
-        const { seedInitialData } = await import('./seedData');
-        await seedInitialData();
+        // Initialize models
+        initializeModels();
+        console.log('✅ Models initialized successfully.');
 
+        // Define associations
+        defineAssociations();
+        console.log('✅ Model associations defined successfully.');
+
+        // Database sync disabled - using existing tables
+        console.log('✅ Using existing database tables (no sync needed)');
+
+        // Create sample admin user if it doesn't exist
+        const adminUser = await UserModel.findOne({
+            where: { idNumber: 'A001' }
+        });
+
+        if (!adminUser) {
+            const bcrypt = require('bcrypt');
+            const hashedPassword = await bcrypt.hash('adminpass', 10);
+            
+            await UserModel.create({
+                idNumber: 'A001',
+                password: hashedPassword,
+                role: 'admin',
+                firstName: 'Admin',
+                lastName: 'User',
+                email: 'admin@benedicto.edu.ph',
+                isActive: true
+            });
+            console.log('✅ Sample admin user created (A001/adminpass)');
+        }
+
+        // Create sample student user if it doesn't exist
+        const studentUser = await UserModel.findOne({
+            where: { idNumber: '2022-00037' }
+        });
+
+        if (!studentUser) {
+            const bcrypt = require('bcrypt');
+            const hashedPassword = await bcrypt.hash('password', 10);
+            
+            const newUser = await UserModel.create({
+                idNumber: '2022-00037',
+                password: hashedPassword,
+                role: 'student',
+                firstName: 'John',
+                lastName: 'Doe',
+                email: 'john.doe@student.benedicto.edu.ph',
+                isActive: true
+            });
+
+            // Create student record
+            await StudentModel.create({
+                userId: newUser.id,
+                studentNumber: '2022-00037',
+                fullName: 'Doe, John',
+                yearOfEntry: new Date().getFullYear(),
+                studentType: 'First',
+                semesterEntry: 'First',
+                applicationType: 'Freshmen',
+                academicStatus: 'Regular',
+                currentYearLevel: 1,
+                currentSemester: 1,
+                totalUnitsEarned: 0,
+                cumulativeGPA: 0.00,
+                isActive: true
+            });
+            console.log('✅ Sample student user created (2022-00037/password)');
+        }
+
+        console.log('🎉 Database initialization completed successfully!');
+        
     } catch (error) {
-        console.error('Failed to connect and initialize the database:', error);
+        console.error('❌ Database initialization failed:');
+        if (error instanceof Error) {
+            console.error(`   Error: ${error.message}`);
+            if (error.message.includes('ECONNREFUSED')) {
+                console.error('   💡 Make sure MySQL server is running and accessible');
+                console.error('   💡 Check if the host and port are correct');
+            } else if (error.message.includes('Access denied')) {
+                console.error('   💡 Check your username and password');
+            } else if (error.message.includes('Unknown database')) {
+                console.error('   💡 Make sure the database exists');
+            }
+        } else {
+            console.error('   Unknown error:', error);
+        }
         throw error;
     }
 };
 
-// Export all models for use in other parts of the application.
-export const User = UserModel;
-export const Student = StudentModel;
-export const Department = DepartmentModel;
-export const Course = CourseModel;
-export const Subject = SubjectModel;
-export const SchoolYear = SchoolYearModel;
-export const Semester = SemesterModel;
-export const Schedule = ScheduleModel;
-export const Enrollment = EnrollmentModel;
-export const Grade = GradeModel;
-export const Request = RequestModel;
-export const Notification = NotificationModel;
+// Export models for use in other parts of the application
+export {
+    UserModel,
+    StudentModel,
+    DepartmentModel,
+    CourseModel,
+    SubjectModel,
+    SchoolYearModel,
+    SemesterModel,
+    ScheduleModel,
+    EnrollmentModel,
+    StudentRegistrationModel,
+    BsitCurriculumModel,
+    BsitScheduleModel,
+    StudentEnrollmentModel,
+    UserSessionModel,
+    RequestModel,
+    NotificationModel
+};

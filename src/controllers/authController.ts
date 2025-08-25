@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../database';
+import { UserModel } from '../database';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
@@ -8,7 +8,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const { idNumber, password } = req.body;
 
     try {
-        const user = await User.findOne({ where: { idNumber } });
+        const user = await UserModel.findOne({ where: { idNumber } });
 
         if (!user) {
             // FIX: Removed 'return' from res.json() to prevent the function from returning a 'Response' object.
@@ -40,8 +40,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
                 role: user.role,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                middleName: user.middleName,
-                course: user.course,
+                middleName: user.middleName
             } 
         });
 
