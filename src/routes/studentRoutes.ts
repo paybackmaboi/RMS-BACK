@@ -13,7 +13,8 @@ import {
     getStudentRegistrationData,
     getStudentEnrolledSubjects,
     searchUserByIdNumber,
-    updateStudentRegistration
+    updateStudentRegistration,
+    updateApprovedRegistrationsToEnrolled
 } from '../controllers/studentController';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { studentSessionAuthMiddleware, adminSessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
@@ -52,5 +53,8 @@ router.get('/search/:idNumber', adminSessionAuthMiddleware, searchUserByIdNumber
 
 // Update student registration data (admin only)
 router.put('/registration/:userId', adminSessionAuthMiddleware, updateStudentRegistration);
+
+// Update all approved registrations to enrolled status (admin only)
+router.put('/update-registration-statuses', adminSessionAuthMiddleware, updateApprovedRegistrationsToEnrolled);
 
 export default router;

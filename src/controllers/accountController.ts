@@ -41,15 +41,13 @@ export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, 
             })
         );
 
-        // Only keep students who have registration data
-        const filteredStudents = studentsWithRegistrations
-            .filter(item => item.registration !== null)
-            .map(item => item.student);
+        // Keep ALL students, not just those with registrations
+        const allStudents = studentsWithRegistrations.map(item => item.student);
         console.log('Found students:', students.length);
-        console.log('Students with registrations:', filteredStudents.length);
+        console.log('Students with registrations:', studentsWithRegistrations.filter(item => item.registration !== null).length);
 
-        // Get registration and enrollment data for students who completed registration
-        const studentsWithDetails = await Promise.all(filteredStudents.map(async (student, index) => {
+        // Get registration and enrollment data for ALL students
+        const studentsWithDetails = await Promise.all(allStudents.map(async (student, index) => {
             const studentDetails = student.get('Student') as any;
             
             // Use the registration data we already fetched

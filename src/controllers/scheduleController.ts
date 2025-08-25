@@ -309,6 +309,7 @@ export const getScheduleEnrolledStudents = async (req: Request, res: Response, n
                     COALESCE(u.firstName, 'Unknown') as firstName,
                     COALESCE(u.lastName, 'Unknown') as lastName,
                     COALESCE(u.middleName, '') as middleName,
+                    COALESCE(s.gender, 'N/A') as gender,
                     COALESCE(s.currentYearLevel, 'Unknown') as currentYearLevel,
                     COALESCE(s.currentSemester, 'Unknown') as currentSemester,
                     COALESCE(s.studentType, 'N/A') as studentType,
@@ -360,6 +361,7 @@ export const getScheduleEnrolledStudents = async (req: Request, res: Response, n
                         COALESCE(u.firstName, 'Unknown') as firstName,
                         COALESCE(u.lastName, 'Unknown') as lastName,
                         COALESCE(u.middleName, '') as middleName,
+                        COALESCE(s.gender, 'N/A') as gender,
                         COALESCE(s.currentYearLevel, 'Unknown') as currentYearLevel,
                         COALESCE(s.currentSemester, 'Unknown') as currentSemester
                     FROM student_enrollments se
@@ -423,6 +425,7 @@ export const getScheduleEnrolledStudents = async (req: Request, res: Response, n
                 id: student.studentId,
                 idNumber: student.idNumber,
                 fullName: `${student.lastName}, ${student.firstName} ${student.middleName || ''}`.trim(),
+                gender: student.gender,
                 yearLevel: student.currentYearLevel,
                 semester: student.currentSemester,
                 studentType: student.studentType,
