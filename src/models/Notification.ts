@@ -6,7 +6,8 @@ interface NotificationAttributes {
     userId: number;
     message: string;
     isRead: boolean;
-    requestId: number;
+    requestId?: number; // Make optional for requirements announcements
+    type?: string; // Add type field for different notification types
 }
 
 interface NotificationCreationAttributes extends Optional<NotificationAttributes, 'id'> {}
@@ -16,7 +17,8 @@ export class Notification extends Model<NotificationAttributes, NotificationCrea
     public userId!: number;
     public message!: string;
     public isRead!: boolean;
-    public requestId!: number;
+    public requestId?: number;
+    public type?: string;
 
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -39,7 +41,12 @@ export const initNotification = (sequelize: Sequelize) => {
         },
         requestId: {
             type: DataTypes.INTEGER.UNSIGNED,
-            allowNull: false,
+            allowNull: true, // Make optional for requirements announcements
+        },
+        type: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            defaultValue: 'request', // Default type for backward compatibility
         },
         message: {
             type: DataTypes.STRING,
