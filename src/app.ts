@@ -38,7 +38,7 @@ app.set('json spaces', 2);
 // CORS configuration for production
 const corsOptions = {
     origin: isProduction
-        ? [process.env.FRONTEND_URL || 'https://your-frontend-domain.com']
+        ? [process.env.FRONTEND_URL || 'https://rms-front-f7jh.onrender.com']
         : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     optionsSuccessStatus: 200
