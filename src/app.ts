@@ -6,6 +6,7 @@ import cors from 'cors';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import { sequelize, connectAndInitialize } from './database';
+import { seedInitialData } from './seedData';
 import authRoutes from './routes/authRoutes';
 import requestRoutes from './routes/requestRoutes';
 import studentRoutes from './routes/studentRoutes';
@@ -83,11 +84,21 @@ const startServer = async () => {
         await connectAndInitialize();
         console.log('🚀 Server starting up...');
 
+        // Automatically seed BSIT curriculum and schedules
+        try {
+            console.log('🌱 Starting automatic data seeding...');
+            await seedInitialData();
+            console.log('✅ Automatic seeding completed successfully!');
+        } catch (seedError) {
+            console.warn('⚠️  Warning: Automatic seeding failed, but server will continue:', seedError);
+        }
+
         // Start the server
         app.listen(PORT, () => {
             console.log(`✅ Server running on port ${PORT}`);
             console.log(`🌐 API available at: http://localhost:${PORT}/api`);
             console.log(`📚 Database tables created/verified automatically`);
+            console.log(`🌱 BSIT curriculum and schedules seeded automatically`);
             console.log(`🔑 Sample users created for testing`);
         });
 
