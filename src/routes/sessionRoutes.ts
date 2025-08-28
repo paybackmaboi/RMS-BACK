@@ -2,7 +2,8 @@ import express from 'express';
 import {
     loginAndCreateSession,
     logoutAndDestroySession,
-    getCurrentSession
+    getCurrentSession,
+    refreshSession
 } from '../controllers/sessionController';
 import { sessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
 
@@ -16,5 +17,8 @@ router.post('/logout', sessionAuthMiddleware, logoutAndDestroySession);
 
 // Get current session info
 router.get('/me', sessionAuthMiddleware, getCurrentSession);
+
+// Refresh session (no auth required - just need valid session token)
+router.post('/refresh', refreshSession);
 
 export default router;

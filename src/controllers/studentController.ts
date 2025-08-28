@@ -291,7 +291,7 @@ export const getAllStudents = async (req: ExpressRequest, res: Response, next: N
                 gender: studentDetails?.gender || 'N/A',
                 email: student.email,
                 phoneNumber: student.phoneNumber,
-                profilePhoto: student.profilePhoto, // Add profile photo field
+                profilePhoto: student.profilePhoto || null, // Return null if no profile photo
                 isRegistered: !!studentDetails,
                 course: 'Bachelor of Science in Information Technology', // BSIT is the course
                 studentNumber: studentDetails?.studentNumber || student.idNumber,
@@ -447,7 +447,7 @@ export const getStudentEnrolledSubjects = async (req: ExpressRequest, res: Respo
             order: [['courseCode', 'ASC']]
         });
 
-        // For now, we'll show all curriculum subjects and mark them as not enrolled
+        // For now, we'll show all curriculum subjects and mark them as enrolled
         // In a real system, you'd need to join enrollments with schedules and curriculum
         const subjects = curriculum.map(course => {
             return {
@@ -457,10 +457,10 @@ export const getStudentEnrolledSubjects = async (req: ExpressRequest, res: Respo
                 units: course.units,
                 courseType: course.courseType,
                 prerequisites: course.prerequisites,
-                isEnrolled: false, // For now, assume not enrolled
+                isEnrolled: true, // For now, assume enrolled
                 enrollmentId: null,
                 finalGrade: 'N/A',
-                status: 'Not Enrolled',
+                status: 'Enrolled',
                 yearLevel: course.yearLevel,
                 semester: course.semester
             };
@@ -682,6 +682,7 @@ export const debugStudentRegistration = async (req: ExpressRequest, res: Respons
 export const getCurrentStudentProfile = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req.user?.id;
+        
         if (!userId) {
             res.status(401).json({ message: 'User not authenticated' });
             return;
@@ -700,7 +701,7 @@ export const getCurrentStudentProfile = async (req: ExpressRequest, res: Respons
             return;
         }
 
-        res.json({
+        const responseData = {
             id: user.id,
             idNumber: user.idNumber,
             firstName: user.firstName,
@@ -708,6 +709,7 @@ export const getCurrentStudentProfile = async (req: ExpressRequest, res: Respons
             middleName: user.middleName,
             email: user.email,
             phoneNumber: user.phoneNumber,
+            profilePhoto: user.profilePhoto || null, // Return null if no profile photo (frontend will handle default)
             fullName: student.fullName,
             studentNumber: student.studentNumber,
             currentYearLevel: student.currentYearLevel,
@@ -718,10 +720,12 @@ export const getCurrentStudentProfile = async (req: ExpressRequest, res: Respons
             yearOfEntry: student.yearOfEntry,
             applicationType: student.applicationType,
             studentType: student.studentType
-        });
+        };
+        
+        res.json(responseData);
 
     } catch (error) {
-        console.error('Error fetching student profile:', error);
+        console.error('Student profile controller error:', error);
         next(error);
     }
 };

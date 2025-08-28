@@ -120,6 +120,7 @@ export const seedInitialData = async () => {
         ], { ignoreDuplicates: true });
 
         console.log('✅ Semesters created');
+        
 
         console.log('🎉 Initial data seeding completed successfully!');
     } catch (error) {

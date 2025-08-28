@@ -1,14 +1,17 @@
 import express from 'express';
-import { getMyNotifications, markAllAsRead, clearAllNotifications } from '../controllers/notificationController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { getMyNotifications, markAllAsRead, clearAllNotifications, getNotificationsByStudentId } from '../controllers/notificationController';
+import { studentSessionAuthMiddleware, adminSessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
 
 const router = express.Router();
 
 // Route to get a user's notifications
-router.get('/', authMiddleware, getMyNotifications);
+router.get('/', studentSessionAuthMiddleware, getMyNotifications);
+
+// Route to get notifications by student ID (admin only)
+router.get('/student/:studentId', adminSessionAuthMiddleware, getNotificationsByStudentId);
 
 // Route to mark all notifications as read
-router.patch('/read', authMiddleware, markAllAsRead);
-router.delete('/', authMiddleware, clearAllNotifications);
+router.patch('/read', studentSessionAuthMiddleware, markAllAsRead);
+router.delete('/', studentSessionAuthMiddleware, clearAllNotifications);
 
 export default router;

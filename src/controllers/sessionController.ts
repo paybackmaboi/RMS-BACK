@@ -16,10 +16,10 @@ const generateSessionToken = (): string => {
 };
 
 // Create a new session for a user
-export const createSession = async (userId: number, expiresInHours: number = 24): Promise<string> => {
+export const createSession = async (userId: number, expiresInHours: number = 168): Promise<string> => {
     const sessionToken = generateSessionToken();
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + expiresInHours);
+    expiresAt.setHours(expiresAt.getHours() + expiresInHours); // 168 hours = 7 days
 
     await UserSessionModel.create({
         userId,
@@ -112,6 +112,52 @@ export const getCurrentSession = async (req: ExpressRequest, res: Response, next
         });
     } catch (error) {
         console.error('Get session error:', error);
+        next(error);
+    }
+};
+// Refresh session if it's close to expiring
+export const refreshSession = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const sessionToken = req.cookies?.sessionToken || req.headers['x-session-token'] as string;
+        
+        if (!sessionToken) {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+
+        // Find the session
+        const session = await UserSessionModel.findOne({
+            where: { sessionToken }
+        });
+
+        if (!session) {
+            res.status(401).json({ message: 'Invalid session' });
+            return;
+        }
+
+        // Check if session expires within the next 24 hours
+        const now = new Date();
+        const expiresIn24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        
+        if (session.expiresAt <= expiresIn24Hours) {
+            // Extend session by 7 days
+            const newExpiresAt = new Date();
+            newExpiresAt.setHours(newExpiresAt.getHours() + 168);
+            
+            await session.update({ expiresAt: newExpiresAt });
+            
+            res.json({
+                message: 'Session refreshed',
+                expiresAt: newExpiresAt
+            });
+        } else {
+            res.json({
+                message: 'Session is still valid',
+                expiresAt: session.expiresAt
+            });
+        }
+    } catch (error) {
+        console.error('Session refresh error:', error);
         next(error);
     }
 };

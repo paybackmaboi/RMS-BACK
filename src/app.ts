@@ -22,6 +22,7 @@ import courseRoutes from './routes/courseRoutes';
 import bsitCurriculumRoutes from './routes/bsitCurriculumRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import photoRoutes from './routes/photoRoutes';
+import requirementsRoutes from './routes/requirementsRoutes';
 
 
 dotenv.config();
@@ -62,6 +63,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/bsit-curriculum', bsitCurriculumRoutes);
 app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/photos', photoRoutes);
+app.use('/api/requirements', requirementsRoutes);
 
 // --- Error Handling Middleware ---
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
