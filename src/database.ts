@@ -145,16 +145,16 @@ export const connectAndInitialize = async () => {
         }
 
         // Create database if it doesn't exist
-        const mysql = require('mysql2/promise');
-        const connection = await mysql.createConnection({
-            host: DB_HOST,
-            user: DB_USER,
-            password: DB_PASSWORD,
-            port: DB_PORT
-        });
-        await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
-        await connection.end();
-        console.log(`✅ Database '${DB_NAME}' ensured to exist.`);
+        // const mysql = require('mysql2/promise');
+        // const connection = await mysql.createConnection({
+        //     host: DB_HOST,
+        //     user: DB_USER,
+        //     password: DB_PASSWORD,
+        //     port: DB_PORT
+        // });
+        // await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
+        // await connection.end();
+        // console.log(`✅ Database '${DB_NAME}' ensured to exist.`);
 
         // Test connection
         await sequelize.authenticate();
