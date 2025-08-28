@@ -54,7 +54,7 @@ export const initBsitCurriculum = (sequelize: Sequelize) => {
             allowNull: false,
         },
         semester: {
-            type: DataTypes.STRING(10),
+            type: DataTypes.STRING(20),
             allowNull: false,
         },
         courseType: {

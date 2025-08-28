@@ -2,7 +2,7 @@ import { Model, DataTypes, Sequelize } from 'sequelize';
 
 export interface UserSessionAttributes {
     id: number;
-    userId: number;
+    userId: number; // This will be unsigned in the database
     sessionToken: string;
     expiresAt: Date;
     createdAt: Date;
@@ -27,7 +27,7 @@ export const initUserSession = (sequelize: Sequelize): void => {
                 primaryKey: true,
             },
             userId: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.INTEGER.UNSIGNED,
                 allowNull: false,
                 references: {
                     model: 'users',
