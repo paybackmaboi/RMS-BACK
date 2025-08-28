@@ -19,7 +19,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { idNumber, password } = req.body;
     try {
-        const user = yield database_1.User.findOne({ where: { idNumber } });
+        const user = yield database_1.UserModel.findOne({ where: { idNumber } });
         if (!user) {
             // FIX: Removed 'return' from res.json() to prevent the function from returning a 'Response' object.
             res.status(400).json({ message: 'Invalid ID Number or password.' });
@@ -43,8 +43,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
                 role: user.role,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                middleName: user.middleName,
-                course: user.course,
+                middleName: user.middleName
             }
         });
     }

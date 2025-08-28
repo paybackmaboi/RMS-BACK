@@ -90,7 +90,7 @@ async function migrateDatabase() {
         }
         
         console.log('\n🎉 Database migration completed successfully!');
-        console.log('\n📋 Summary:');
+        console.log('\n📋 Summary:');    
         console.log('   • Users table created/verified');
         console.log('   • Students table created/verified');
         console.log('   • Indexes created for performance');

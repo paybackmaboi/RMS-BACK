@@ -138,12 +138,24 @@ export const connectAndInitialize = async () => {
         console.log(`📍 Host: ${DB_HOST}:${DB_PORT}`);
         console.log(`👤 User: ${DB_USER}`);
         console.log(`🗄️  Database: ${DB_NAME}`);
-        
+
         // Validate required environment variables
         if (!DB_NAME) {
             throw new Error('DB_NAME environment variable is required. Please check your .env file.');
         }
-        
+
+        // Create database if it doesn't exist
+        const mysql = require('mysql2/promise');
+        const connection = await mysql.createConnection({
+            host: DB_HOST,
+            user: DB_USER,
+            password: DB_PASSWORD,
+            port: DB_PORT
+        });
+        await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
+        await connection.end();
+        console.log(`✅ Database '${DB_NAME}' ensured to exist.`);
+
         // Test connection
         await sequelize.authenticate();
         console.log('✅ Database connection established successfully.');
@@ -157,7 +169,11 @@ export const connectAndInitialize = async () => {
         console.log('✅ Model associations defined successfully.');
 
         // Database sync disabled - using existing tables
-        console.log('✅ Using existing database tables (no sync needed)');
+        await sequelize.sync({ alter: true }); // Use { force: true } to drop & recreate (DEV ONLY)
+        console.log('✅ Database tables created/synced successfully.');
+
+        const { seedInitialData } = await import('./seedData');
+        await seedInitialData();
 
         // Create sample admin user if it doesn't exist
         const adminUser = await UserModel.findOne({
@@ -178,6 +194,27 @@ export const connectAndInitialize = async () => {
                 isActive: true
             });
             console.log('✅ Sample admin user created (A001/adminpass)');
+        }
+
+        // Create sample accounting user if it doesn't exist
+        const accountingUser = await UserModel.findOne({
+            where: { idNumber: 'ACC01' }
+        });
+
+        if (!accountingUser) {
+            const bcrypt = require('bcrypt');
+            const hashedPassword = await bcrypt.hash('accpass', 10);
+            
+            await UserModel.create({
+                idNumber: 'ACC01',
+                password: hashedPassword,
+                role: 'accounting',
+                firstName: 'Accounting',
+                lastName: 'User',
+                email: 'accounting@benedicto.edu.ph',
+                isActive: true
+            });
+            console.log('✅ Sample accounting user created (ACC01/accpass)');
         }
 
         // Create sample student user if it doesn't exist

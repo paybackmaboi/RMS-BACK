@@ -8,7 +8,7 @@ const courseController_1 = require("../controllers/courseController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
 // Public routes (no admin required for viewing courses)
-router.get('/', authMiddleware_1.authMiddleware, courseController_1.getAllCourses);
+router.get('/', courseController_1.getAllCourses);
 router.get('/department/:departmentId', authMiddleware_1.authMiddleware, courseController_1.getCoursesByDepartment);
 router.get('/:id', authMiddleware_1.authMiddleware, courseController_1.getCourseById);
 // Admin routes

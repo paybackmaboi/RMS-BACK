@@ -20,7 +20,7 @@ const getMyNotifications = (req, res, next) => __awaiter(void 0, void 0, void 0,
             res.status(401).json({ message: 'Unauthorized' });
             return;
         }
-        const notifications = yield database_1.Notification.findAll({
+        const notifications = yield database_1.NotificationModel.findAll({
             where: { userId },
             order: [['createdAt', 'DESC']],
             limit: 20 // Limit to the last 20 notifications for performance
@@ -41,7 +41,7 @@ const markAllAsRead = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             res.status(401).json({ message: 'Unauthorized' });
             return;
         }
-        yield database_1.Notification.update({ isRead: true }, {
+        yield database_1.NotificationModel.update({ isRead: true }, {
             where: { userId, isRead: false }
         });
         res.status(200).json({ message: 'All notifications marked as read.' });
@@ -59,7 +59,7 @@ const clearAllNotifications = (req, res, next) => __awaiter(void 0, void 0, void
             res.status(401).json({ message: 'Unauthorized' });
             return;
         }
-        yield database_1.Notification.destroy({
+        yield database_1.NotificationModel.destroy({
             where: { userId }
         });
         res.status(200).json({ message: 'All notifications cleared.' });

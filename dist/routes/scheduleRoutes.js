@@ -5,18 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const scheduleController_1 = require("../controllers/scheduleController");
-const authMiddleware_1 = require("../middleware/authMiddleware");
+const sessionAuthMiddleware_1 = require("../middleware/sessionAuthMiddleware");
 const router = express_1.default.Router();
-// Get all schedules
-router.get('/', authMiddleware_1.authMiddleware, scheduleController_1.getAllSchedules);
-// Get schedules by subject
-router.get('/subject/:subjectId', authMiddleware_1.authMiddleware, scheduleController_1.getSchedulesBySubject);
-// Get specific schedule
-router.get('/:id', authMiddleware_1.authMiddleware, scheduleController_1.getScheduleById);
-// Create new schedule (admin only)
-router.post('/', authMiddleware_1.authMiddleware, authMiddleware_1.adminMiddleware, scheduleController_1.createSchedule);
-// Update schedule (admin only)
-router.put('/:id', authMiddleware_1.authMiddleware, authMiddleware_1.adminMiddleware, scheduleController_1.updateSchedule);
-// Delete schedule (admin only)
-router.delete('/:id', authMiddleware_1.authMiddleware, authMiddleware_1.adminMiddleware, scheduleController_1.deleteSchedule);
+// Get student's personal schedule (requires student authentication)
+router.get('/student/:userId', sessionAuthMiddleware_1.studentSessionAuthMiddleware, scheduleController_1.getStudentSchedule);
+// Get all schedules for admin view (requires admin authentication)
+router.get('/admin/all', sessionAuthMiddleware_1.adminSessionAuthMiddleware, scheduleController_1.getAllSchedules);
+// Get enrolled students for a specific schedule (requires admin authentication)
+router.get('/admin/enrolled-students/:scheduleId', sessionAuthMiddleware_1.adminSessionAuthMiddleware, scheduleController_1.getScheduleEnrolledStudents);
+// Diagnostic route to check database structure (requires admin authentication)
+router.get('/admin/diagnostic', sessionAuthMiddleware_1.adminSessionAuthMiddleware, scheduleController_1.checkDatabaseStructure);
 exports.default = router;

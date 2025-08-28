@@ -12,16 +12,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteRequest = exports.getRequestById = exports.getRequestDocument = exports.updateRequestStatus = exports.getAllRequests = exports.getStudentRequests = exports.createRequest = void 0;
+exports.deleteRequest = exports.getRequestById = exports.getRequestDocument = exports.getRequestsByStudentId = exports.updateRequestStatus = exports.getAllRequests = exports.getStudentRequests = exports.createRequest = void 0;
 const database_1 = require("../database");
 const path_1 = __importDefault(require("path"));
 const createRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
+        console.log('🔍 Creating request - User info:', req.user);
+        console.log('🔍 Request body:', req.body);
+        console.log('🔍 Request files:', req.files);
+        console.log('🔍 RequestModel available:', !!database_1.RequestModel);
+        console.log('🔍 RequestModel type:', typeof database_1.RequestModel);
+        console.log('🔍 RequestModel value:', database_1.RequestModel);
+        console.log('🔍 NotificationModel available:', !!database_1.NotificationModel);
+        console.log('🔍 NotificationModel type:', typeof database_1.NotificationModel);
+        console.log('🔍 NotificationModel value:', database_1.NotificationModel);
+        // Test if models are properly initialized
+        if (!database_1.RequestModel || !database_1.NotificationModel) {
+            console.error('❌ Models not properly initialized!');
+            console.error('❌ RequestModel:', database_1.RequestModel);
+            console.error('❌ NotificationModel:', database_1.NotificationModel);
+            res.status(500).json({ message: 'Server configuration error: Models not initialized' });
+            return;
+        }
         const documentType = req.body.documentType;
         const purpose = req.body.purpose;
         const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         if (!studentId) {
+            console.log('❌ No student ID found in req.user:', req.user);
             res.status(401).json({ message: 'Unauthorized: Student ID not found.' });
             return;
         }
@@ -31,14 +49,14 @@ const createRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         }
         const files = req.files;
         const filePaths = files ? files.map(file => file.filename) : undefined;
-        const newRequest = yield database_1.Request.create({
+        const newRequest = yield database_1.RequestModel.create({
             studentId,
             documentType,
             purpose,
             status: 'pending',
             filePath: filePaths,
         });
-        yield database_1.Notification.create({
+        yield database_1.NotificationModel.create({
             userId: studentId,
             requestId: newRequest.id,
             message: `You have submitted your request for ${documentType}.`,
@@ -54,24 +72,37 @@ exports.createRequest = createRequest;
 const getStudentRequests = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
+        console.log('🔍 Getting student requests - User info:', req.user);
+        console.log('🔍 RequestModel available:', !!database_1.RequestModel);
+        console.log('🔍 RequestModel type:', typeof database_1.RequestModel);
+        console.log('🔍 RequestModel value:', database_1.RequestModel);
+        // Test if model is properly initialized
+        if (!database_1.RequestModel) {
+            console.error('❌ RequestModel not properly initialized!');
+            res.status(500).json({ message: 'Server configuration error: RequestModel not initialized' });
+            return;
+        }
         const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         if (!studentId) {
             res.status(401).json({ message: 'Unauthorized' });
             return;
         }
-        const requests = yield database_1.Request.findAll({ where: { studentId }, order: [['createdAt', 'DESC']] });
+        console.log('🔍 Student ID:', studentId);
+        const requests = yield database_1.RequestModel.findAll({ where: { studentId }, order: [['createdAt', 'DESC']] });
+        console.log('🔍 Found requests:', requests.length);
         res.json(requests);
     }
     catch (error) {
+        console.error('❌ Error in getStudentRequests:', error);
         next(error);
     }
 });
 exports.getStudentRequests = getStudentRequests;
 const getAllRequests = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const requests = yield database_1.Request.findAll({
+        const requests = yield database_1.RequestModel.findAll({
             include: [{
-                    model: database_1.User,
+                    model: database_1.UserModel,
                     as: 'student',
                     attributes: ['idNumber', 'firstName', 'lastName', 'middleName']
                 }],
@@ -80,6 +111,7 @@ const getAllRequests = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         res.json(requests);
     }
     catch (error) {
+        console.error('Error fetching requests:', error);
         next(error);
     }
 });
@@ -92,7 +124,7 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
             res.status(400).json({ message: 'Invalid status provided.' });
             return;
         }
-        const request = yield database_1.Request.findByPk(id);
+        const request = yield database_1.RequestModel.findByPk(id);
         if (!request) {
             res.status(404).json({ message: 'Request not found.' });
             return;
@@ -102,7 +134,7 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
             request.notes = notes;
         }
         yield request.save();
-        yield database_1.Notification.create({
+        yield database_1.NotificationModel.create({
             userId: request.studentId,
             requestId: request.id,
             message: `Your request for ${request.documentType} has been ${status.replace(/-/g, ' ')}.`,
@@ -115,10 +147,24 @@ const updateRequestStatus = (req, res, next) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.updateRequestStatus = updateRequestStatus;
+const getRequestsByStudentId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { studentId } = req.params;
+        const requests = yield database_1.RequestModel.findAll({
+            where: { studentId: parseInt(studentId, 10) },
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(requests);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.getRequestsByStudentId = getRequestsByStudentId;
 const getRequestDocument = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id, docIndex } = req.params;
-        const request = yield database_1.Request.findByPk(id);
+        const request = yield database_1.RequestModel.findByPk(id);
         if (!request || !request.filePath) {
             res.status(404).json({ message: 'Document not found.' });
             return;
@@ -162,9 +208,9 @@ const getRequestById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         const { id } = req.params;
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         const userRole = (_b = req.user) === null || _b === void 0 ? void 0 : _b.role;
-        const request = yield database_1.Request.findByPk(id, {
+        const request = yield database_1.RequestModel.findByPk(id, {
             include: [{
-                    model: database_1.User,
+                    model: database_1.UserModel,
                     as: 'student',
                     attributes: ['idNumber', 'firstName', 'lastName', 'middleName']
                 }]
@@ -188,7 +234,7 @@ exports.getRequestById = getRequestById;
 const deleteRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const request = yield database_1.Request.findByPk(id);
+        const request = yield database_1.RequestModel.findByPk(id);
         if (!request) {
             res.status(404).json({ message: 'Request not found.' });
             return;

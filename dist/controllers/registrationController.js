@@ -19,7 +19,7 @@ const createStudentRegistration = (req, res, next) => __awaiter(void 0, void 0, 
     try {
         const { idNumber, password, firstName, lastName, middleName, email, phoneNumber, courseId } = req.body;
         // Check if user already exists
-        const existingUser = yield database_1.User.findOne({ where: { idNumber } });
+        const existingUser = yield database_1.UserModel.findOne({ where: { idNumber } });
         if (existingUser) {
             res.status(400).json({ message: 'User with this ID number already exists.' });
             return;
@@ -27,7 +27,7 @@ const createStudentRegistration = (req, res, next) => __awaiter(void 0, void 0, 
         // Hash password
         const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
         // Create user first
-        const newUser = yield database_1.User.create({
+        const newUser = yield database_1.UserModel.create({
             idNumber,
             password: hashedPassword,
             firstName,

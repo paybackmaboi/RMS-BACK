@@ -64,11 +64,19 @@ export const seedInitialData = async () => {
         // Create school years
         const schoolYears = await SchoolYearModel.bulkCreate([
             {
+                year: '2025-2026',
+                description: 'Academic Year 2025-2026',
+                startDate: new Date('2025-06-01'),
+                endDate: new Date('2026-05-31'),
+                isCurrent: true,
+                isActive: true
+            },
+            {
                 year: '2024-2025',
                 description: 'Academic Year 2024-2025',
                 startDate: new Date('2024-06-01'),
                 endDate: new Date('2025-05-31'),
-                isCurrent: true,
+                isCurrent: false,
                 isActive: true
             },
             {
@@ -78,7 +86,7 @@ export const seedInitialData = async () => {
                 endDate: new Date('2024-05-31'),
                 isCurrent: false,
                 isActive: true
-            }
+            },
         ], { ignoreDuplicates: true });
 
         console.log('✅ School years created');
