@@ -23,6 +23,9 @@ import { Notification as NotificationModel, initNotification } from './models/No
 // Load environment variables
 dotenv.config();
 
+// Check if we're in production
+const isProduction = process.env.NODE_ENV === 'production';
+
 // Database configuration
 const DB_HOST = process.env.DB_HOST || 'localhost';
 const DB_USER = process.env.DB_USER || 'root';
@@ -47,12 +50,16 @@ export const sequelize = new Sequelize({
         decimalNumbers: true,
         connectTimeout: 60000,
         acquireTimeout: 60000,
-        timeout: 60000
+        timeout: 60000,
+        // Production SSL settings
+        ...(isProduction && {
+            ssl: false, // Disable SSL for now, enable if your MySQL server supports it
+        })
     },
-    logging: console.log, // Enable logging for debugging
+    logging: isProduction ? false : console.log, // Disable logging in production
     pool: {
-        max: 5,
-        min: 0,
+        max: isProduction ? 10 : 5,
+        min: isProduction ? 2 : 0,
         acquire: 30000,
         idle: 10000
     }
