@@ -115,7 +115,6 @@ export const getCurrentSession = async (req: ExpressRequest, res: Response, next
         next(error);
     }
 };
-
 // Refresh session if it's close to expiring
 export const refreshSession = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {

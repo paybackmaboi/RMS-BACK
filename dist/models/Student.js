@@ -33,40 +33,40 @@ const initStudent = (sequelize) => {
         },
         gender: {
             type: sequelize_1.DataTypes.STRING(10),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         maritalStatus: {
             type: sequelize_1.DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         dateOfBirth: {
             type: sequelize_1.DataTypes.DATE,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         placeOfBirth: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         email: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         contactNumber: {
             type: sequelize_1.DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         religion: {
             type: sequelize_1.DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         citizenship: {
             type: sequelize_1.DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true, // Will be filled later
             defaultValue: 'Filipino',
         },
         country: {
             type: sequelize_1.DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true, // Will be filled later
             defaultValue: 'Philippines',
         },
         acrNumber: {
@@ -76,7 +76,7 @@ const initStudent = (sequelize) => {
         // Address Information
         cityAddress: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         cityTelNumber: {
             type: sequelize_1.DataTypes.STRING(20),
@@ -84,7 +84,7 @@ const initStudent = (sequelize) => {
         },
         provincialAddress: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         provincialTelNumber: {
             type: sequelize_1.DataTypes.STRING(20),
@@ -94,15 +94,15 @@ const initStudent = (sequelize) => {
         // Father's Information
         fatherName: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         fatherAddress: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         fatherOccupation: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         fatherCompany: {
             type: sequelize_1.DataTypes.STRING(100),
@@ -110,7 +110,7 @@ const initStudent = (sequelize) => {
         },
         fatherContactNumber: {
             type: sequelize_1.DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         fatherIncome: {
             type: sequelize_1.DataTypes.STRING(50),
@@ -119,15 +119,15 @@ const initStudent = (sequelize) => {
         // Mother's Information
         motherName: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         motherAddress: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         motherOccupation: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true,
         },
         motherCompany: {
             type: sequelize_1.DataTypes.STRING(100),
@@ -135,7 +135,7 @@ const initStudent = (sequelize) => {
         },
         motherContactNumber: {
             type: sequelize_1.DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         motherIncome: {
             type: sequelize_1.DataTypes.STRING(50),
@@ -144,15 +144,15 @@ const initStudent = (sequelize) => {
         // Guardian's Information
         guardianName: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         guardianAddress: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         guardianOccupation: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         guardianCompany: {
             type: sequelize_1.DataTypes.STRING(100),
@@ -160,7 +160,7 @@ const initStudent = (sequelize) => {
         },
         guardianContactNumber: {
             type: sequelize_1.DataTypes.STRING(20),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         guardianIncome: {
             type: sequelize_1.DataTypes.STRING(50),
@@ -198,11 +198,11 @@ const initStudent = (sequelize) => {
         // Elementary
         elementarySchool: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         elementaryAddress: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         elementaryHonor: {
             type: sequelize_1.DataTypes.STRING(100),
@@ -210,16 +210,16 @@ const initStudent = (sequelize) => {
         },
         elementaryYearGraduated: {
             type: sequelize_1.DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         // Junior High School
         juniorHighSchool: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         juniorHighAddress: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         juniorHighHonor: {
             type: sequelize_1.DataTypes.STRING(100),
@@ -227,16 +227,16 @@ const initStudent = (sequelize) => {
         },
         juniorHighYearGraduated: {
             type: sequelize_1.DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         // Senior High School
         seniorHighSchool: {
             type: sequelize_1.DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         seniorHighAddress: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         seniorHighStrand: {
             type: sequelize_1.DataTypes.STRING(100),
@@ -248,7 +248,7 @@ const initStudent = (sequelize) => {
         },
         seniorHighYearGraduated: {
             type: sequelize_1.DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true, // Will be filled later
         },
         // Additional Academic Information
         ncaeGrade: {
@@ -312,3 +312,4 @@ const initStudent = (sequelize) => {
     });
 };
 exports.initStudent = initStudent;
+exports.default = exports.initStudent;

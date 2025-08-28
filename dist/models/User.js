@@ -71,6 +71,11 @@ const initUser = (sequelize) => {
             allowNull: false,
             defaultValue: true,
         },
+        profilePhoto: {
+            type: sequelize_1.DataTypes.STRING(500),
+            allowNull: true,
+            comment: 'URL to stored profile photo'
+        },
     }, {
         sequelize,
         tableName: 'users',

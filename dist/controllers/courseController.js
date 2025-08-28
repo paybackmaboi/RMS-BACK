@@ -13,11 +13,11 @@ exports.deleteCourse = exports.updateCourse = exports.createCourse = exports.get
 const database_1 = require("../database");
 const getAllCourses = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const courses = yield database_1.Course.findAll({
+        const courses = yield database_1.CourseModel.findAll({
             where: { isActive: true },
             include: [
                 {
-                    model: database_1.Department,
+                    model: database_1.DepartmentModel,
                     as: 'department'
                 }
             ],
@@ -33,10 +33,10 @@ exports.getAllCourses = getAllCourses;
 const getCourseById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const course = yield database_1.Course.findByPk(id, {
+        const course = yield database_1.CourseModel.findByPk(id, {
             include: [
                 {
-                    model: database_1.Department,
+                    model: database_1.DepartmentModel,
                     as: 'department'
                 }
             ]
@@ -55,14 +55,14 @@ exports.getCourseById = getCourseById;
 const getCoursesByDepartment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { departmentId } = req.params;
-        const courses = yield database_1.Course.findAll({
+        const courses = yield database_1.CourseModel.findAll({
             where: {
                 departmentId: parseInt(departmentId),
                 isActive: true
             },
             include: [
                 {
-                    model: database_1.Department,
+                    model: database_1.DepartmentModel,
                     as: 'department'
                 }
             ],
@@ -78,7 +78,7 @@ exports.getCoursesByDepartment = getCoursesByDepartment;
 const createCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { code, name, description, departmentId, totalUnits, duration, level } = req.body;
-        const course = yield database_1.Course.create({
+        const course = yield database_1.CourseModel.create({
             code,
             name,
             description,
@@ -99,7 +99,7 @@ const updateCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     try {
         const { id } = req.params;
         const updateData = req.body;
-        const course = yield database_1.Course.findByPk(id);
+        const course = yield database_1.CourseModel.findByPk(id);
         if (!course) {
             res.status(404).json({ message: 'Course not found.' });
             return;
@@ -115,7 +115,7 @@ exports.updateCourse = updateCourse;
 const deleteCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const course = yield database_1.Course.findByPk(id);
+        const course = yield database_1.CourseModel.findByPk(id);
         if (!course) {
             res.status(404).json({ message: 'Course not found.' });
             return;

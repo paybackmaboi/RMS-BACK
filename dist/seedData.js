@@ -15,7 +15,7 @@ const seedInitialData = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('🌱 Seeding initial data...');
         // Create departments
-        const departments = yield database_1.Department.bulkCreate([
+        const departments = yield database_1.DepartmentModel.bulkCreate([
             {
                 code: 'CIT',
                 name: 'College of Information Technology',
@@ -37,7 +37,7 @@ const seedInitialData = () => __awaiter(void 0, void 0, void 0, function* () {
         ], { ignoreDuplicates: true });
         console.log('✅ Departments created');
         // Create courses
-        const courses = yield database_1.Course.bulkCreate([
+        const courses = yield database_1.CourseModel.bulkCreate([
             {
                 code: 'BSIT',
                 name: 'Bachelor of Science in Information Technology',
@@ -68,7 +68,7 @@ const seedInitialData = () => __awaiter(void 0, void 0, void 0, function* () {
         ], { ignoreDuplicates: true });
         console.log('✅ Courses created');
         // Create school years
-        const schoolYears = yield database_1.SchoolYear.bulkCreate([
+        const schoolYears = yield database_1.SchoolYearModel.bulkCreate([
             {
                 year: '2024-2025',
                 description: 'Academic Year 2024-2025',
@@ -88,7 +88,7 @@ const seedInitialData = () => __awaiter(void 0, void 0, void 0, function* () {
         ], { ignoreDuplicates: true });
         console.log('✅ School years created');
         // Create semesters
-        const semesters = yield database_1.Semester.bulkCreate([
+        const semesters = yield database_1.SemesterModel.bulkCreate([
             {
                 name: 'First Semester',
                 code: '1ST',
