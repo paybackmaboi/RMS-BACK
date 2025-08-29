@@ -23,6 +23,9 @@ import { Notification as NotificationModel, initNotification } from './models/No
 // Load environment variables
 dotenv.config();
 
+// check if we are in production
+const isProduction = process.env.NODE_ENV === 'production';
+
 // Database configuration
 const DB_HOST = process.env.DB_HOST || 'localhost';
 const DB_USER = process.env.DB_USER || 'root';
