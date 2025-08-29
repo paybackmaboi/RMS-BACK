@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
 app.set('json spaces', 2);
-
+  
 // --- Global Middleware ---
 // CORS configuration for production
 const corsOptions = {
