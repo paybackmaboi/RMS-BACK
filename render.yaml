@@ -25,7 +25,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        value: https://rms-front-ixef.onrender.com/login
+        value: https://rms-front-ixef.onrender.com
     healthCheckPath: /health
     autoDeploy: true
     branch: main
