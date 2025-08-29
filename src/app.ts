@@ -39,8 +39,10 @@ app.set('json spaces', 4);
 const corsOptions = {
     origin: isProduction
         ? [process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com',
-
-            'https://rms-front-0hm1.onrender.com', 'https://rms-front-v8xi.onrender.com','https://ly-ann-kate-candido.onrender.com']
+        'https://rms-front-0hm1.onrender.com', 
+        'https://rms-front-v8xi.onrender.com',
+        'https://ly-ann-kate-candido.onrender.com'
+    ]
 
         : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
