@@ -38,7 +38,10 @@ app.set('json spaces', 2);
 // CORS configuration for production
 const corsOptions = {
     origin: isProduction
-        ? [process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com' || 'https://ly-ann-kate-candido.vercel.app']
+        ? [
+        process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com',
+        'https://ly-ann-kate-candido.vercel.app'
+         ]
         : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     optionsSuccessStatus: 200
