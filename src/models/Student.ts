@@ -214,7 +214,6 @@ export const initStudent = (sequelize: Sequelize) => {
         studentNumber: {
             type: DataTypes.STRING(20),
             allowNull: false,
-            unique: true,
         },
         
         // I. PERSONAL DATA

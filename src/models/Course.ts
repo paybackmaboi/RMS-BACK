@@ -39,7 +39,6 @@ export const initCourse = (sequelize: Sequelize) => {
         code: {
             type: DataTypes.STRING(20),
             allowNull: false,
-            unique: true,
         },
         name: {
             type: DataTypes.STRING(100),

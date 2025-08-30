@@ -35,7 +35,6 @@ export const initSchoolYear = (sequelize: Sequelize) => {
         year: {
             type: DataTypes.STRING(20),
             allowNull: false,
-            unique: true,
         },
         description: {
             type: DataTypes.STRING(200),

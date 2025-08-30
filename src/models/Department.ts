@@ -31,7 +31,6 @@ export const initDepartment = (sequelize: Sequelize) => {
         code: {
             type: DataTypes.STRING(10),
             allowNull: false,
-            unique: true,
         },
         name: {
             type: DataTypes.STRING(100),
