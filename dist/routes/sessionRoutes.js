@@ -13,4 +13,6 @@ router.post('/login', sessionController_1.loginAndCreateSession);
 router.post('/logout', sessionAuthMiddleware_1.sessionAuthMiddleware, sessionController_1.logoutAndDestroySession);
 // Get current session info
 router.get('/me', sessionAuthMiddleware_1.sessionAuthMiddleware, sessionController_1.getCurrentSession);
+// Refresh session (no auth required - just need valid session token)
+router.post('/refresh', sessionController_1.refreshSession);
 exports.default = router;

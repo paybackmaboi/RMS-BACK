@@ -29,7 +29,7 @@ const initBsitCurriculum = (sequelize) => {
             allowNull: false,
         },
         semester: {
-            type: sequelize_1.DataTypes.STRING(10),
+            type: sequelize_1.DataTypes.STRING(20),
             allowNull: false,
         },
         courseType: {

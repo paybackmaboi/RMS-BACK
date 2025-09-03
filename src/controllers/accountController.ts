@@ -18,6 +18,10 @@ export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, 
     try {
         console.log('Fetching students from database...');
         
+        // Get query parameters for filtering
+        const { schoolYear, semester } = req.query;
+        console.log('Filter parameters:', { schoolYear, semester });
+        
         // Only fetch students who have completed their registration form
         const students = await UserModel.findAll({
             where: { role: 'student', isActive: true },
@@ -33,25 +37,49 @@ export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, 
         // Filter to only include students who have submitted registration form
         const studentsWithRegistrations = await Promise.all(
             students.map(async (student) => {
+                // Build where clause for registration filtering
+                const registrationWhere: any = { userId: student.id };
+                
+                // Add school year and semester filters if provided
+                if (schoolYear) {
+                    registrationWhere.schoolYear = schoolYear;
+                }
+                if (semester) {
+                    registrationWhere.semester = semester;
+                }
+                
                 const registration = await StudentRegistrationModel.findOne({
-                    where: { userId: student.id },
+                    where: registrationWhere,
                     order: [['createdAt', 'DESC']]
                 });
                 return { student, registration };
             })
         );
 
-        // Keep ALL students, not just those with registrations
-        const allStudents = studentsWithRegistrations.map(item => item.student);
+        // Filter students based on registration criteria
+        let filteredStudents;
+        if (schoolYear || semester) {
+            // If filters are applied, only show students with matching registrations
+            filteredStudents = studentsWithRegistrations
+                .filter(item => item.registration !== null)
+                .map(item => item.student);
+            console.log('Filtered students with matching registrations:', filteredStudents.length);
+        } else {
+            // If no filters, show all students
+            filteredStudents = studentsWithRegistrations.map(item => item.student);
+            console.log('All students (no filters):', filteredStudents.length);
+        }
+        
         console.log('Found students:', students.length);
         console.log('Students with registrations:', studentsWithRegistrations.filter(item => item.registration !== null).length);
 
-        // Get registration and enrollment data for ALL students
-        const studentsWithDetails = await Promise.all(allStudents.map(async (student, index) => {
+        // Get registration and enrollment data for filtered students
+        const studentsWithDetails = await Promise.all(filteredStudents.map(async (student) => {
             const studentDetails = student.get('Student') as any;
             
-            // Use the registration data we already fetched
-            const registration = studentsWithRegistrations[index].registration;
+            // Find the corresponding registration data for this student
+            const studentWithRegistration = studentsWithRegistrations.find(item => item.student.id === student.id);
+            const registration = studentWithRegistration?.registration;
 
             // Get student enrollment count
             const enrollmentCount = await StudentEnrollmentModel.count({
