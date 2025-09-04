@@ -6,7 +6,6 @@ interface CourseAttributes {
     name: string;
     description?: string;
     departmentId: number;
-    totalUnits: number;
     duration: number; // in years
     level: 'Undergraduate' | 'Graduate' | 'Postgraduate';
     isActive: boolean;
@@ -20,7 +19,6 @@ export class Course extends Model<CourseAttributes, CourseCreationAttributes> im
     public name!: string;
     public description!: string;
     public departmentId!: number;
-    public totalUnits!: number;
     public duration!: number;
     public level!: 'Undergraduate' | 'Graduate' | 'Postgraduate';
     public isActive!: boolean;
@@ -52,11 +50,6 @@ export const initCourse = (sequelize: Sequelize) => {
         departmentId: {
             type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
-        },
-        totalUnits: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            defaultValue: 0,
         },
         duration: {
             type: DataTypes.INTEGER,

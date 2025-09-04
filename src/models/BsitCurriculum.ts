@@ -1,12 +1,14 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
+import { Semester } from './Semester'; // Import Semester for type hints
 
 export interface BsitCurriculumAttributes {
     id: number;
+    courseId: number;
     courseCode: string;
     courseDescription: string;
     units: number;
     yearLevel: string;
-    semester: string;
+    semesterId: number; // Changed from semester: string
     courseType: 'Lecture' | 'Laboratory' | 'Both';
     prerequisites?: string;
     isActive: boolean;
@@ -18,16 +20,20 @@ export interface BsitCurriculumCreationAttributes extends Omit<BsitCurriculumAtt
 
 export class BsitCurriculum extends Model<BsitCurriculumAttributes, BsitCurriculumCreationAttributes> implements BsitCurriculumAttributes {
     public id!: number;
+    public courseId!: number;
     public courseCode!: string;
     public courseDescription!: string;
     public units!: number;
     public yearLevel!: string;
-    public semester!: string;
+    public semesterId!: number; // Changed from semester
     public courseType!: 'Lecture' | 'Laboratory' | 'Both';
     public prerequisites?: string;
     public isActive!: boolean;
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
+
+    // Association property
+    public readonly semester?: Semester;
 }
 
 export const initBsitCurriculum = (sequelize: Sequelize) => {
@@ -37,12 +43,21 @@ export const initBsitCurriculum = (sequelize: Sequelize) => {
             autoIncrement: true,
             primaryKey: true,
         },
+        courseId: {
+            type: DataTypes.INTEGER.UNSIGNED,
+            allowNull: false,
+            references: {
+                model: 'courses',
+                key: 'id',
+            },
+        },
         courseCode: {
             type: DataTypes.STRING(20),
             allowNull: false,
         },
         courseDescription: {
-            type: DataTypes.TEXT,
+            // **FIX: Changed from DataTypes.TEXT to DataTypes.STRING**
+            type: DataTypes.STRING(255), 
             allowNull: false,
         },
         units: {
@@ -53,9 +68,13 @@ export const initBsitCurriculum = (sequelize: Sequelize) => {
             type: DataTypes.STRING(10),
             allowNull: false,
         },
-        semester: {
-            type: DataTypes.STRING(20),
+        semesterId: { // Replaced 'semester' column
+            type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
+            references: {
+                model: 'semesters',
+                key: 'id',
+            },
         },
         courseType: {
             type: DataTypes.ENUM('Lecture', 'Laboratory', 'Both'),
@@ -88,15 +107,15 @@ export const initBsitCurriculum = (sequelize: Sequelize) => {
             {
                 name: 'unique_course_year_sem',
                 unique: true,
-                fields: ['courseCode', 'yearLevel', 'semester']
+                fields: ['courseId', 'courseCode', 'courseDescription', 'yearLevel', 'semesterId']
             },
             {
                 name: 'idx_bsit_curriculum_yearLevel',
                 fields: ['yearLevel']
             },
             {
-                name: 'idx_bsit_curriculum_semester',
-                fields: ['semester']
+                name: 'idx_bsit_curriculum_semesterId',
+                fields: ['semesterId']
             },
             {
                 name: 'idx_bsit_curriculum_courseCode',

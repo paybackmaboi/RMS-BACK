@@ -4,13 +4,13 @@ export interface BsitScheduleAttributes {
     id: number;
     curriculumId: number;
     schoolYear: string;
-    semester: string;
+    semesterId: number; // Changed from semester: string
     yearLevel: string;
     
     // Schedule Details
     day: string;
-    startTime: Date;
-    endTime: Date;
+    startTime: string;
+    endTime: string;
     room: string;
     instructor?: string;
     maxStudents: number;
@@ -31,13 +31,13 @@ export class BsitSchedule extends Model<BsitScheduleAttributes, BsitScheduleCrea
     public id!: number;
     public curriculumId!: number;
     public schoolYear!: string;
-    public semester!: string;
+    public semesterId!: number; // Changed from semester
     public yearLevel!: string;
     
     // Schedule Details
     public day!: string;
-    public startTime!: Date;
-    public endTime!: Date;
+    public startTime!: string;
+    public endTime!: string;
     public room!: string;
     public instructor?: string;
     public maxStudents!: number;
@@ -71,9 +71,13 @@ export const initBsitSchedule = (sequelize: Sequelize) => {
             type: DataTypes.STRING(20),
             allowNull: false,
         },
-        semester: {
-            type: DataTypes.STRING(10),
+        semesterId: { // Replaced 'semester' column
+            type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
+            references: {
+                model: 'semesters',
+                key: 'id'
+            }
         },
         yearLevel: {
             type: DataTypes.STRING(10),
@@ -141,15 +145,15 @@ export const initBsitSchedule = (sequelize: Sequelize) => {
         indexes: [
             {
                 name: 'idx_schedule_lookup',
-                fields: ['schoolYear', 'semester', 'yearLevel', 'day']
+                fields: ['schoolYear', 'semesterId', 'yearLevel', 'day'] // Updated index field
             },
             {
                 name: 'idx_bsit_schedules_yearLevel',
                 fields: ['yearLevel']
             },
             {
-                name: 'idx_bsit_schedules_semester',
-                fields: ['semester']
+                name: 'idx_bsit_schedules_semesterId', // Updated index name
+                fields: ['semesterId'] // Updated index field
             },
             {
                 name: 'idx_bsit_schedules_schoolYear',

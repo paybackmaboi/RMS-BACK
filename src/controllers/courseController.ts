@@ -12,17 +12,13 @@ export const getAllCourses = async (req: ExpressRequest, res: Response, next: Ne
     try {
         const courses = await CourseModel.findAll({
             where: { isActive: true },
-            include: [
-                {
-                    model: DepartmentModel,
-                    as: 'department'
-                }
-            ],
             order: [['name', 'ASC']]
         });
 
+        console.log('📚 Courses fetched from database:', courses.length, 'courses');
         res.json(courses);
     } catch (error) {
+        console.error('❌ Error fetching courses:', error);
         next(error);
     }
 };

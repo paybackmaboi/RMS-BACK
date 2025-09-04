@@ -73,14 +73,14 @@ export const initializeModels = () => {
     initSemester(sequelize);
     initSchedule(sequelize);
     initEnrollment(sequelize);
-            initStudentRegistration(sequelize);
-        initBsitCurriculum(sequelize);
-        initBsitSchedule(sequelize);
-        initStudentEnrollment(sequelize);
-        initUserSession(sequelize);
-        initRequest(sequelize);
-        initNotification(sequelize);
-        initAccounting(sequelize);
+    initStudentRegistration(sequelize);
+    initBsitCurriculum(sequelize);
+    initBsitSchedule(sequelize);
+    initStudentEnrollment(sequelize);
+    initUserSession(sequelize);
+    initRequest(sequelize);
+    initNotification(sequelize);
+    initAccounting(sequelize);
 };
 
 // Define associations
@@ -104,6 +104,16 @@ export const defineAssociations = () => {
     // Subject associations
     SubjectModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
     CourseModel.hasMany(SubjectModel, { foreignKey: 'courseId' });
+
+    // Associate Course with BsitCurriculum
+    CourseModel.hasMany(BsitCurriculumModel, { foreignKey: 'courseId' });
+    BsitCurriculumModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
+
+    // NEW: Semester associations
+    SemesterModel.hasMany(BsitCurriculumModel, { foreignKey: 'semesterId' });
+    BsitCurriculumModel.belongsTo(SemesterModel, { foreignKey: 'semesterId' });
+    SemesterModel.hasMany(BsitScheduleModel, { foreignKey: 'semesterId' });
+    BsitScheduleModel.belongsTo(SemesterModel, { foreignKey: 'semesterId' });
 
     // Schedule associations
     ScheduleModel.belongsTo(SubjectModel, { foreignKey: 'subjectId' });
@@ -177,8 +187,8 @@ export const connectAndInitialize = async () => {
         defineAssociations();
         console.log('✅ Model associations defined successfully.');
 
-        // Database sync disabled - using existing tables
-        await sequelize.sync({ alter: true }); // Use { force: true } to drop & recreate (DEV ONLY)
+        // Use `force: true` for development to drop and recreate tables
+        await sequelize.sync({ alter: true });
         console.log('✅ Database tables created/synced successfully.');
 
         const { seedInitialData } = await import('./seedData');

@@ -4,7 +4,8 @@ import {
     StudentModel, 
     StudentRegistrationModel,
     BsitCurriculumModel,
-    StudentEnrollmentModel
+    StudentEnrollmentModel,
+    SemesterModel
 } from '../database';
 import { Op } from 'sequelize';
 
@@ -98,16 +99,20 @@ export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, 
                 currentSemester = registration.semester;
                 registrationStatus = registration.registrationStatus;
                 registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
-                
-                // Calculate total units from curriculum
-                const curriculum = await BsitCurriculumModel.findAll({
-                    where: {
-                        yearLevel: registration.yearLevel,
-                        semester: registration.semester,
-                        isActive: true
-                    }
+                const semesterRecord = await SemesterModel.findOne({
+                    where: { name: registration.semester }
                 });
-                totalUnits = curriculum.reduce((sum, course) => sum + course.units, 0);
+                // Calculate total units from curriculum
+                if (semesterRecord) {
+                    const curriculum = await BsitCurriculumModel.findAll({
+                        where: {
+                            yearLevel: registration.yearLevel,
+                            semesterId: semesterRecord.id, // Use the correct 'semesterId' field
+                            isActive: true
+                        }
+                    });
+                    totalUnits = curriculum.reduce((sum, course) => sum + course.units, 0);
+                }
             }
 
             // 1. Create a 'name' field in the desired "Last, First M." format.

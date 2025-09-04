@@ -1,5 +1,6 @@
 import express from 'express';
-import { BsitCurriculumModel } from '../database';
+// Import both BsitCurriculumModel and SemesterModel
+import { BsitCurriculumModel, SemesterModel } from '../database';
 
 const router = express.Router();
 
@@ -8,9 +9,15 @@ router.get('/', async (req, res) => {
     try {
         const curriculum = await BsitCurriculumModel.findAll({
             where: { isActive: true },
+            // 1. Include the associated Semester model to get the semester name
+            include: [{
+                model: SemesterModel,
+                attributes: ['name'] // need the name from the Semester table
+            }],
+            // 2. Correct the ordering to use 'semesterId'
             order: [
                 ['yearLevel', 'ASC'],
-                ['semester', 'ASC'],
+                ['semesterId', 'ASC'],
                 ['courseCode', 'ASC']
             ]
         });

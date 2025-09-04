@@ -4,6 +4,7 @@ import {
     UserModel, 
     StudentModel, 
     CourseModel, 
+    SemesterModel,
     sequelize,
     StudentRegistrationModel,
     BsitCurriculumModel,
@@ -89,7 +90,7 @@ export const completeStudentRegistration = async (req: Request, res: Response, n
                 cumulativeGPA: 0.0,
                 isActive: true,
                 // Add all required fields with proper defaults
-                courseId: null,
+                courseId: registrationData.courseId ? parseInt(registrationData.courseId) : null,
                 major: 'Information Technology',
                 dateOfBirth: registrationData.dateOfBirth || null,
                 placeOfBirth: registrationData.placeOfBirth || '',
@@ -201,6 +202,15 @@ export const completeStudentRegistration = async (req: Request, res: Response, n
         });
 
         console.log('✅ Created student registration record:', studentRegistration.id);
+        console.log('📋 Student registration details:', {
+            userId: userId,
+            studentId: student.id,
+            registrationId: studentRegistration.id,
+            yearLevel: registrationData.yearLevel,
+            semester: registrationData.semester,
+            schoolYear: registrationData.schoolYear,
+            courseId: registrationData.courseId
+        });
 
         res.status(201).json({
             message: 'Student registration completed successfully',
@@ -266,10 +276,15 @@ export const getAllStudents = async (req: ExpressRequest, res: Response, next: N
                 registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
                 
                 // Calculate total units from curriculum
+                // Note: We need to map semester name to semesterId for the query
+                const semester = await SemesterModel.findOne({
+                    where: { name: registration.semester }
+                });
+                
                 const curriculum = await BsitCurriculumModel.findAll({
                     where: {
                         yearLevel: registration.yearLevel,
-                        semester: registration.semester,
+                        semesterId: semester?.id,
                         isActive: true
                     }
                 });
@@ -438,10 +453,15 @@ export const getStudentEnrolledSubjects = async (req: ExpressRequest, res: Respo
         console.log('📚 Student is in:', yearLevel, semester);
 
         // Get the curriculum for this year level and semester
+        // Map semester name to semesterId
+        const semesterRecord = await SemesterModel.findOne({
+            where: { name: semester }
+        });
+        
         const curriculum = await BsitCurriculumModel.findAll({
             where: {
                 yearLevel: yearLevel,
-                semester: semester,
+                semesterId: semesterRecord?.id,
                 isActive: true
             },
             order: [['courseCode', 'ASC']]
