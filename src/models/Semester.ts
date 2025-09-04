@@ -39,7 +39,6 @@ export const initSemester = (sequelize: Sequelize) => {
         code: {
             type: DataTypes.STRING(10),
             allowNull: false,
-            unique: true,
         },
         description: {
             type: DataTypes.STRING(200),

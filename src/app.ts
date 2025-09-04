@@ -25,7 +25,7 @@ import bsitCurriculumRoutes from './routes/bsitCurriculumRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import photoRoutes from './routes/photoRoutes';
 import requirementsRoutes from './routes/requirementsRoutes';
-import accountingRoutes from './routes/accountingRoutes';
+
 
 dotenv.config();
 
@@ -57,7 +57,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files from the project's root 'uploads' directory
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
+app.use('/api/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 // Health check endpoint for Render
 app.get('/health', (req: Request, res: Response) => {
@@ -94,6 +94,7 @@ app.use('/api/bsit-curriculum', bsitCurriculumRoutes);
 app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/requirements', requirementsRoutes);
+app.use('/api/students', studentDocumentRoutes);
 
 // --- Error Handling Middleware ---
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

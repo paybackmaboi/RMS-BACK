@@ -12,13 +12,13 @@ router.get('/test', (req, res) => {
 // Debug endpoint to check database
 router.get('/debug', async (req, res) => {
     try {
-        const { UserModel, StudentModel } = require('../database');
+        const { UserModel, StudentRegistrationModel } = require('../database');
         const userCount = await UserModel.count({ where: { role: 'student' } });
-        const studentCount = await StudentModel.count();
+        const registrationCount = await StudentRegistrationModel.count();
         res.json({ 
             message: 'Database debug info',
             userCount,
-            studentCount,
+            registrationCount,
             timestamp: new Date().toISOString()
         });
     } catch (error) {

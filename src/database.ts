@@ -19,12 +19,13 @@ import { StudentEnrollment as StudentEnrollmentModel, initStudentEnrollment } fr
 import { UserSession as UserSessionModel, initUserSession } from './models/UserSession';
 import { Request as RequestModel, initRequest } from './models/Request';
 import { Notification as NotificationModel, initNotification } from './models/Notification';
+import { Requirements as RequirementsModel, initRequirements } from './models/Requirements';
 import { Accounting as AccountingModel, initAccounting } from './models/Accounting';
 
 // Load environment variables
 dotenv.config();
 
-// check if we are in production
+// Check if we're in production
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Database configuration
@@ -49,15 +50,13 @@ export const sequelize = new Sequelize({
         bigNumberStrings: true,
         dateStrings: true,
         decimalNumbers: true,
-        connectTimeout: 60000,
-        acquireTimeout: 60000,
-        timeout: 60000
+        connectTimeout: 60000
     },
-    logging: console.log, // Enable logging for debugging
+    logging: isProduction ? false : console.log, // Disable logging in production
     pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
+        max: isProduction ? 10 : 5,
+        min: isProduction ? 2 : 0,
+        acquire: 60000,
         idle: 10000
     }
 });
@@ -65,45 +64,44 @@ export const sequelize = new Sequelize({
 // Initialize all models
 export const initializeModels = () => {
     initUser(sequelize);
-    initStudent(sequelize);
-    initDepartment(sequelize);
-    initCourse(sequelize);
-    initSubject(sequelize);
-    initSchoolYear(sequelize);
-    initSemester(sequelize);
-    initSchedule(sequelize);
-    initEnrollment(sequelize);
     initStudentRegistration(sequelize);
     initBsitCurriculum(sequelize);
     initBsitSchedule(sequelize);
     initStudentEnrollment(sequelize);
-    initUserSession(sequelize);
-    initRequest(sequelize);
-    initNotification(sequelize);
-    initAccounting(sequelize);
+    initRequirements(sequelize);
+    initUserSession(sequelize); // Re-enabled for login functionality
+    
+    // Temporarily skip these models to avoid key limit issues
+    // initStudent(sequelize);
+    // initDepartment(sequelize);
+    // initCourse(sequelize);
+    // initSubject(sequelize);
+    // initSchoolYear(sequelize);
+    // initSemester(sequelize);
+    // initSchedule(sequelize);
+    // initEnrollment(sequelize);
+    // initRequest(sequelize);
+    initNotification(sequelize); // Re-enabled for notification functionality
 };
 
 // Define associations
 export const defineAssociations = () => {
+    // Only essential associations for now
     // User associations
     UserModel.hasOne(StudentModel, { foreignKey: 'userId' });
     StudentModel.belongsTo(UserModel, { foreignKey: 'userId' });
 
-     // A User (who is a student) has one Accounting record
-    UserModel.hasOne(AccountingModel, { foreignKey: 'studentId', as: 'accounting' });
-    AccountingModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'user' });
-
     // Department associations
-    DepartmentModel.hasMany(CourseModel, { foreignKey: 'departmentId' });
-    CourseModel.belongsTo(DepartmentModel, { foreignKey: 'departmentId' });
+    // DepartmentModel.hasMany(CourseModel, { foreignKey: 'departmentId' });
+    // CourseModel.belongsTo(DepartmentModel, { foreignKey: 'departmentId' });
 
     // Course associations
-    CourseModel.hasMany(StudentModel, { foreignKey: 'courseId' });
-    StudentModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
+    // CourseModel.hasMany(StudentModel, { foreignKey: 'courseId' });
+    // StudentModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
 
     // Subject associations
-    SubjectModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
-    CourseModel.hasMany(SubjectModel, { foreignKey: 'courseId' });
+    // SubjectModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
+    // CourseModel.hasMany(SubjectModel, { foreignKey: 'courseId' });
 
     // Associate Course with BsitCurriculum
     CourseModel.hasMany(BsitCurriculumModel, { foreignKey: 'courseId' });
@@ -116,14 +114,14 @@ export const defineAssociations = () => {
     BsitScheduleModel.belongsTo(SemesterModel, { foreignKey: 'semesterId' });
 
     // Schedule associations
-    ScheduleModel.belongsTo(SubjectModel, { foreignKey: 'subjectId' });
-    SubjectModel.hasMany(ScheduleModel, { foreignKey: 'subjectId' });
+    // ScheduleModel.belongsTo(SubjectModel, { foreignKey: 'subjectId' });
+    // SubjectModel.hasMany(ScheduleModel, { foreignKey: 'subjectId' });
 
     // Enrollment associations
-    EnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
-    StudentModel.hasMany(EnrollmentModel, { foreignKey: 'studentId' });
-    EnrollmentModel.belongsTo(ScheduleModel, { foreignKey: 'scheduleId' });
-    ScheduleModel.hasMany(EnrollmentModel, { foreignKey: 'scheduleId' });
+    // EnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
+    // StudentModel.hasMany(EnrollmentModel, { foreignKey: 'studentId' });
+    // EnrollmentModel.belongsTo(ScheduleModel, { foreignKey: 'scheduleId' });
+    // ScheduleModel.hasMany(EnrollmentModel, { foreignKey: 'scheduleId' });
 
     // Student Registration associations
     StudentRegistrationModel.belongsTo(UserModel, { foreignKey: 'userId' });
@@ -134,20 +132,20 @@ export const defineAssociations = () => {
     BsitScheduleModel.belongsTo(BsitCurriculumModel, { foreignKey: 'curriculumId' });
 
     // Student Enrollment associations
-    StudentEnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
-    StudentModel.hasMany(StudentEnrollmentModel, { foreignKey: 'studentId' });
+    // StudentEnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
+    // StudentModel.hasMany(StudentEnrollmentModel, { foreignKey: 'studentId' });
     StudentEnrollmentModel.belongsTo(BsitScheduleModel, { foreignKey: 'scheduleId' });
     BsitScheduleModel.hasMany(StudentEnrollmentModel, { foreignKey: 'scheduleId' });
 
     // Request associations
-    RequestModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'student' });
-    UserModel.hasMany(RequestModel, { foreignKey: 'studentId', as: 'requests' });
+    // RequestModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'student' });
+    // UserModel.hasMany(RequestModel, { foreignKey: 'studentId', as: 'requests' });
 
     // Notification associations
     NotificationModel.belongsTo(UserModel, { foreignKey: 'userId' });
     UserModel.hasMany(NotificationModel, { foreignKey: 'userId' });
-    NotificationModel.belongsTo(RequestModel, { foreignKey: 'requestId' });
-    RequestModel.hasMany(NotificationModel, { foreignKey: 'requestId' });
+    // NotificationModel.belongsTo(RequestModel, { foreignKey: 'requestId' }); // Keep commented since RequestModel is disabled
+    // RequestModel.hasMany(NotificationModel, { foreignKey: 'requestId' }); // Keep commented since RequestModel is disabled
 };
 
 // Connect to database and initialize
@@ -187,8 +185,10 @@ export const connectAndInitialize = async () => {
         defineAssociations();
         console.log('✅ Model associations defined successfully.');
 
-        // Use `force: true` for development to drop and recreate tables
-        await sequelize.sync({ alter: true });
+
+
+        // Database sync - ensure all tables exist with correct structure
+        await sequelize.sync({ alter: true }); // This will create missing tables and alter existing ones
         console.log('✅ Database tables created/synced successfully.');
 
         const { seedInitialData } = await import('./seedData');
@@ -245,7 +245,7 @@ export const connectAndInitialize = async () => {
             const bcrypt = require('bcrypt');
             const hashedPassword = await bcrypt.hash('password', 10);
             
-            const newUser = await UserModel.create({
+            await UserModel.create({
                 idNumber: '2022-00037',
                 password: hashedPassword,
                 role: 'student',
@@ -255,23 +255,23 @@ export const connectAndInitialize = async () => {
                 isActive: true
             });
 
-            // Create student record
-            await StudentModel.create({
-                userId: newUser.id,
-                studentNumber: '2022-00037',
-                fullName: 'Doe, John',
-                yearOfEntry: new Date().getFullYear(),
-                studentType: 'First',
-                semesterEntry: 'First',
-                applicationType: 'Freshmen',
-                academicStatus: 'Regular',
-                currentYearLevel: 1,
-                currentSemester: 1,
-                totalUnitsEarned: 0,
-                cumulativeGPA: 0.00,
-                isActive: true
-            });
-            console.log('✅ Sample student user created (2022-00037/password)');
+            // Temporarily skip student record creation since StudentModel is commented out
+            // await StudentModel.create({
+            //     userId: newUser.id,
+            //     studentNumber: '2022-00037',
+            //     fullName: 'Doe, John',
+            //     yearOfEntry: new Date().getFullYear(),
+            //     studentType: 'First',
+            //     semesterEntry: 'First',
+            //     applicationType: 'Freshmen',
+            //     academicStatus: 'Regular',
+            //     currentYearLevel: 1,
+            //     currentSemester: 1,
+            //     totalUnitsEarned: 0,
+            //     cumulativeGPA: 0.00,
+            //     isActive: true
+            // });
+            console.log('✅ Sample student user created (2022-00037/password) - Student record creation skipped');
         }
 
         console.log('🎉 Database initialization completed successfully!');
@@ -298,20 +298,22 @@ export const connectAndInitialize = async () => {
 // Export models for use in other parts of the application
 export {
     UserModel,
-    StudentModel,
-    DepartmentModel,
-    CourseModel,
-    SubjectModel,
-    SchoolYearModel,
-    SemesterModel,
-    ScheduleModel,
-    EnrollmentModel,
     StudentRegistrationModel,
     BsitCurriculumModel,
     BsitScheduleModel,
     StudentEnrollmentModel,
     UserSessionModel,
-    RequestModel,
+    RequirementsModel,
     NotificationModel,
     AccountingModel
+    // Temporarily skip these models to avoid key limit issues
+    // StudentModel,
+    // DepartmentModel,
+    // CourseModel,
+    // SubjectModel,
+    // SchoolYearModel,
+    // SemesterModel,
+    // ScheduleModel,
+    // EnrollmentModel,
+    // RequestModel,
 };

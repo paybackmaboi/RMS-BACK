@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserModel, StudentModel, CourseModel, RequestModel, StudentRegistrationModel, sequelize } from '../database';
+import { UserModel, StudentRegistrationModel, sequelize } from '../database';
 import { Op } from 'sequelize';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -11,20 +11,14 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
             where: { role: 'student' }
         });
 
-        // Get total courses
-        const totalCourses = await CourseModel.count();
+        // Get total courses (temporarily set to 0 since CourseModel is not available)
+        const totalCourses = 0;
 
-        // Get request statistics
-        const totalRequests = await RequestModel.count();
-        const pendingRequests = await RequestModel.count({
-            where: { status: 'Pending' }
-        });
-        const approvedRequests = await RequestModel.count({
-            where: { status: 'Approved' }
-        });
-        const rejectedRequests = await RequestModel.count({
-            where: { status: 'Rejected' }
-        });
+        // Get request statistics (temporarily set to 0 since RequestModel is not available)
+        const totalRequests = 0;
+        const pendingRequests = 0;
+        const approvedRequests = 0;
+        const rejectedRequests = 0;
 
         // Get student status statistics
         const newStudents = await StudentRegistrationModel.count({
@@ -114,12 +108,7 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
             where: { semester: 'Summer' }
         });
 
-        // Get course distribution (simplified for now)
-        const courseDistribution = await CourseModel.findAll({
-            attributes: ['id', 'name']
-        });
-
-        // Get monthly enrollment data (simplified for now)
+        // Get monthly enrollment data (actual data from database)
         const monthlyEnrollments = await StudentRegistrationModel.findAll({
             attributes: ['id', 'createdAt'],
             where: {
@@ -128,6 +117,12 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
                 }
             }
         });
+
+        // Get actual course distribution (BSIT only for now)
+        const courseDistribution = [{
+            name: 'Bachelor of Science in Information Technology',
+            studentCount: bsitStudents
+        }];
 
         const stats = {
             totalStudents,
@@ -155,13 +150,10 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
                 secondSemester: secondSemesterCount,
                 summer: summerCount
             },
-            courseDistribution: courseDistribution.map(course => ({
-                name: course.name,
-                studentCount: Math.floor(Math.random() * 50) + 10 // Mock data for now
-            })),
+            courseDistribution: courseDistribution,
             monthlyEnrollments: monthlyEnrollments.map(enrollment => ({
                 month: enrollment.createdAt.toISOString().slice(0, 7),
-                count: Math.floor(Math.random() * 20) + 5 // Mock data for now
+                count: 1 // Each enrollment represents 1 student
             }))
         };
 
@@ -178,38 +170,24 @@ export const getRecentActivity = async (req: Request, res: Response, next: NextF
     try {
         console.log('📋 Fetching recent activity...');
 
-        // Get recent student registrations (simplified without associations for now)
+        // Get recent student registrations with actual student names
         const recentRegistrations = await StudentRegistrationModel.findAll({
-            attributes: ['id', 'registrationStatus', 'createdAt'],
+            attributes: ['id', 'firstName', 'lastName', 'middleName', 'registrationStatus', 'createdAt'],
             order: [['createdAt', 'DESC']],
             limit: 10,
             raw: true
         });
 
-        // Get recent requests (simplified without associations for now)
-        const recentRequests = await RequestModel.findAll({
-            attributes: ['id', 'status', 'createdAt', 'studentId'],
-            order: [['createdAt', 'DESC']],
-            limit: 10,
-            raw: true
-        });
-
+        // Since RequestModel is not available, we'll only show registrations for now
         const recentActivity = {
             registrations: recentRegistrations.map(reg => ({
                 id: reg.id,
-                studentName: `Registration #${reg.id}`,
+                studentName: `${reg.lastName}, ${reg.firstName} ${reg.middleName || ''}`.trim(),
                 idNumber: `REG-${reg.id}`,
                 status: reg.registrationStatus,
                 date: reg.createdAt
             })),
-            requests: recentRequests.map(req => ({
-                id: req.id,
-                studentName: `Student ID: ${req.studentId}`,
-                idNumber: req.studentId || 'N/A',
-                type: 'Request',
-                status: req.status,
-                date: req.createdAt
-            }))
+            requests: [] // No requests available since RequestModel is disabled
         };
 
         console.log('✅ Recent activity fetched successfully');

@@ -33,7 +33,7 @@ export const initStudentEnrollment = (sequelize: Sequelize) => {
             type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
             references: {
-                model: 'students',
+                model: 'users',
                 key: 'id'
             }
         },
