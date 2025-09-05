@@ -13,7 +13,7 @@ const initUserSession = (sequelize) => {
             primaryKey: true,
         },
         userId: {
-            type: sequelize_1.DataTypes.INTEGER,
+            type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
             references: {
                 model: 'users',

@@ -266,7 +266,7 @@ const getAllStudents = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 gender: (studentDetails === null || studentDetails === void 0 ? void 0 : studentDetails.gender) || 'N/A',
                 email: student.email,
                 phoneNumber: student.phoneNumber,
-                profilePhoto: student.profilePhoto, // Add profile photo field
+                profilePhoto: student.profilePhoto || null, // Return null if no profile photo
                 isRegistered: !!studentDetails,
                 course: 'Bachelor of Science in Information Technology', // BSIT is the course
                 studentNumber: (studentDetails === null || studentDetails === void 0 ? void 0 : studentDetails.studentNumber) || student.idNumber,
@@ -406,7 +406,7 @@ const getStudentEnrolledSubjects = (req, res, next) => __awaiter(void 0, void 0,
             },
             order: [['courseCode', 'ASC']]
         });
-        // For now, we'll show all curriculum subjects and mark them as not enrolled
+        // For now, we'll show all curriculum subjects and mark them as enrolled
         // In a real system, you'd need to join enrollments with schedules and curriculum
         const subjects = curriculum.map(course => {
             return {
@@ -416,10 +416,10 @@ const getStudentEnrolledSubjects = (req, res, next) => __awaiter(void 0, void 0,
                 units: course.units,
                 courseType: course.courseType,
                 prerequisites: course.prerequisites,
-                isEnrolled: false, // For now, assume not enrolled
+                isEnrolled: true, // For now, assume enrolled
                 enrollmentId: null,
                 finalGrade: 'N/A',
-                status: 'Not Enrolled',
+                status: 'Enrolled',
                 yearLevel: course.yearLevel,
                 semester: course.semester
             };
@@ -638,7 +638,7 @@ const getCurrentStudentProfile = (req, res, next) => __awaiter(void 0, void 0, v
             res.status(404).json({ message: 'Student record not found' });
             return;
         }
-        res.json({
+        const responseData = {
             id: user.id,
             idNumber: user.idNumber,
             firstName: user.firstName,
@@ -646,6 +646,7 @@ const getCurrentStudentProfile = (req, res, next) => __awaiter(void 0, void 0, v
             middleName: user.middleName,
             email: user.email,
             phoneNumber: user.phoneNumber,
+            profilePhoto: user.profilePhoto || null, // Return null if no profile photo (frontend will handle default)
             fullName: student.fullName,
             studentNumber: student.studentNumber,
             currentYearLevel: student.currentYearLevel,
@@ -656,10 +657,11 @@ const getCurrentStudentProfile = (req, res, next) => __awaiter(void 0, void 0, v
             yearOfEntry: student.yearOfEntry,
             applicationType: student.applicationType,
             studentType: student.studentType
-        });
+        };
+        res.json(responseData);
     }
     catch (error) {
-        console.error('Error fetching student profile:', error);
+        console.error('Student profile controller error:', error);
         next(error);
     }
 });

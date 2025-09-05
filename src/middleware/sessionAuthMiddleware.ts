@@ -161,3 +161,58 @@ export const studentSessionAuthMiddleware = async (req: Request, res: Response, 
         res.status(500).json({ message: 'Authentication error' });
     }
 };
+
+
+export const accountingSessionAuthMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        // Get session token from cookies or headers
+        const sessionToken = req.cookies?.sessionToken || req.headers['x-session-token'] as string;
+        
+        if (!sessionToken) {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+
+        // Find a valid, non-expired session
+        const session = await UserSessionModel.findOne({
+            where: {
+                sessionToken: sessionToken,
+                expiresAt: {
+                    [Op.gt]: new Date()
+                }
+            }
+        });
+
+        if (!session) {
+            res.status(401).json({ message: 'Invalid or expired session' });
+            return;
+        }
+
+        // Get the user associated with the session
+        const user = await UserModel.findByPk(session.userId);
+        if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+
+        // IMPORTANT: Check if the user is 'accounting' OR 'admin'
+        if (user.role !== 'accounting' && user.role !== 'admin') {
+            res.status(403).json({ message: 'Access restricted to accounting or admin staff' });
+            return;
+        }
+
+        // Attach user info to the request object
+        req.user = {
+            id: session.userId,
+            role: user.role,
+            idNumber: user.idNumber,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+
+        next();
+    } catch (error) {
+        console.error('Accounting session auth error:', error);
+        res.status(500).json({ message: 'Authentication error' });
+    }
+};

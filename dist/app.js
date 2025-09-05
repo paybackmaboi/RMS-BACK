@@ -19,6 +19,7 @@ const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const database_1 = require("./database");
+const seedData_1 = require("./seedData");
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const requestRoutes_1 = __importDefault(require("./routes/requestRoutes"));
 const studentRoutes_1 = __importDefault(require("./routes/studentRoutes"));
@@ -35,17 +36,40 @@ const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
 const bsitCurriculumRoutes_1 = __importDefault(require("./routes/bsitCurriculumRoutes"));
 const dashboardRoutes_1 = __importDefault(require("./routes/dashboardRoutes"));
 const photoRoutes_1 = __importDefault(require("./routes/photoRoutes"));
+const requirementsRoutes_1 = __importDefault(require("./routes/requirementsRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
-app.set('json spaces', 2);
+const isProduction = process.env.NODE_ENV === 'production';
+app.set('json spaces', 5);
 // --- Global Middleware ---
-app.use((0, cors_1.default)());
+// CORS configuration for production
+const corsOptions = {
+    origin: isProduction
+        ? [process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com',
+            'https://rms-front-0hm1.onrender.com',
+            'https://rms-front-v8xi.onrender.com',
+            'https://ly-ann-kate-candido.onrender.com',
+            'https://rms-front-ixef.onrender.com'
+        ]
+        : ['http://localhost:3000', 'http://localhost:3001'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from the project's root 'uploads' directory
 app.use('/uploads', express_1.default.static(path_1.default.resolve(process.cwd(), 'uploads')));
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
 // --- Routes ---
 app.use('/api/auth', authRoutes_1.default);
 app.use('/api/requests', requestRoutes_1.default);
@@ -66,6 +90,7 @@ app.use('/api/courses', courseRoutes_1.default);
 app.use('/api/bsit-curriculum', bsitCurriculumRoutes_1.default);
 app.use('/api/admin/dashboard', dashboardRoutes_1.default);
 app.use('/api/photos', photoRoutes_1.default);
+app.use('/api/requirements', requirementsRoutes_1.default);
 // --- Error Handling Middleware ---
 const errorHandler = (err, req, res, next) => {
     console.error("An error occurred:", err.message);
@@ -80,11 +105,21 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         // Initialize database and sync all models
         yield (0, database_1.connectAndInitialize)();
         console.log('🚀 Server starting up...');
+        // Automatically seed BSIT curriculum and schedules
+        try {
+            console.log('🌱 Starting automatic data seeding...');
+            yield (0, seedData_1.seedInitialData)();
+            console.log('✅ Automatic seeding completed successfully!');
+        }
+        catch (seedError) {
+            console.warn('⚠️  Warning: Automatic seeding failed, but server will continue:', seedError);
+        }
         // Start the server
         app.listen(PORT, () => {
             console.log(`✅ Server running on port ${PORT}`);
             console.log(`🌐 API available at: http://localhost:${PORT}/api`);
             console.log(`📚 Database tables created/verified automatically`);
+            console.log(`🌱 BSIT curriculum and schedules seeded automatically`);
             console.log(`🔑 Sample users created for testing`);
         });
     }

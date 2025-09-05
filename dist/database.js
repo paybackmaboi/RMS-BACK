@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -51,6 +84,8 @@ const Notification_1 = require("./models/Notification");
 Object.defineProperty(exports, "NotificationModel", { enumerable: true, get: function () { return Notification_1.Notification; } });
 // Load environment variables
 dotenv_1.default.config();
+// check if we are in production
+const isProduction = process.env.NODE_ENV === 'production';
 // Database configuration
 const DB_HOST = process.env.DB_HOST || 'localhost';
 const DB_USER = process.env.DB_USER || 'root';
@@ -158,6 +193,17 @@ const connectAndInitialize = () => __awaiter(void 0, void 0, void 0, function* (
         if (!DB_NAME) {
             throw new Error('DB_NAME environment variable is required. Please check your .env file.');
         }
+        // Create database if it doesn't exist
+        const mysql = require('mysql2/promise');
+        const connection = yield mysql.createConnection({
+            host: DB_HOST,
+            user: DB_USER,
+            password: DB_PASSWORD,
+            port: DB_PORT
+        });
+        yield connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
+        yield connection.end();
+        console.log(`✅ Database '${DB_NAME}' ensured to exist.`);
         // Test connection
         yield exports.sequelize.authenticate();
         console.log('✅ Database connection established successfully.');
@@ -168,7 +214,10 @@ const connectAndInitialize = () => __awaiter(void 0, void 0, void 0, function* (
         (0, exports.defineAssociations)();
         console.log('✅ Model associations defined successfully.');
         // Database sync disabled - using existing tables
-        console.log('✅ Using existing database tables (no sync needed)');
+        yield exports.sequelize.sync({ alter: true }); // Use { force: true } to drop & recreate (DEV ONLY)
+        console.log('✅ Database tables created/synced successfully.');
+        const { seedInitialData } = yield Promise.resolve().then(() => __importStar(require('./seedData')));
+        yield seedInitialData();
         // Create sample admin user if it doesn't exist
         const adminUser = yield User_1.User.findOne({
             where: { idNumber: 'A001' }
@@ -186,6 +235,24 @@ const connectAndInitialize = () => __awaiter(void 0, void 0, void 0, function* (
                 isActive: true
             });
             console.log('✅ Sample admin user created (A001/adminpass)');
+        }
+        // Create sample accounting user if it doesn't exist
+        const accountingUser = yield User_1.User.findOne({
+            where: { idNumber: 'ACC01' }
+        });
+        if (!accountingUser) {
+            const bcrypt = require('bcrypt');
+            const hashedPassword = yield bcrypt.hash('accpass', 10);
+            yield User_1.User.create({
+                idNumber: 'ACC01',
+                password: hashedPassword,
+                role: 'accounting',
+                firstName: 'Accounting',
+                lastName: 'User',
+                email: 'accounting@benedicto.edu.ph',
+                isActive: true
+            });
+            console.log('✅ Sample accounting user created (ACC01/accpass)');
         }
         // Create sample student user if it doesn't exist
         const studentUser = yield User_1.User.findOne({
