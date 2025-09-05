@@ -3,9 +3,11 @@ import {
     loginAndCreateSession,
     logoutAndDestroySession,
     getCurrentSession,
-    refreshSession
+    refreshSession,
+    getLoginHistory,
+    getStudentLoginHistory
 } from '../controllers/sessionController';
-import { sessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
+import { sessionAuthMiddleware, adminSessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
 
 const router = express.Router();
 
@@ -20,5 +22,11 @@ router.get('/me', sessionAuthMiddleware, getCurrentSession);
 
 // Refresh session (no auth required - just need valid session token)
 router.post('/refresh', refreshSession);
+
+// Get login/logout history
+router.get('/history', sessionAuthMiddleware, getLoginHistory);
+
+// Get student login history (admin only)
+router.get('/student/:studentId/history', adminSessionAuthMiddleware, getStudentLoginHistory);
 
 export default router;

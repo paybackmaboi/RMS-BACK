@@ -34,6 +34,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 app.set('json spaces', 2);
 
+// Trust proxy for proper IP address detection
+app.set('trust proxy', true);
+
 // --- Global Middleware ---
 // CORS configuration for production
 const corsOptions = {
