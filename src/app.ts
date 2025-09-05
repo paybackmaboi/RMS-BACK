@@ -41,7 +41,7 @@ app.set('trust proxy', true);
 // CORS configuration for production
 const corsOptions = {
     origin: isProduction
-        ? [process.env.FRONTEND_URL || 'https://rms-front-f7jh.onrender.com']
+        ? [process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com']
         : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     optionsSuccessStatus: 200
