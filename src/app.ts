@@ -32,18 +32,20 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
-app.set('json spaces', 5);
+app.set('json spaces', 7);
 // --- Global Middleware ---
 // CORS configuration for production
 const corsOptions = {
     origin: isProduction
-        ? [process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com',
-        'https://rms-front-0hm1.onrender.com', 
-        'https://rms-front-v8xi.onrender.com',
-        'https://ly-ann-kate-candido.onrender.com',
-        'https://rms-front-ixef.onrender.com'
-    ]
-
+        ? [
+            process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com',
+            'https://rms-front-0hm1.onrender.com', 
+            'https://rms-front-v8xi.onrender.com',
+            'https://ly-ann-kate-candido.onrender.com',
+            'https://rms-front-ixef.onrender.com',
+            'https://rms-front-bxkx.onrender.com',
+            'https://rms-frontend.onrender.com'
+        ]
         : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     optionsSuccessStatus: 200
