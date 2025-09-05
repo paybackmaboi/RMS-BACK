@@ -72,14 +72,6 @@ export const initStudentEnrollment = (sequelize: Sequelize) => {
                 name: 'unique_student_schedule',
                 unique: true,
                 fields: ['studentId', 'scheduleId']
-            },
-            {
-                name: 'idx_student_enrollments_studentId',
-                fields: ['studentId']
-            },
-            {
-                name: 'idx_student_enrollments_scheduleId',
-                fields: ['scheduleId']
             }
         ]
     });

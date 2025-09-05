@@ -177,8 +177,8 @@ export const connectAndInitialize = async () => {
         defineAssociations();
         console.log('✅ Model associations defined successfully.');
 
-        // Database sync disabled - using existing tables
-        await sequelize.sync({ alter: true }); // Use { force: true } to drop & recreate (DEV ONLY)
+        // Database sync with minimal changes to avoid key limit issues
+        await sequelize.sync({ alter: false }); // Don't alter existing tables to avoid key conflicts
         console.log('✅ Database tables created/synced successfully.');
 
         const { seedInitialData } = await import('./seedData');

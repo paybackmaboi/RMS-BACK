@@ -89,18 +89,6 @@ export const initBsitCurriculum = (sequelize: Sequelize) => {
                 name: 'unique_course_year_sem',
                 unique: true,
                 fields: ['courseCode', 'yearLevel', 'semester']
-            },
-            {
-                name: 'idx_bsit_curriculum_yearLevel',
-                fields: ['yearLevel']
-            },
-            {
-                name: 'idx_bsit_curriculum_semester',
-                fields: ['semester']
-            },
-            {
-                name: 'idx_bsit_curriculum_courseCode',
-                fields: ['courseCode']
             }
         ]
     });

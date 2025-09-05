@@ -142,22 +142,6 @@ export const initBsitSchedule = (sequelize: Sequelize) => {
             {
                 name: 'idx_schedule_lookup',
                 fields: ['schoolYear', 'semester', 'yearLevel', 'day']
-            },
-            {
-                name: 'idx_bsit_schedules_yearLevel',
-                fields: ['yearLevel']
-            },
-            {
-                name: 'idx_bsit_schedules_semester',
-                fields: ['semester']
-            },
-            {
-                name: 'idx_bsit_schedules_schoolYear',
-                fields: ['schoolYear']
-            },
-            {
-                name: 'idx_bsit_schedules_day',
-                fields: ['day']
             }
         ]
     });
