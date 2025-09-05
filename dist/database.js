@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotificationModel = exports.RequestModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.EnrollmentModel = exports.ScheduleModel = exports.SemesterModel = exports.SchoolYearModel = exports.SubjectModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
+exports.LoginHistoryModel = exports.AccountingModel = exports.NotificationModel = exports.RequestModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.EnrollmentModel = exports.ScheduleModel = exports.SemesterModel = exports.SchoolYearModel = exports.SubjectModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 const mysql2_1 = __importDefault(require("mysql2"));
@@ -82,6 +82,10 @@ const Request_1 = require("./models/Request");
 Object.defineProperty(exports, "RequestModel", { enumerable: true, get: function () { return Request_1.Request; } });
 const Notification_1 = require("./models/Notification");
 Object.defineProperty(exports, "NotificationModel", { enumerable: true, get: function () { return Notification_1.Notification; } });
+const LoginHistory_1 = require("./models/LoginHistory");
+Object.defineProperty(exports, "LoginHistoryModel", { enumerable: true, get: function () { return LoginHistory_1.LoginHistory; } });
+const Accounting_1 = require("./models/Accounting");
+Object.defineProperty(exports, "AccountingModel", { enumerable: true, get: function () { return Accounting_1.Accounting; } });
 // Load environment variables
 dotenv_1.default.config();
 // check if we are in production
@@ -137,6 +141,8 @@ const initializeModels = () => {
     (0, UserSession_1.initUserSession)(exports.sequelize);
     (0, Request_1.initRequest)(exports.sequelize);
     (0, Notification_1.initNotification)(exports.sequelize);
+    (0, Accounting_1.initAccounting)(exports.sequelize);
+    (0, LoginHistory_1.initLoginHistory)(exports.sequelize);
 };
 exports.initializeModels = initializeModels;
 // Define associations
@@ -144,6 +150,9 @@ const defineAssociations = () => {
     // User associations
     User_1.User.hasOne(Student_1.Student, { foreignKey: 'userId' });
     Student_1.Student.belongsTo(User_1.User, { foreignKey: 'userId' });
+    // A User (who is a student) has one Accounting record
+    User_1.User.hasOne(Accounting_1.Accounting, { foreignKey: 'studentId', as: 'accounting' });
+    Accounting_1.Accounting.belongsTo(User_1.User, { foreignKey: 'studentId', as: 'user' });
     // Department associations
     Department_1.Department.hasMany(Course_1.Course, { foreignKey: 'departmentId' });
     Course_1.Course.belongsTo(Department_1.Department, { foreignKey: 'departmentId' });
@@ -180,6 +189,9 @@ const defineAssociations = () => {
     User_1.User.hasMany(Notification_1.Notification, { foreignKey: 'userId' });
     Notification_1.Notification.belongsTo(Request_1.Request, { foreignKey: 'requestId' });
     Request_1.Request.hasMany(Notification_1.Notification, { foreignKey: 'requestId' });
+    // Login History associations
+    LoginHistory_1.LoginHistory.belongsTo(User_1.User, { foreignKey: 'userId' });
+    User_1.User.hasMany(LoginHistory_1.LoginHistory, { foreignKey: 'userId' });
 };
 exports.defineAssociations = defineAssociations;
 // Connect to database and initialize

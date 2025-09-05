@@ -37,21 +37,19 @@ const bsitCurriculumRoutes_1 = __importDefault(require("./routes/bsitCurriculumR
 const dashboardRoutes_1 = __importDefault(require("./routes/dashboardRoutes"));
 const photoRoutes_1 = __importDefault(require("./routes/photoRoutes"));
 const requirementsRoutes_1 = __importDefault(require("./routes/requirementsRoutes"));
+const accountingRoutes_1 = __importDefault(require("./routes/accountingRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 app.set('json spaces', 5);
+// Trust proxy for proper IP address detection
+app.set('trust proxy', true);
 // --- Global Middleware ---
 // CORS configuration for production
 const corsOptions = {
     origin: isProduction
-        ? [process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com',
-            'https://rms-front-0hm1.onrender.com',
-            'https://rms-front-v8xi.onrender.com',
-            'https://ly-ann-kate-candido.onrender.com',
-            'https://rms-front-ixef.onrender.com'
-        ]
+        ? [process.env.FRONTEND_URL || 'https://rms-front-f7jh.onrender.com']
         : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     optionsSuccessStatus: 200
@@ -78,6 +76,8 @@ app.use('/api/accounts', accountRoutes_1.default);
 app.use('/api/notifications', notificationRoutes_1.default);
 // Add the new registration route
 app.use('/api/register', registrationRoutes_1.default);
+//balance
+app.use('/api/accounting', accountingRoutes_1.default);
 // Student enrollment routes (for student dashboard) - register BEFORE studentRoutes to avoid conflicts
 app.use('/api/students', enrollmentRoutes_1.default);
 // Student management routes (for admin functions like viewing student details)

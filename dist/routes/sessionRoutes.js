@@ -15,4 +15,8 @@ router.post('/logout', sessionAuthMiddleware_1.sessionAuthMiddleware, sessionCon
 router.get('/me', sessionAuthMiddleware_1.sessionAuthMiddleware, sessionController_1.getCurrentSession);
 // Refresh session (no auth required - just need valid session token)
 router.post('/refresh', sessionController_1.refreshSession);
+// Get login/logout history
+router.get('/history', sessionAuthMiddleware_1.sessionAuthMiddleware, sessionController_1.getLoginHistory);
+// Get student login history (admin only)
+router.get('/student/:studentId/history', sessionAuthMiddleware_1.adminSessionAuthMiddleware, sessionController_1.getStudentLoginHistory);
 exports.default = router;
