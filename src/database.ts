@@ -20,11 +20,12 @@ import { UserSession as UserSessionModel, initUserSession } from './models/UserS
 import { Request as RequestModel, initRequest } from './models/Request';
 import { Notification as NotificationModel, initNotification } from './models/Notification';
 import { LoginHistory as LoginHistoryModel, initLoginHistory } from './models/LoginHistory';
+import { Accounting as AccountingModel, initAccounting } from './models/Accounting';
 
 // Load environment variables
 dotenv.config();
 
-// Check if we're in production
+// check if we are in production
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Database configuration
@@ -51,16 +52,12 @@ export const sequelize = new Sequelize({
         decimalNumbers: true,
         connectTimeout: 60000,
         acquireTimeout: 60000,
-        timeout: 60000,
-        // Production SSL settings
-        ...(isProduction && {
-            ssl: false, // Disable SSL for now, enable if your MySQL server supports it
-        })
+        timeout: 60000
     },
-    logging: isProduction ? false : console.log, // Disable logging in production
+    logging: console.log, // Enable logging for debugging
     pool: {
-        max: isProduction ? 10 : 5,
-        min: isProduction ? 2 : 0,
+        max: 5,
+        min: 0,
         acquire: 30000,
         idle: 10000
     }
@@ -84,6 +81,7 @@ export const initializeModels = () => {
         initUserSession(sequelize);
         initRequest(sequelize);
         initNotification(sequelize);
+        initAccounting(sequelize);
         initLoginHistory(sequelize);
 };
 
@@ -92,6 +90,10 @@ export const defineAssociations = () => {
     // User associations
     UserModel.hasOne(StudentModel, { foreignKey: 'userId' });
     StudentModel.belongsTo(UserModel, { foreignKey: 'userId' });
+
+     // A User (who is a student) has one Accounting record
+    UserModel.hasOne(AccountingModel, { foreignKey: 'studentId', as: 'accounting' });
+    AccountingModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'user' });
 
     // Department associations
     DepartmentModel.hasMany(CourseModel, { foreignKey: 'departmentId' });
@@ -307,5 +309,6 @@ export {
     UserSessionModel,
     RequestModel,
     NotificationModel,
+    AccountingModel,
     LoginHistoryModel
 };

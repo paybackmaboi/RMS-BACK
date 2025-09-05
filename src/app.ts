@@ -24,7 +24,7 @@ import bsitCurriculumRoutes from './routes/bsitCurriculumRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import photoRoutes from './routes/photoRoutes';
 import requirementsRoutes from './routes/requirementsRoutes';
-
+import accountingRoutes from './routes/accountingRoutes';
 
 dotenv.config();
 
@@ -32,8 +32,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
-app.set('json spaces', 2);
-
+app.set('json spaces', 5);
+  
 // Trust proxy for proper IP address detection
 app.set('trust proxy', true);
 
@@ -41,7 +41,7 @@ app.set('trust proxy', true);
 // CORS configuration for production
 const corsOptions = {
     origin: isProduction
-        ? [process.env.FRONTEND_URL || 'https://rms-front-v8xi.onrender.com']
+        ? [process.env.FRONTEND_URL || 'https://rms-front-f7jh.onrender.com']
         : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     optionsSuccessStatus: 200
@@ -63,8 +63,6 @@ app.get('/health', (req: Request, res: Response) => {
         environment: process.env.NODE_ENV || 'development'
     });
 });
-
-
 // --- Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
@@ -73,6 +71,8 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/notifications', notificationRoutes);
 // Add the new registration route
 app.use('/api/register', registrationRoutes);
+//balance
+app.use('/api/accounting', accountingRoutes);
 
 // Student enrollment routes (for student dashboard) - register BEFORE studentRoutes to avoid conflicts
 app.use('/api/students', enrollmentRoutes);
