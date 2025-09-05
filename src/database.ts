@@ -49,13 +49,13 @@ export const sequelize = new Sequelize({
         bigNumberStrings: true,
         dateStrings: true,
         decimalNumbers: true,
-        connectTimeout: 60000
+
     },
     logging: isProduction ? false : console.log, // Disable logging in production
     pool: {
         max: isProduction ? 10 : 5,
         min: isProduction ? 2 : 0,
-        acquire: 60000,
+
         idle: 10000
     }
 });
