@@ -22,7 +22,12 @@ const initNotification = (sequelize) => {
         },
         requestId: {
             type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
-            allowNull: false,
+            allowNull: true, // Make optional for requirements announcements
+        },
+        type: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+            defaultValue: 'request', // Default type for backward compatibility
         },
         message: {
             type: sequelize_1.DataTypes.STRING,

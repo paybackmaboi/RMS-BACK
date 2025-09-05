@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCurrentSession = exports.logoutAndDestroySession = exports.loginAndCreateSession = exports.createSession = void 0;
+exports.refreshSession = exports.getCurrentSession = exports.logoutAndDestroySession = exports.loginAndCreateSession = exports.createSession = void 0;
 const database_1 = require("../database");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -21,10 +21,10 @@ const generateSessionToken = () => {
     return crypto_1.default.randomBytes(32).toString('hex');
 };
 // Create a new session for a user
-const createSession = (userId_1, ...args_1) => __awaiter(void 0, [userId_1, ...args_1], void 0, function* (userId, expiresInHours = 24) {
+const createSession = (userId_1, ...args_1) => __awaiter(void 0, [userId_1, ...args_1], void 0, function* (userId, expiresInHours = 168) {
     const sessionToken = generateSessionToken();
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + expiresInHours);
+    expiresAt.setHours(expiresAt.getHours() + expiresInHours); // 168 hours = 7 days
     yield database_1.UserSessionModel.create({
         userId,
         sessionToken,
@@ -113,3 +113,46 @@ const getCurrentSession = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.getCurrentSession = getCurrentSession;
+// Refresh session if it's close to expiring
+const refreshSession = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
+        if (!sessionToken) {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+        // Find the session
+        const session = yield database_1.UserSessionModel.findOne({
+            where: { sessionToken }
+        });
+        if (!session) {
+            res.status(401).json({ message: 'Invalid session' });
+            return;
+        }
+        // Check if session expires within the next 24 hours
+        const now = new Date();
+        const expiresIn24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        if (session.expiresAt <= expiresIn24Hours) {
+            // Extend session by 7 days
+            const newExpiresAt = new Date();
+            newExpiresAt.setHours(newExpiresAt.getHours() + 168);
+            yield session.update({ expiresAt: newExpiresAt });
+            res.json({
+                message: 'Session refreshed',
+                expiresAt: newExpiresAt
+            });
+        }
+        else {
+            res.json({
+                message: 'Session is still valid',
+                expiresAt: session.expiresAt
+            });
+        }
+    }
+    catch (error) {
+        console.error('Session refresh error:', error);
+        next(error);
+    }
+});
+exports.refreshSession = refreshSession;

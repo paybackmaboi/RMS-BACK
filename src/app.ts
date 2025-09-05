@@ -24,15 +24,33 @@ import bsitCurriculumRoutes from './routes/bsitCurriculumRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import photoRoutes from './routes/photoRoutes';
 import requirementsRoutes from './routes/requirementsRoutes';
-
+import accountingRoutes from './routes/accountingRoutes';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-app.set('json spaces', 2);
+const isProduction = process.env.NODE_ENV === 'production';
+
+app.set('json spaces', 5);
+  
 // --- Global Middleware ---
-app.use(cors());
+// CORS configuration for production
+const corsOptions = {
+    origin: isProduction
+        ? [process.env.FRONTEND_URL || 'https://rms-front-9our.onrender.com',
+        'https://rms-front-0hm1.onrender.com', 
+        'https://rms-front-v8xi.onrender.com',
+        'https://ly-ann-kate-candido.onrender.com',
+        'https://rms-front-ixef.onrender.com'
+    ]
+
+        : ['http://localhost:3000', 'http://localhost:3001'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -40,7 +58,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from the project's root 'uploads' directory
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
-
+// Health check endpoint for Render
+app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
 // --- Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
@@ -49,6 +74,8 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/notifications', notificationRoutes);
 // Add the new registration route
 app.use('/api/register', registrationRoutes);
+//balance
+app.use('/api/accounting', accountingRoutes);
 
 // Student enrollment routes (for student dashboard) - register BEFORE studentRoutes to avoid conflicts
 app.use('/api/students', enrollmentRoutes);

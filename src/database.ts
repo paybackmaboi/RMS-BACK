@@ -19,9 +19,13 @@ import { StudentEnrollment as StudentEnrollmentModel, initStudentEnrollment } fr
 import { UserSession as UserSessionModel, initUserSession } from './models/UserSession';
 import { Request as RequestModel, initRequest } from './models/Request';
 import { Notification as NotificationModel, initNotification } from './models/Notification';
+import { Accounting as AccountingModel, initAccounting } from './models/Accounting';
 
 // Load environment variables
 dotenv.config();
+
+// check if we are in production
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Database configuration
 const DB_HOST = process.env.DB_HOST || 'localhost';
@@ -76,6 +80,7 @@ export const initializeModels = () => {
         initUserSession(sequelize);
         initRequest(sequelize);
         initNotification(sequelize);
+        initAccounting(sequelize);
 };
 
 // Define associations
@@ -83,6 +88,10 @@ export const defineAssociations = () => {
     // User associations
     UserModel.hasOne(StudentModel, { foreignKey: 'userId' });
     StudentModel.belongsTo(UserModel, { foreignKey: 'userId' });
+
+     // A User (who is a student) has one Accounting record
+    UserModel.hasOne(AccountingModel, { foreignKey: 'studentId', as: 'accounting' });
+    AccountingModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'user' });
 
     // Department associations
     DepartmentModel.hasMany(CourseModel, { foreignKey: 'departmentId' });
@@ -293,5 +302,6 @@ export {
     StudentEnrollmentModel,
     UserSessionModel,
     RequestModel,
-    NotificationModel
+    NotificationModel,
+    AccountingModel
 };

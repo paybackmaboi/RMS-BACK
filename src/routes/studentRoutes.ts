@@ -1,4 +1,5 @@
 import express from 'express';
+import { getMyBalance } from '../controllers/accountingController';
 import {
     createAndEnrollStudent,
     getRegistrationStatus,
@@ -20,7 +21,7 @@ import { authMiddleware } from '../middleware/authMiddleware';
 import { studentSessionAuthMiddleware, adminSessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
 
 const router = express.Router();
-
+router.get('/me/balance', studentSessionAuthMiddleware, getMyBalance);
 // Student registration (no auth required - this creates the account)
 router.post('/register', registerStudent);
 

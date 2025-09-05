@@ -48,6 +48,7 @@ const sessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void
             firstName: user.firstName,
             lastName: user.lastName
         };
+        console.log('✅ Student session auth successful - User set:', req.user);
         next();
     }
     catch (error) {
@@ -59,11 +60,8 @@ exports.sessionAuthMiddleware = sessionAuthMiddleware;
 const adminSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        console.log('🔐 Admin session auth - Headers:', req.headers);
-        console.log('🔐 Admin session auth - Cookies:', req.cookies);
         // First authenticate the session
         const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
-        console.log('🔐 Admin session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
         if (!sessionToken) {
             res.status(401).json({ message: 'No session token provided' });
             return;
@@ -100,7 +98,6 @@ const adminSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0,
             firstName: user.firstName,
             lastName: user.lastName
         };
-        console.log('✅ Admin session auth successful - User set:', req.user);
         next();
     }
     catch (error) {
@@ -112,11 +109,8 @@ exports.adminSessionAuthMiddleware = adminSessionAuthMiddleware;
 const studentSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        console.log('🔐 Student session auth - Headers:', req.headers);
-        console.log('🔐 Student session auth - Cookies:', req.cookies);
-        // First authenticate the session
+        // Get session token from cookies or headers
         const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
-        console.log('🔐 Student session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
         if (!sessionToken) {
             res.status(401).json({ message: 'No session token provided' });
             return;
@@ -140,9 +134,9 @@ const studentSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 
             res.status(401).json({ message: 'User not found' });
             return;
         }
-        // Check if user is a student
-        if (user.role !== 'student') {
-            res.status(403).json({ message: 'Access restricted to students only' });
+        // Check if user is a student or admin (admins can also access student data)
+        if (user.role !== 'student' && user.role !== 'admin') {
+            res.status(403).json({ message: 'Access restricted to students and administrators only' });
             return;
         }
         // Set user info in request
@@ -153,7 +147,6 @@ const studentSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 
             firstName: user.firstName,
             lastName: user.lastName
         };
-        console.log('✅ Student session auth successful - User set:', req.user);
         next();
     }
     catch (error) {
