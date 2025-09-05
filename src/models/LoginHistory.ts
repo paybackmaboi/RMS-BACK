@@ -41,7 +41,7 @@ export const initLoginHistory = (sequelize: Sequelize): void => {
                 allowNull: false,
             },
             ipAddress: {
-                type: DataTypes.STRING(45), // IPv6 can be up to 45 characters
+                type: DataTypes.STRING(45), 
                 allowNull: true,
             },
             userAgent: {
