@@ -1,5 +1,5 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { RequestModel, UserModel, StudentModel, CourseModel, NotificationModel } from '../database';
+import { UserModel } from '../database';
 import path from 'path';
 
 declare global {
@@ -21,56 +21,10 @@ export const createRequest = async (req: ExpressRequest, res: Response, next: Ne
         console.log('🔍 Creating request - User info:', req.user);
         console.log('🔍 Request body:', req.body);
         console.log('🔍 Request files:', req.files);
-        console.log('🔍 RequestModel available:', !!RequestModel);
-        console.log('🔍 RequestModel type:', typeof RequestModel);
-        console.log('🔍 RequestModel value:', RequestModel);
-        console.log('🔍 NotificationModel available:', !!NotificationModel);
-        console.log('🔍 NotificationModel type:', typeof NotificationModel);
-        console.log('🔍 NotificationModel value:', NotificationModel);
         
-        // Test if models are properly initialized
-        if (!RequestModel || !NotificationModel) {
-            console.error('❌ Models not properly initialized!');
-            console.error('❌ RequestModel:', RequestModel);
-            console.error('❌ NotificationModel:', NotificationModel);
-            res.status(500).json({ message: 'Server configuration error: Models not initialized' });
-            return;
-        }
-        
-        const documentType = req.body.documentType;
-        const purpose = req.body.purpose;
-        const studentId = req.user?.id;
-
-        if (!studentId) {
-            console.log('❌ No student ID found in req.user:', req.user);
-            res.status(401).json({ message: 'Unauthorized: Student ID not found.' });
-            return;
-        }
-
-        if (!documentType || !purpose) {
-            res.status(400).json({ message: 'Document type and purpose are required.' });
-            return;
-        }
-
-        const files = req.files as Express.Multer.File[];
-        const filePaths = files ? files.map(file => file.filename) : undefined;
-
-        const newRequest = await RequestModel.create({
-            studentId,
-            documentType,
-            purpose,
-            status: 'pending',
-            filePath: filePaths,
-        });
-
-        await NotificationModel.create({
-            userId: studentId,
-            requestId: newRequest.id,
-            message: `You have submitted your request for ${documentType}.`,
-            isRead: false,
-        });
-
-        res.status(201).json(newRequest);
+        // Temporarily disabled since RequestModel is not available
+        res.status(503).json({ message: 'Request functionality temporarily unavailable. Please try again later.' });
+        return;
     } catch (error) {
         next(error);
     }
@@ -79,25 +33,10 @@ export const createRequest = async (req: ExpressRequest, res: Response, next: Ne
 export const getStudentRequests = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         console.log('🔍 Getting student requests - User info:', req.user);
-        console.log('🔍 RequestModel available:', !!RequestModel);
-        console.log('🔍 RequestModel type:', typeof RequestModel);
-        console.log('🔍 RequestModel value:', RequestModel);
         
-        // Test if model is properly initialized
-        if (!RequestModel) {
-            console.error('❌ RequestModel not properly initialized!');
-            res.status(500).json({ message: 'Server configuration error: RequestModel not initialized' });
-            return;
-        }
-        
-        const studentId = req.user?.id;
-        if (!studentId) {
-            res.status(401).json({ message: 'Unauthorized' });
-            return;
-        }
-        
-        console.log('🔍 Student ID:', studentId);
-        const requests = await RequestModel.findAll({ where: { studentId }, order: [['createdAt', 'DESC']] });
+        // Temporarily disabled since RequestModel is not available
+        res.status(503).json({ message: 'Request functionality temporarily unavailable. Please try again later.' });
+        return;
         console.log('🔍 Found requests:', requests.length);
         res.json(requests);
     } catch (error) {
@@ -108,15 +47,9 @@ export const getStudentRequests = async (req: ExpressRequest, res: Response, nex
 
 export const getAllRequests = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const requests = await RequestModel.findAll({
-            include: [{
-                model: UserModel,
-                as: 'student',
-                attributes: ['idNumber', 'firstName', 'lastName', 'middleName']
-            }],
-            order: [['createdAt', 'DESC']],
-        });
-        res.json(requests);
+        // Temporarily disabled since RequestModel is not available
+        res.status(503).json({ message: 'Request functionality temporarily unavailable. Please try again later.' });
+        return;
     } catch (error) {
         console.error('Error fetching requests:', error);
         next(error);

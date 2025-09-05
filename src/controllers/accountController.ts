@@ -1,7 +1,6 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
 import { 
     UserModel, 
-    StudentModel, 
     StudentRegistrationModel,
     BsitCurriculumModel,
     StudentEnrollmentModel
@@ -16,17 +15,12 @@ const generatePassword = (length: number = 6): string => {
 // Enhanced function to fetch all students with registration and enrollment data
 export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        console.log('Fetching students from database...');
+        console.log('🔍 Fetching students from database...');
+        console.log('📊 Available models:', { UserModel: !!UserModel, StudentRegistrationModel: !!StudentRegistrationModel, BsitCurriculumModel: !!BsitCurriculumModel, StudentEnrollmentModel: !!StudentEnrollmentModel });
         
         // Only fetch students who have completed their registration form
         const students = await UserModel.findAll({
             where: { role: 'student', isActive: true },
-            include: [
-                {
-                    model: StudentModel
-                    // No alias needed - uses default model name
-                }
-            ],
             order: [['createdAt', 'DESC']]
         });
 
@@ -48,14 +42,12 @@ export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, 
 
         // Get registration and enrollment data for ALL students
         const studentsWithDetails = await Promise.all(allStudents.map(async (student, index) => {
-            const studentDetails = student.get('Student') as any;
-            
             // Use the registration data we already fetched
             const registration = studentsWithRegistrations[index].registration;
 
             // Get student enrollment count
             const enrollmentCount = await StudentEnrollmentModel.count({
-                where: { studentId: student.id }
+                where: { studentId: student.id } // studentId is INTEGER in StudentEnrollmentModel
             });
 
             // Get current year level and semester from registration
@@ -94,15 +86,15 @@ export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, 
                 firstName: student.firstName,
                 lastName: student.lastName,
                 middleName: student.middleName,
-                gender: studentDetails?.gender || 'N/A',
+                gender: registration?.gender || 'N/A',
                 email: student.email,
                 phoneNumber: student.phoneNumber,
                 profilePhoto: student.profilePhoto, // Add profile photo field
-                isRegistered: !!studentDetails,
+                isRegistered: !!registration,
                 course: 'Bachelor of Science in Information Technology', // BSIT is the course
-                studentNumber: studentDetails?.studentNumber || student.idNumber,
-                fullName: studentDetails?.fullName || `${student.firstName} ${student.lastName}`,
-                academicStatus: studentDetails?.academicStatus || 'Not registered',
+                studentNumber: student.idNumber,
+                fullName: `${student.firstName} ${student.lastName}`,
+                academicStatus: registration?.registrationStatus || 'Not registered',
                 createdAt: formattedDate,
                 // New fields for registration and enrollment
                 registrationStatus: registrationStatus,

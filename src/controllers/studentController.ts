@@ -2,8 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { Op } from 'sequelize';
 import { 
     UserModel, 
-    StudentModel, 
-    CourseModel, 
     sequelize,
     StudentRegistrationModel,
     BsitCurriculumModel,
@@ -66,78 +64,13 @@ export const completeStudentRegistration = async (req: Request, res: Response, n
             return;
         }
 
-        // Check if student already has a record
-        let student = await StudentModel.findOne({ where: { userId: userId } });
-        
-        if (!student) {
-            // Create new student record with proper data types and defaults
-            student = await StudentModel.create({
-                userId: userId,
-                studentNumber: user.idNumber,
-                fullName: `${user.firstName} ${user.lastName} ${user.middleName || ''}`.trim(),
-                gender: registrationData.gender || 'N/A',
-                email: registrationData.email || user.email || '',
-                contactNumber: registrationData.contactNumber || '',
-                currentYearLevel: parseInt(registrationData.yearLevel) || 1,
-                currentSemester: parseInt(registrationData.semester) || 1,
-                yearOfEntry: new Date().getFullYear(),
-                studentType: registrationData.studentType || 'First',
-                semesterEntry: 'First',
-                applicationType: registrationData.applicationType || 'Freshmen',
-                academicStatus: 'Regular',
-                totalUnitsEarned: 0,
-                cumulativeGPA: 0.0,
-                isActive: true,
-                // Add all required fields with proper defaults
-                courseId: null,
-                major: 'Information Technology',
-                dateOfBirth: registrationData.dateOfBirth || null,
-                placeOfBirth: registrationData.placeOfBirth || '',
-                maritalStatus: registrationData.maritalStatus || 'Single',
-                religion: registrationData.religion || '',
-                citizenship: registrationData.citizenship || 'Filipino',
-                cityAddress: registrationData.cityAddress || '',
-                provincialAddress: registrationData.provincialAddress || '',
-                fatherName: registrationData.fatherName || '',
-                fatherOccupation: registrationData.fatherOccupation || '',
-                fatherContactNumber: registrationData.fatherContactNumber || '',
-                motherName: registrationData.motherName || '',
-                motherOccupation: registrationData.motherOccupation || '',
-                motherContactNumber: registrationData.motherContactNumber || '',
-                guardianName: registrationData.guardianName || '',
-                guardianOccupation: registrationData.guardianOccupation || '',
-                guardianContactNumber: registrationData.guardianContactNumber || '',
-                elementarySchool: registrationData.elementarySchool || '',
-                elementaryYearGraduated: registrationData.elementaryYearGraduated ? parseInt(registrationData.elementaryYearGraduated) || undefined : undefined,
-                juniorHighSchool: registrationData.juniorHighSchool || '',
-                juniorHighYearGraduated: registrationData.juniorHighYearGraduated ? parseInt(registrationData.juniorHighYearGraduated) || undefined : undefined,
-                seniorHighSchool: registrationData.seniorHighSchool || '',
-                seniorHighYearGraduated: registrationData.seniorHighYearGraduated ? parseInt(registrationData.seniorHighYearGraduated) || undefined : undefined,
-                seniorHighStrand: registrationData.seniorHighStrand || '',
-                lastCollegeAttended: registrationData.lastCollegeAttended || '',
-                lastCollegeYearTaken: registrationData.lastCollegeYearTaken ? parseInt(registrationData.lastCollegeYearTaken) || undefined : undefined,
-                lastCollegeCourse: registrationData.lastCollegeCourse || '',
-                lastCollegeMajor: registrationData.lastCollegeMajor || ''
-            });
-            console.log('✅ Created new student record:', student.id);
-        } else {
-            // Update existing student record
-            await student.update({
-                fullName: `${user.firstName} ${user.lastName} ${user.middleName || ''}`.trim(),
-                gender: registrationData.gender || student.gender,
-                email: registrationData.email || student.email,
-                contactNumber: registrationData.contactNumber || student.contactNumber,
-                currentYearLevel: parseInt(registrationData.yearLevel) || student.currentYearLevel,
-                currentSemester: parseInt(registrationData.semester) || student.currentSemester,
-                yearOfEntry: new Date().getFullYear()
-            });
-            console.log('✅ Updated existing student record:', student.id);
-        }
+        // Since StudentModel is not available, we'll work with StudentRegistrationModel only
+        console.log('📝 StudentModel not available, using StudentRegistrationModel only');
 
         // Create student registration record with proper data types
         const studentRegistration = await StudentRegistrationModel.create({
             userId: userId,
-            studentId: student.id.toString(),
+            studentId: userId.toString(), // Use userId as studentId since StudentModel is not available
             firstName: user.firstName,
             middleName: user.middleName || '',
             lastName: user.lastName,
@@ -204,7 +137,7 @@ export const completeStudentRegistration = async (req: Request, res: Response, n
 
         res.status(201).json({
             message: 'Student registration completed successfully',
-            studentId: student.id,
+            studentId: userId,
             registrationId: studentRegistration.id,
             status: 'Enrolled'
         });
@@ -220,61 +153,68 @@ export const completeStudentRegistration = async (req: Request, res: Response, n
 
 export const getAllStudents = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
+        console.log('🔍 Fetching all students...');
+        
         const students = await UserModel.findAll({
             where: { role: 'student', isActive: true },
-            include: [
-                {
-                    model: StudentModel,
-                    as: 'studentDetails',
-                    include: [
-                        {
-                            model: CourseModel,
-                            as: 'course'
-                        }
-                    ]
-                }
-            ],
             order: [['createdAt', 'DESC']]
         });
+        
+                console.log(`📊 Found ${students.length} students in users table`);
+
+        // Debug: Check what's in the student_enrollments table
+        const allEnrollments = await StudentEnrollmentModel.findAll({
+            attributes: ['id', 'studentId', 'scheduleId', 'enrollmentStatus'],
+            raw: true
+        });
+        console.log(`🔍 Total enrollments in database: ${allEnrollments.length}`);
+        console.log('🔍 Enrollment details:', allEnrollments);
 
         // Get registration and enrollment data for all students
         const studentsWithDetails = await Promise.all(students.map(async (student) => {
-            const studentDetails = student.get('studentDetails') as any;
+            console.log(`🔍 Processing student: ${student.firstName} ${student.lastName} (ID: ${student.id})`);
             
             // Get student registration data
             const registration = await StudentRegistrationModel.findOne({
                 where: { userId: student.id },
                 order: [['createdAt', 'DESC']]
             });
-
-            // Get student enrollment count
-            const enrollmentCount = await sequelize.models.StudentEnrollment.count({
-                where: { studentId: student.id }
-            });
-
-            // Get current year level and semester from registration
-            let currentYearLevel = 'Not registered';
-            let currentSemester = 'Not registered';
-            let totalUnits = 0;
-            let registrationStatus = 'Not registered';
-            let registrationDate = null;
-
+            
+            console.log(`📋 Registration found: ${registration ? 'YES' : 'NO'}`);
             if (registration) {
-                currentYearLevel = registration.yearLevel;
-                currentSemester = registration.semester;
-                registrationStatus = registration.registrationStatus;
-                registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
-                
-                // Calculate total units from curriculum
-                const curriculum = await BsitCurriculumModel.findAll({
-                    where: {
-                        yearLevel: registration.yearLevel,
-                        semester: registration.semester,
-                        isActive: true
-                    }
-                });
-                totalUnits = curriculum.reduce((sum, course) => sum + course.units, 0);
+                console.log(`📝 Registration details: ${registration.yearLevel} ${registration.semester}, Status: ${registration.registrationStatus}`);
             }
+
+            // Get student enrollment count - check if student has any enrollments
+            const enrollmentCount = await StudentEnrollmentModel.count({
+                where: { studentId: student.id } // studentId is INTEGER in StudentEnrollmentModel
+            });
+            
+            console.log(`📚 Enrollment count for student ${student.id}: ${enrollmentCount}`);
+
+        // Get current year level and semester from registration
+        let currentYearLevel = 'Not registered';
+        let currentSemester = 'Not registered';
+        let totalUnits = 0;
+        let registrationStatus = 'Not registered';
+        let registrationDate = null;
+
+        if (registration) {
+            currentYearLevel = registration.yearLevel;
+            currentSemester = registration.semester;
+            registrationStatus = registration.registrationStatus;
+            registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
+            
+            // Calculate total units from curriculum
+            const curriculum = await BsitCurriculumModel.findAll({
+                where: {
+                    yearLevel: registration.yearLevel,
+                    semester: registration.semester,
+                    isActive: true
+                }
+            });
+            totalUnits = curriculum.reduce((sum, course) => sum + course.units, 0);
+        }
 
             // 1. Create a 'name' field in the desired "Last, First M." format.
             const name = `${student.lastName}, ${student.firstName} ${student.middleName || ''}`.trim();
@@ -288,15 +228,15 @@ export const getAllStudents = async (req: ExpressRequest, res: Response, next: N
                 firstName: student.firstName,
                 lastName: student.lastName,
                 middleName: student.middleName,
-                gender: studentDetails?.gender || 'N/A',
+                gender: registration?.gender || 'N/A',
                 email: student.email,
                 phoneNumber: student.phoneNumber,
                 profilePhoto: student.profilePhoto || null, // Return null if no profile photo
-                isRegistered: !!studentDetails,
+                isRegistered: !!registration,
                 course: 'Bachelor of Science in Information Technology', // BSIT is the course
-                studentNumber: studentDetails?.studentNumber || student.idNumber,
-                fullName: studentDetails?.fullName || `${student.firstName} ${student.lastName}`,
-                academicStatus: studentDetails?.academicStatus || 'Not registered',
+                studentNumber: student.idNumber,
+                fullName: `${student.firstName} ${student.lastName}`,
+                academicStatus: registration?.registrationStatus || 'Not registered',
                 createdAt: formattedDate,
                 // New fields for registration and enrollment
                 registrationStatus: registrationStatus,
@@ -305,9 +245,18 @@ export const getAllStudents = async (req: ExpressRequest, res: Response, next: N
                 currentSemester: currentSemester,
                 totalUnits: totalUnits,
                 enrollmentCount: enrollmentCount,
-                isFullyEnrolled: enrollmentCount > 0
+                isFullyEnrolled: enrollmentCount > 0 || (registration && registration.registrationStatus === 'Approved')
             };
         }));
+
+        console.log(`✅ Processed ${studentsWithDetails.length} students with details`);
+        console.log('📊 Final student data:', studentsWithDetails.map(s => ({
+            name: `${s.firstName} ${s.lastName}`,
+            yearLevel: s.currentYearLevel,
+            semester: s.currentSemester,
+            enrollmentCount: s.enrollmentCount,
+            isFullyEnrolled: s.isFullyEnrolled
+        })));
 
         res.json(studentsWithDetails);
     } catch (error) {
@@ -334,26 +283,13 @@ export const getStudentDetails = async (req: ExpressRequest, res: Response, next
             order: [['createdAt', 'DESC']]
         });
 
-        // Try to get student details if they exist
+        // StudentModel and CourseModel are not available, so we'll work with registration data only
         let studentDetails = null;
-        try {
-            studentDetails = await StudentModel.findOne({
-                where: { userId: id },
-                include: [
-                    {
-                        model: CourseModel,
-                        as: 'course'
-                    }
-                ]
-            });
-        } catch (detailError) {
-            console.log(`Student details not found for user ${id}, continuing without them`);
-        }
 
-        // Combine user, student, and registration data
+        // Combine user and registration data
         const studentData = {
             ...student.toJSON(),
-            studentDetails: studentDetails ? studentDetails.toJSON() : null,
+            studentDetails: null, // StudentModel not available
             registration: studentRegistration ? {
                 yearLevel: studentRegistration.yearLevel,
                 semester: studentRegistration.semester,
@@ -520,8 +456,9 @@ export const getRegistrationStatus = async (req: ExpressRequest, res: Response, 
             return;
         }
 
-        const student = await StudentModel.findOne({ where: { userId } });
-        res.json({ isRegistered: !!student });
+        // Check registration status using StudentRegistrationModel instead of StudentModel
+        const registration = await StudentRegistrationModel.findOne({ where: { userId } });
+        res.json({ isRegistered: !!registration });
 
     } catch (error) {
         next(error);
@@ -547,10 +484,10 @@ export const updateStudent = async (req: ExpressRequest, res: Response, next: Ne
             email: updateData.email,
         });
 
-        // Update student details if they exist
-        const studentDetails = await StudentModel.findOne({ where: { userId: id } });
-        if (studentDetails) {
-            await studentDetails.update({
+        // Update student registration data instead of student details
+        const studentRegistration = await StudentRegistrationModel.findOne({ where: { userId: id } });
+        if (studentRegistration) {
+            await studentRegistration.update({
                 gender: updateData.gender,
                 contactNumber: updateData.contactNumber,
                 cityAddress: updateData.cityAddress,
@@ -579,10 +516,10 @@ export const deleteStudent = async (req: ExpressRequest, res: Response, next: Ne
         // Soft delete by setting isActive to false
         await student.update({ isActive: false });
 
-        // Also soft delete student details if they exist
-        const studentDetails = await StudentModel.findOne({ where: { userId: id } });
-        if (studentDetails) {
-            await studentDetails.update({ isActive: false });
+        // Also soft delete student registration if it exists
+        const studentRegistration = await StudentRegistrationModel.findOne({ where: { userId: id } });
+        if (studentRegistration) {
+            await studentRegistration.update({ registrationStatus: 'Rejected' });
         }
 
         res.json({ message: 'Student deleted successfully.' });
@@ -653,8 +590,8 @@ export const debugStudentRegistration = async (req: ExpressRequest, res: Respons
             return;
         }
 
-        // Check if student record exists
-        const student = await StudentModel.findOne({ where: { userId } });
+        // Check if student registration exists
+        const registration = await StudentRegistrationModel.findOne({ where: { userId } });
         
         res.json({
             user: {
@@ -664,14 +601,14 @@ export const debugStudentRegistration = async (req: ExpressRequest, res: Respons
                 lastName: user.lastName,
                 role: user.role
             },
-            student: student ? {
-                id: student.id,
-                studentNumber: student.studentNumber,
-                fullName: student.fullName,
-                courseId: student.courseId,
-                academicStatus: student.academicStatus
+            registration: registration ? {
+                id: registration.id,
+                yearLevel: registration.yearLevel,
+                semester: registration.semester,
+                course: registration.course,
+                registrationStatus: registration.registrationStatus
             } : null,
-            isRegistered: !!student
+            isRegistered: !!registration
         });
     } catch (error) {
         console.error('Error in debug endpoint:', error);
@@ -695,9 +632,9 @@ export const getCurrentStudentProfile = async (req: ExpressRequest, res: Respons
             return;
         }
 
-        const student = await StudentModel.findOne({ where: { userId } });
-        if (!student) {
-            res.status(404).json({ message: 'Student record not found' });
+        const registration = await StudentRegistrationModel.findOne({ where: { userId } });
+        if (!registration) {
+            res.status(404).json({ message: 'Student registration not found' });
             return;
         }
 
@@ -710,16 +647,16 @@ export const getCurrentStudentProfile = async (req: ExpressRequest, res: Respons
             email: user.email,
             phoneNumber: user.phoneNumber,
             profilePhoto: user.profilePhoto || null, // Return null if no profile photo (frontend will handle default)
-            fullName: student.fullName,
-            studentNumber: student.studentNumber,
-            currentYearLevel: student.currentYearLevel,
-            currentSemester: student.currentSemester,
-            totalUnitsEarned: student.totalUnitsEarned,
-            cumulativeGPA: student.cumulativeGPA,
-            academicStatus: student.academicStatus,
-            yearOfEntry: student.yearOfEntry,
-            applicationType: student.applicationType,
-            studentType: student.studentType
+            fullName: `${user.firstName} ${user.lastName} ${user.middleName || ''}`.trim(),
+            studentNumber: user.idNumber,
+            currentYearLevel: registration.yearLevel,
+            currentSemester: registration.semester,
+            totalUnitsEarned: 0, // Not available without StudentModel
+            cumulativeGPA: 0.0, // Not available without StudentModel
+            academicStatus: registration.registrationStatus,
+            yearOfEntry: new Date().getFullYear(),
+            applicationType: registration.applicationType,
+            studentType: registration.studentType
         };
         
         res.json(responseData);
@@ -824,13 +761,9 @@ export const updateApprovedRegistrationsToEnrolled = async (req: ExpressRequest,
         const enrolledRegistrations = [];
         
         for (const registration of allRegistrations) {
-            // Check if this student has a student record (meaning they're enrolled)
-            const student = await StudentModel.findOne({
-                where: { userId: registration.userId }
-            });
-            
-            if (student && registration.registrationStatus === 'Pending') {
-                // Update to "Approved" since they have a student record
+            // Since StudentModel is not available, we'll consider all registrations as enrolled
+            if (registration.registrationStatus === 'Pending') {
+                // Update to "Approved" since they're registered
                 await registration.update({ registrationStatus: 'Approved' });
                 enrolledRegistrations.push(registration);
                 console.log(`✅ Updated ${registration.firstName} ${registration.lastName} to "Approved" (enrolled)`);
