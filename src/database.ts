@@ -19,6 +19,7 @@ import { StudentEnrollment as StudentEnrollmentModel, initStudentEnrollment } fr
 import { UserSession as UserSessionModel, initUserSession } from './models/UserSession';
 import { Request as RequestModel, initRequest } from './models/Request';
 import { Notification as NotificationModel, initNotification } from './models/Notification';
+import { LoginHistory as LoginHistoryModel, initLoginHistory } from './models/LoginHistory';
 import { Accounting as AccountingModel, initAccounting } from './models/Accounting';
 
 // Load environment variables
@@ -81,6 +82,7 @@ export const initializeModels = () => {
         initRequest(sequelize);
         initNotification(sequelize);
         initAccounting(sequelize);
+        initLoginHistory(sequelize);
 };
 
 // Define associations
@@ -138,6 +140,10 @@ export const defineAssociations = () => {
     UserModel.hasMany(NotificationModel, { foreignKey: 'userId' });
     NotificationModel.belongsTo(RequestModel, { foreignKey: 'requestId' });
     RequestModel.hasMany(NotificationModel, { foreignKey: 'requestId' });
+
+    // Login History associations
+    LoginHistoryModel.belongsTo(UserModel, { foreignKey: 'userId' });
+    UserModel.hasMany(LoginHistoryModel, { foreignKey: 'userId' });
 };
 
 // Connect to database and initialize
@@ -303,5 +309,6 @@ export {
     UserSessionModel,
     RequestModel,
     NotificationModel,
-    AccountingModel
+    AccountingModel,
+    LoginHistoryModel
 };
