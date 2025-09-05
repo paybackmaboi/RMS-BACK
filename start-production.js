@@ -42,37 +42,90 @@ if (!fs.existsSync(distPath)) {
 function startServer() {
     console.log('🎯 Starting production server...');
     
-    // Start the compiled JavaScript server
-    const serverProcess = spawn('node', ['dist/app.js'], { 
+    // Try to fix database key issues first
+    console.log('🔧 Checking database key issues...');
+    const fixProcess = spawn('npm', ['run', 'fix-db-keys'], { 
         stdio: 'inherit',
-        shell: true,
-        env: {
-            ...process.env,
-            NODE_ENV: 'production'
-        }
+        shell: true 
     });
     
-    serverProcess.on('close', (code) => {
-        console.log(`🔄 Server process exited with code ${code}`);
-        if (code !== 0) {
-            console.error('❌ Server crashed. Exiting...');
+    fixProcess.on('close', (code) => {
+        if (code === 0) {
+            console.log('✅ Database key fix completed successfully');
+        } else {
+            console.warn('⚠️  Database key fix had issues, but continuing...');
+        }
+        
+        // Start the compiled JavaScript server
+        const serverProcess = spawn('node', ['dist/app.js'], { 
+            stdio: 'inherit',
+            shell: true,
+            env: {
+                ...process.env,
+                NODE_ENV: 'production'
+            }
+        });
+        
+        serverProcess.on('close', (code) => {
+            console.log(`🔄 Server process exited with code ${code}`);
+            if (code !== 0) {
+                console.error('❌ Server crashed. Exiting...');
+                process.exit(1);
+            }
+        });
+        
+        serverProcess.on('error', (error) => {
+            console.error('❌ Failed to start server:', error);
             process.exit(1);
-        }
+        });
+        
+        // Handle graceful shutdown
+        process.on('SIGTERM', () => {
+            console.log('🛑 Received SIGTERM. Shutting down gracefully...');
+            serverProcess.kill('SIGTERM');
+        });
+        
+        process.on('SIGINT', () => {
+            console.log('🛑 Received SIGINT. Shutting down gracefully...');
+            serverProcess.kill('SIGINT');
+        });
     });
     
-    serverProcess.on('error', (error) => {
-        console.error('❌ Failed to start server:', error);
-        process.exit(1);
-    });
-    
-    // Handle graceful shutdown
-    process.on('SIGTERM', () => {
-        console.log('🛑 Received SIGTERM. Shutting down gracefully...');
-        serverProcess.kill('SIGTERM');
-    });
-    
-    process.on('SIGINT', () => {
-        console.log('🛑 Received SIGINT. Shutting down gracefully...');
-        serverProcess.kill('SIGINT');
+    fixProcess.on('error', (error) => {
+        console.warn('⚠️  Database key fix failed, but continuing:', error);
+        
+        // Start the compiled JavaScript server anyway
+        const serverProcess = spawn('node', ['dist/app.js'], { 
+            stdio: 'inherit',
+            shell: true,
+            env: {
+                ...process.env,
+                NODE_ENV: 'production'
+            }
+        });
+        
+        serverProcess.on('close', (code) => {
+            console.log(`🔄 Server process exited with code ${code}`);
+            if (code !== 0) {
+                console.error('❌ Server crashed. Exiting...');
+                process.exit(1);
+            }
+        });
+        
+        serverProcess.on('error', (error) => {
+            console.error('❌ Failed to start server:', error);
+            process.exit(1);
+        });
+        
+        // Handle graceful shutdown
+        process.on('SIGTERM', () => {
+            console.log('🛑 Received SIGTERM. Shutting down gracefully...');
+            serverProcess.kill('SIGTERM');
+        });
+        
+        process.on('SIGINT', () => {
+            console.log('🛑 Received SIGINT. Shutting down gracefully...');
+            serverProcess.kill('SIGINT');
+        });
     });
 }

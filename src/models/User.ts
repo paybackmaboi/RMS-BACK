@@ -94,6 +94,18 @@ export const initUser = (sequelize: Sequelize) => {
     }, {
         sequelize,
         tableName: 'users',
+        indexes: [
+            {
+                unique: true,
+                fields: ['idNumber']
+            },
+            {
+                fields: ['role']
+            },
+            {
+                fields: ['isActive']
+            }
+        ],
         hooks: {
             beforeCreate: async (user: User) => {
                 const salt = await bcrypt.genSalt(10);

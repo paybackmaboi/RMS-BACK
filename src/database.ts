@@ -183,9 +183,23 @@ export const connectAndInitialize = async () => {
         defineAssociations();
         console.log('✅ Model associations defined successfully.');
 
-        // Database sync disabled - using existing tables
-        await sequelize.sync({ alter: true }); // Use { force: true } to drop & recreate (DEV ONLY)
-        console.log('✅ Database tables created/synced successfully.');
+        // Database sync with safe options to avoid key limit issues
+        try {
+            // Try normal sync first
+            await sequelize.sync({ alter: false });
+            console.log('✅ Database tables created/synced successfully.');
+        } catch (syncError) {
+            console.warn('⚠️  Database sync warning, trying safe initialization:', syncError);
+            // Use safe initialization if normal sync fails
+            try {
+                const { initializeDatabaseSafely } = await import('./database-init');
+                await initializeDatabaseSafely();
+                console.log('✅ Database tables created with safe initialization.');
+            } catch (safeError) {
+                console.error('❌ Safe database initialization failed:', safeError);
+                throw safeError;
+            }
+        }
 
         const { seedInitialData } = await import('./seedData');
         await seedInitialData();

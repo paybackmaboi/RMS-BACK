@@ -9,6 +9,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "dev:local": "nodemon src/app.ts",
     "migrate": "node migrate-database.js",
+    "fix-db-keys": "node fix-database-keys.js",
+    "test-db-fix": "node test-db-fix.js",
     "test-registration": "node test-registration.js",
     "test-db": "node start-server.js",
     "postinstall": "npm run build"

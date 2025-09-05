@@ -76,5 +76,14 @@ export const initCourse = (sequelize: Sequelize) => {
     }, {
         tableName: 'courses',
         sequelize: sequelize,
+        indexes: [
+            {
+                unique: true,
+                fields: ['code']
+            },
+            {
+                fields: ['departmentId']
+            }
+        ]
     });
 };

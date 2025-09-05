@@ -49,5 +49,11 @@ export const initDepartment = (sequelize: Sequelize) => {
     }, {
         tableName: 'departments',
         sequelize: sequelize,
+        indexes: [
+            {
+                unique: true,
+                fields: ['code']
+            }
+        ]
     });
 }; 
