@@ -267,11 +267,11 @@ const getScheduleEnrolledStudents = (req, res, next) => __awaiter(void 0, void 0
                     COALESCE(u.firstName, 'Unknown') as firstName,
                     COALESCE(u.lastName, 'Unknown') as lastName,
                     COALESCE(u.middleName, '') as middleName,
-                    COALESCE(s.gender, 'N/A') as gender,
-                    COALESCE(s.currentYearLevel, 'Unknown') as currentYearLevel,
-                    COALESCE(s.currentSemester, 'Unknown') as currentSemester,
-                    COALESCE(s.studentType, 'N/A') as studentType,
-                    COALESCE(s.yearOfEntry, 'N/A') as yearOfEntry,
+                    COALESCE(u.gender, 'N/A') as gender,
+                    COALESCE(sr.yearLevel, 'Unknown') as currentYearLevel,
+                    COALESCE(sr.semester, 'Unknown') as currentSemester,
+                    COALESCE('Regular', 'N/A') as studentType,
+                    COALESCE(sr.schoolYear, 'N/A') as yearOfEntry,
                     bs.id as actualScheduleId,
                     bs.day,
                     bs.startTime,
@@ -279,11 +279,11 @@ const getScheduleEnrolledStudents = (req, res, next) => __awaiter(void 0, void 0
                     bs.room,
                     bs.instructor
                 FROM student_enrollments se
-                LEFT JOIN students s ON se.studentId = s.id
-                LEFT JOIN users u ON s.userId = u.id
+                LEFT JOIN users u ON se.studentId = u.id
+                LEFT JOIN student_registrations sr ON u.id = sr.userId
                 LEFT JOIN bsit_schedules bs ON se.scheduleId = bs.id
                 WHERE se.scheduleId = ?  -- Look for students enrolled in THIS specific schedule
-                ORDER BY COALESCE(s.currentYearLevel, 'Unknown'), COALESCE(u.lastName, 'Unknown'), COALESCE(u.firstName, 'Unknown')
+                ORDER BY COALESCE(sr.yearLevel, 'Unknown'), COALESCE(u.lastName, 'Unknown'), COALESCE(u.firstName, 'Unknown')
             `;
             enrolledStudents = (yield database_1.sequelize.query(enrolledStudentsQuery, {
                 replacements: [scheduleId],

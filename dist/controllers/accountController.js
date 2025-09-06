@@ -18,16 +18,11 @@ const generatePassword = (length = 6) => {
 // Enhanced function to fetch all students with registration and enrollment data
 const getAllStudentAccounts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log('Fetching students from database...');
+        console.log('🔍 Fetching students from database...');
+        console.log('📊 Available models:', { UserModel: !!database_1.UserModel, StudentRegistrationModel: !!database_1.StudentRegistrationModel, BsitCurriculumModel: !!database_1.BsitCurriculumModel, StudentEnrollmentModel: !!database_1.StudentEnrollmentModel });
         // Only fetch students who have completed their registration form
         const students = yield database_1.UserModel.findAll({
             where: { role: 'student', isActive: true },
-            include: [
-                {
-                    model: database_1.StudentModel
-                    // No alias needed - uses default model name
-                }
-            ],
             order: [['createdAt', 'DESC']]
         });
         // Filter to only include students who have submitted registration form
@@ -44,12 +39,11 @@ const getAllStudentAccounts = (req, res, next) => __awaiter(void 0, void 0, void
         console.log('Students with registrations:', studentsWithRegistrations.filter(item => item.registration !== null).length);
         // Get registration and enrollment data for ALL students
         const studentsWithDetails = yield Promise.all(allStudents.map((student, index) => __awaiter(void 0, void 0, void 0, function* () {
-            const studentDetails = student.get('Student');
             // Use the registration data we already fetched
             const registration = studentsWithRegistrations[index].registration;
             // Get student enrollment count
             const enrollmentCount = yield database_1.StudentEnrollmentModel.count({
-                where: { studentId: student.id }
+                where: { studentId: student.id } // studentId is INTEGER in StudentEnrollmentModel
             });
             // Get current year level and semester from registration
             let currentYearLevel = 'Not registered';
@@ -82,15 +76,15 @@ const getAllStudentAccounts = (req, res, next) => __awaiter(void 0, void 0, void
                 firstName: student.firstName,
                 lastName: student.lastName,
                 middleName: student.middleName,
-                gender: (studentDetails === null || studentDetails === void 0 ? void 0 : studentDetails.gender) || 'N/A',
+                gender: (registration === null || registration === void 0 ? void 0 : registration.gender) || 'N/A',
                 email: student.email,
                 phoneNumber: student.phoneNumber,
                 profilePhoto: student.profilePhoto, // Add profile photo field
-                isRegistered: !!studentDetails,
+                isRegistered: !!registration,
                 course: 'Bachelor of Science in Information Technology', // BSIT is the course
-                studentNumber: (studentDetails === null || studentDetails === void 0 ? void 0 : studentDetails.studentNumber) || student.idNumber,
-                fullName: (studentDetails === null || studentDetails === void 0 ? void 0 : studentDetails.fullName) || `${student.firstName} ${student.lastName}`,
-                academicStatus: (studentDetails === null || studentDetails === void 0 ? void 0 : studentDetails.academicStatus) || 'Not registered',
+                studentNumber: student.idNumber,
+                fullName: `${student.firstName} ${student.lastName}`,
+                academicStatus: (registration === null || registration === void 0 ? void 0 : registration.registrationStatus) || 'Not registered',
                 createdAt: formattedDate,
                 // New fields for registration and enrollment
                 registrationStatus: registrationStatus,

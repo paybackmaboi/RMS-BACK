@@ -1,6 +1,25 @@
 -- Update notifications table to support requirements announcements
 -- This script makes requestId nullable and adds a type column
 
+-- First, drop the foreign key constraint if it exists
+SET @constraint_name = (
+    SELECT CONSTRAINT_NAME 
+    FROM information_schema.KEY_COLUMN_USAGE 
+    WHERE TABLE_NAME = 'notifications' 
+    AND COLUMN_NAME = 'requestId' 
+    AND TABLE_SCHEMA = DATABASE()
+    AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1
+);
+
+SET @sql = IF(@constraint_name IS NOT NULL, 
+    CONCAT('ALTER TABLE notifications DROP FOREIGN KEY ', @constraint_name), 
+    'SELECT "No foreign key constraint found" as message'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 -- Make requestId column nullable
 ALTER TABLE notifications MODIFY COLUMN requestId INT UNSIGNED NULL;
 

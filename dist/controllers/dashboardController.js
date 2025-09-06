@@ -11,119 +11,120 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRecentActivity = exports.getDashboardStats = void 0;
 const database_1 = require("../database");
-const sequelize_1 = require("sequelize");
 const getDashboardStats = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('📊 Fetching dashboard statistics...');
-        // Get total students (users with student role)
+        // Get total students (users with student role) - use this as the primary count
         const totalStudents = yield database_1.UserModel.count({
             where: { role: 'student' }
         });
-        // Get total courses
-        const totalCourses = yield database_1.CourseModel.count();
-        // Get request statistics
-        const totalRequests = yield database_1.RequestModel.count();
-        const pendingRequests = yield database_1.RequestModel.count({
-            where: { status: 'Pending' }
-        });
-        const approvedRequests = yield database_1.RequestModel.count({
-            where: { status: 'Approved' }
-        });
-        const rejectedRequests = yield database_1.RequestModel.count({
-            where: { status: 'Rejected' }
-        });
-        // Get student status statistics
+        // Get total courses from courses table
+        const [courseCount] = yield database_1.sequelize.query('SELECT COUNT(*) as count FROM courses');
+        const totalCourses = courseCount[0].count;
+        // Get request statistics from requests table
+        const [requestStats] = yield database_1.sequelize.query(`
+            SELECT 
+                COUNT(*) as totalRequests,
+                SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pendingRequests,
+                SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) as approvedRequests,
+                SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejectedRequests
+            FROM requests
+        `);
+        const totalRequests = requestStats[0].totalRequests;
+        const pendingRequests = requestStats[0].pendingRequests;
+        const approvedRequests = requestStats[0].approvedRequests;
+        const rejectedRequests = requestStats[0].rejectedRequests;
+        // Get student status statistics - use users table for consistency
+        // Count students who have corresponding records in students table as "enrolled"
+        const [enrolledStats] = yield database_1.sequelize.query(`
+            SELECT 
+                COUNT(DISTINCT u.id) as totalEnrolledStudents,
+                SUM(CASE WHEN s.academicStatus = 'Active' THEN 1 ELSE 0 END) as activeStudents,
+                SUM(CASE WHEN s.academicStatus = 'Inactive' THEN 1 ELSE 0 END) as inactiveStudents,
+                SUM(CASE WHEN s.academicStatus = 'Suspended' THEN 1 ELSE 0 END) as suspendedStudents,
+                SUM(CASE WHEN s.academicStatus = 'Graduated' THEN 1 ELSE 0 END) as graduatedStudents
+            FROM users u
+            LEFT JOIN students s ON u.id = s.userId
+            WHERE u.role = 'student'
+        `);
+        const totalEnrolledStudents = enrolledStats[0].totalEnrolledStudents;
+        const activeStudents = enrolledStats[0].activeStudents;
+        const inactiveStudents = enrolledStats[0].inactiveStudents;
+        const suspendedStudents = enrolledStats[0].suspendedStudents;
+        const graduatedStudents = enrolledStats[0].graduatedStudents;
+        // Get new students (pending registrations)
         const newStudents = yield database_1.StudentRegistrationModel.count({
             where: { registrationStatus: 'Pending' }
         });
-        const activeStudents = yield database_1.StudentRegistrationModel.count({
-            where: { registrationStatus: 'Approved' }
-        });
-        const inactiveStudents = yield database_1.StudentRegistrationModel.count({
-            where: { registrationStatus: 'Rejected' }
-        });
-        // Get BSIT students count
-        const bsitStudents = yield database_1.StudentRegistrationModel.count({
-            where: { course: 'Bachelor of Science in Information Technology' }
-        });
-        // Get gender distribution for all students (simplified approach)
-        const maleCount = yield database_1.StudentRegistrationModel.count({
-            where: { gender: 'Male' }
-        });
-        const femaleCount = yield database_1.StudentRegistrationModel.count({
-            where: { gender: 'Female' }
-        });
-        // Get year level distribution (more flexible approach)
-        const firstYearCount = yield database_1.StudentRegistrationModel.count({
-            where: {
-                yearLevel: {
-                    [sequelize_1.Op.or]: ['1st Year', '1st', 'First Year', 'First', '1']
-                }
-            }
-        });
-        const secondYearCount = yield database_1.StudentRegistrationModel.count({
-            where: {
-                yearLevel: {
-                    [sequelize_1.Op.or]: ['2nd Year', '2nd', 'Second Year', 'Second', '2']
-                }
-            }
-        });
-        const thirdYearCount = yield database_1.StudentRegistrationModel.count({
-            where: {
-                yearLevel: {
-                    [sequelize_1.Op.or]: ['3rd Year', '3rd', 'Third Year', 'Third', '3']
-                }
-            }
-        });
-        const fourthYearCount = yield database_1.StudentRegistrationModel.count({
-            where: {
-                yearLevel: {
-                    [sequelize_1.Op.or]: ['4th Year', '4th', 'Fourth Year', 'Fourth', '4']
-                }
-            }
-        });
-        // Debug: Check what year levels actually exist in the database
-        const allYearLevels = yield database_1.StudentRegistrationModel.findAll({
-            attributes: ['yearLevel', 'course'],
-            where: {
-                yearLevel: { [sequelize_1.Op.not]: '' }
-            },
-            raw: true
-        });
-        console.log('🔍 Available year levels in database:', allYearLevels.map(item => ({ yearLevel: item.yearLevel, course: item.course })));
-        // Debug: Check BSIT students specifically
-        const bsitStudentsDebug = yield database_1.StudentRegistrationModel.findAll({
-            attributes: ['yearLevel', 'course'],
-            where: {
-                course: 'Bachelor of Science in Information Technology',
-                yearLevel: { [sequelize_1.Op.not]: '' }
-            },
-            raw: true
-        });
-        console.log('🔍 BSIT students with year levels:', bsitStudentsDebug.map(item => ({ yearLevel: item.yearLevel, course: item.course })));
-        // Get semester distribution (simplified approach)
-        const firstSemesterCount = yield database_1.StudentRegistrationModel.count({
-            where: { semester: '1st Semester' }
-        });
-        const secondSemesterCount = yield database_1.StudentRegistrationModel.count({
-            where: { semester: '2nd Semester' }
-        });
-        const summerCount = yield database_1.StudentRegistrationModel.count({
-            where: { semester: 'Summer' }
-        });
-        // Get course distribution (simplified for now)
-        const courseDistribution = yield database_1.CourseModel.findAll({
-            attributes: ['id', 'name']
-        });
-        // Get monthly enrollment data (simplified for now)
-        const monthlyEnrollments = yield database_1.StudentRegistrationModel.findAll({
-            attributes: ['id', 'createdAt'],
-            where: {
-                createdAt: {
-                    [sequelize_1.Op.gte]: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
-                }
-            }
-        });
+        // Get BSIT students count from students table
+        const [bsitStats] = yield database_1.sequelize.query(`
+            SELECT COUNT(*) as bsitStudents
+            FROM students s
+            JOIN courses c ON s.courseId = c.id
+            WHERE c.courseCode = 'BSIT'
+        `);
+        const bsitStudents = bsitStats[0].bsitStudents;
+        // Get gender distribution - use users table with students table for gender data
+        const [genderStats] = yield database_1.sequelize.query(`
+            SELECT 
+                SUM(CASE WHEN s.gender = 'Male' THEN 1 ELSE 0 END) as maleCount,
+                SUM(CASE WHEN s.gender = 'Female' THEN 1 ELSE 0 END) as femaleCount,
+                SUM(CASE WHEN s.gender = 'Other' THEN 1 ELSE 0 END) as otherCount
+            FROM users u
+            LEFT JOIN students s ON u.id = s.userId
+            WHERE u.role = 'student'
+        `);
+        const maleCount = genderStats[0].maleCount;
+        const femaleCount = genderStats[0].femaleCount;
+        const otherCount = genderStats[0].otherCount;
+        // Get year level distribution - use users table with students table for year level data
+        const [yearLevelStats] = yield database_1.sequelize.query(`
+            SELECT 
+                SUM(CASE WHEN s.currentYearLevel = '1st' OR s.currentYearLevel = '1st Year' OR s.currentYearLevel = 'First Year' THEN 1 ELSE 0 END) as firstYearCount,
+                SUM(CASE WHEN s.currentYearLevel = '2nd' OR s.currentYearLevel = '2nd Year' OR s.currentYearLevel = 'Second Year' THEN 1 ELSE 0 END) as secondYearCount,
+                SUM(CASE WHEN s.currentYearLevel = '3rd' OR s.currentYearLevel = '3rd Year' OR s.currentYearLevel = 'Third Year' THEN 1 ELSE 0 END) as thirdYearCount,
+                SUM(CASE WHEN s.currentYearLevel = '4th' OR s.currentYearLevel = '4th Year' OR s.currentYearLevel = 'Fourth Year' THEN 1 ELSE 0 END) as fourthYearCount
+            FROM users u
+            LEFT JOIN students s ON u.id = s.userId
+            WHERE u.role = 'student'
+        `);
+        const firstYearCount = yearLevelStats[0].firstYearCount;
+        const secondYearCount = yearLevelStats[0].secondYearCount;
+        const thirdYearCount = yearLevelStats[0].thirdYearCount;
+        const fourthYearCount = yearLevelStats[0].fourthYearCount;
+        // Get semester distribution - use users table with students table for semester data
+        const [semesterStats] = yield database_1.sequelize.query(`
+            SELECT 
+                SUM(CASE WHEN s.currentSemester = '1st' OR s.currentSemester = '1st Semester' THEN 1 ELSE 0 END) as firstSemesterCount,
+                SUM(CASE WHEN s.currentSemester = '2nd' OR s.currentSemester = '2nd Semester' THEN 1 ELSE 0 END) as secondSemesterCount,
+                SUM(CASE WHEN s.currentSemester = 'Summer' THEN 1 ELSE 0 END) as summerCount
+            FROM users u
+            LEFT JOIN students s ON u.id = s.userId
+            WHERE u.role = 'student'
+        `);
+        const firstSemesterCount = semesterStats[0].firstSemesterCount;
+        const secondSemesterCount = semesterStats[0].secondSemesterCount;
+        const summerCount = semesterStats[0].summerCount;
+        // Get monthly enrollment data from students table
+        const [monthlyEnrollments] = yield database_1.sequelize.query(`
+            SELECT 
+                DATE_FORMAT(createdAt, '%Y-%m') as month,
+                COUNT(*) as count
+            FROM students
+            WHERE createdAt >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(createdAt, '%Y-%m')
+            ORDER BY month
+        `);
+        // Get course distribution from students and courses tables
+        const [courseDistribution] = yield database_1.sequelize.query(`
+            SELECT 
+                c.courseName as name,
+                COUNT(s.id) as studentCount
+            FROM courses c
+            LEFT JOIN students s ON c.id = s.courseId
+            GROUP BY c.id, c.courseName
+            ORDER BY studentCount DESC
+        `);
         const stats = {
             totalStudents,
             totalCourses,
@@ -134,10 +135,14 @@ const getDashboardStats = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             newStudents,
             activeStudents,
             inactiveStudents,
+            suspendedStudents,
+            graduatedStudents,
+            totalEnrolledStudents,
             bsitStudents,
             genderDistribution: {
                 male: maleCount,
-                female: femaleCount
+                female: femaleCount,
+                other: otherCount
             },
             yearLevelDistribution: {
                 firstYear: firstYearCount,
@@ -150,14 +155,8 @@ const getDashboardStats = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                 secondSemester: secondSemesterCount,
                 summer: summerCount
             },
-            courseDistribution: courseDistribution.map(course => ({
-                name: course.name,
-                studentCount: Math.floor(Math.random() * 50) + 10 // Mock data for now
-            })),
-            monthlyEnrollments: monthlyEnrollments.map(enrollment => ({
-                month: enrollment.createdAt.toISOString().slice(0, 7),
-                count: Math.floor(Math.random() * 20) + 5 // Mock data for now
-            }))
+            courseDistribution: courseDistribution,
+            monthlyEnrollments: monthlyEnrollments
         };
         console.log('✅ Dashboard statistics fetched successfully');
         res.json(stats);
@@ -171,35 +170,66 @@ exports.getDashboardStats = getDashboardStats;
 const getRecentActivity = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('📋 Fetching recent activity...');
-        // Get recent student registrations (simplified without associations for now)
+        // Get recent student registrations with actual student names
         const recentRegistrations = yield database_1.StudentRegistrationModel.findAll({
-            attributes: ['id', 'registrationStatus', 'createdAt'],
+            attributes: ['id', 'firstName', 'lastName', 'middleName', 'registrationStatus', 'createdAt'],
             order: [['createdAt', 'DESC']],
-            limit: 10,
+            limit: 5,
             raw: true
         });
-        // Get recent requests (simplified without associations for now)
-        const recentRequests = yield database_1.RequestModel.findAll({
-            attributes: ['id', 'status', 'createdAt', 'studentId'],
-            order: [['createdAt', 'DESC']],
-            limit: 10,
-            raw: true
-        });
+        // Get recent requests from requests table
+        const [recentRequests] = yield database_1.sequelize.query(`
+            SELECT 
+                r.id,
+                r.documentType,
+                r.purpose,
+                r.status,
+                r.createdAt,
+                u.firstName,
+                u.lastName,
+                u.middleName
+            FROM requests r
+            JOIN users u ON r.studentId = u.id
+            ORDER BY r.createdAt DESC
+            LIMIT 5
+        `);
+        // Get recent enrolled students
+        const [recentStudents] = yield database_1.sequelize.query(`
+            SELECT 
+                s.id,
+                s.studentNumber,
+                s.fullName,
+                s.academicStatus,
+                s.createdAt,
+                c.courseName
+            FROM students s
+            JOIN courses c ON s.courseId = c.id
+            ORDER BY s.createdAt DESC
+            LIMIT 5
+        `);
         const recentActivity = {
             registrations: recentRegistrations.map(reg => ({
                 id: reg.id,
-                studentName: `Registration #${reg.id}`,
+                studentName: `${reg.lastName}, ${reg.firstName} ${reg.middleName || ''}`.trim(),
                 idNumber: `REG-${reg.id}`,
                 status: reg.registrationStatus,
                 date: reg.createdAt
             })),
-            requests: recentRequests.map(req => ({
+            requests: recentRequests.map((req) => ({
                 id: req.id,
-                studentName: `Student ID: ${req.studentId}`,
-                idNumber: req.studentId || 'N/A',
-                type: 'Request',
+                studentName: `${req.lastName}, ${req.firstName} ${req.middleName || ''}`.trim(),
+                documentType: req.documentType,
+                purpose: req.purpose,
                 status: req.status,
                 date: req.createdAt
+            })),
+            students: recentStudents.map((student) => ({
+                id: student.id,
+                studentName: student.fullName,
+                studentNumber: student.studentNumber,
+                course: student.courseName,
+                status: student.academicStatus,
+                date: student.createdAt
             }))
         };
         console.log('✅ Recent activity fetched successfully');

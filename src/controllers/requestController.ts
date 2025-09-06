@@ -1,7 +1,10 @@
 import { Request as ExpressRequest, Response, NextFunction } from 'express';
-import { UserModel } from '../database';
+import { UserModel, RequestModel, NotificationModel } from '../database';
 import path from 'path';
 
+/**
+ * Global type declaration for Express Request with user information
+ */
 declare global {
     namespace Express {
         interface Request {
@@ -16,16 +19,56 @@ declare global {
     }
 }
 
+/**
+ * Create a new document request
+ * @route POST /api/requests
+ * @access Student only
+ */
 export const createRequest = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
         console.log('🔍 Creating request - User info:', req.user);
         console.log('🔍 Request body:', req.body);
         console.log('🔍 Request files:', req.files);
         
-        // Temporarily disabled since RequestModel is not available
-        res.status(503).json({ message: 'Request functionality temporarily unavailable. Please try again later.' });
-        return;
+        const { documentType, purpose } = req.body;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            res.status(401).json({ message: 'User not authenticated' });
+            return;
+        }
+
+        if (!documentType || !purpose) {
+            res.status(400).json({ message: 'Document type and purpose are required' });
+            return;
+        }
+
+        // Create the request
+        const newRequest = await RequestModel.create({
+            studentId: userId,
+            documentType,
+            purpose,
+            status: 'pending',
+            notes: '',
+            documents: req.files ? (req.files as Express.Multer.File[]).map(file => file.filename).join(',') : ''
+        });
+
+        // Create notification for admin
+        await NotificationModel.create({
+            userId: userId,
+            requestId: newRequest.id,
+            message: `New ${documentType} request submitted`,
+            isRead: false,
+            type: 'request'
+        });
+
+        console.log('✅ Request created successfully:', newRequest.id);
+        res.status(201).json({
+            message: 'Request submitted successfully',
+            request: newRequest
+        });
     } catch (error) {
+        console.error('❌ Error creating request:', error);
         next(error);
     }
 };
@@ -34,9 +77,17 @@ export const getStudentRequests = async (req: ExpressRequest, res: Response, nex
     try {
         console.log('🔍 Getting student requests - User info:', req.user);
         
-        // Temporarily disabled since RequestModel is not available
-        res.status(503).json({ message: 'Request functionality temporarily unavailable. Please try again later.' });
-        return;
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'User not authenticated' });
+            return;
+        }
+
+        const requests = await RequestModel.findAll({
+            where: { studentId: userId },
+            order: [['createdAt', 'DESC']]
+        });
+        
         console.log('🔍 Found requests:', requests.length);
         res.json(requests);
     } catch (error) {
@@ -47,11 +98,21 @@ export const getStudentRequests = async (req: ExpressRequest, res: Response, nex
 
 export const getAllRequests = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        // Temporarily disabled since RequestModel is not available
-        res.status(503).json({ message: 'Request functionality temporarily unavailable. Please try again later.' });
-        return;
+        console.log('🔍 Getting all requests - User info:', req.user);
+        
+        const requests = await RequestModel.findAll({
+            order: [['createdAt', 'DESC']],
+            include: [{
+                model: UserModel,
+                as: 'student',
+                attributes: ['firstName', 'lastName', 'idNumber']
+            }]
+        });
+        
+        console.log('🔍 Found requests:', requests.length);
+        res.json(requests);
     } catch (error) {
-        console.error('Error fetching requests:', error);
+        console.error('❌ Error fetching requests:', error);
         next(error);
     }
 };

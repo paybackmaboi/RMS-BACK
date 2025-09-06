@@ -23,13 +23,13 @@ router.get('/test', (req, res) => {
 // Debug endpoint to check database
 router.get('/debug', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { UserModel, StudentModel } = require('../database');
+        const { UserModel, StudentRegistrationModel } = require('../database');
         const userCount = yield UserModel.count({ where: { role: 'student' } });
-        const studentCount = yield StudentModel.count();
+        const registrationCount = yield StudentRegistrationModel.count();
         res.json({
             message: 'Database debug info',
             userCount,
-            studentCount,
+            registrationCount,
             timestamp: new Date().toISOString()
         });
     }

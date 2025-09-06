@@ -14,7 +14,8 @@ import {
     getStudentEnrolledSubjects,
     searchUserByIdNumber,
     updateStudentRegistration,
-    updateApprovedRegistrationsToEnrolled
+    updateApprovedRegistrationsToEnrolled,
+    getStudentBalance
 } from '../controllers/studentController';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { studentSessionAuthMiddleware, adminSessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
@@ -41,6 +42,9 @@ router.post('/complete-registration', studentSessionAuthMiddleware, completeStud
 
 // Get current student profile (requires session authentication)
 router.get('/profile', studentSessionAuthMiddleware, getCurrentStudentProfile);
+
+// Get student balance (requires session authentication)
+router.get('/me/balance', studentSessionAuthMiddleware, getStudentBalance);
 
 // Get student registration data by user ID (admin only)
 router.get('/registration/:userId', getStudentRegistrationData);

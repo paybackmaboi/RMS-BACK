@@ -15,7 +15,6 @@ const initCourse = (sequelize) => {
         code: {
             type: sequelize_1.DataTypes.STRING(20),
             allowNull: false,
-            unique: true,
         },
         name: {
             type: sequelize_1.DataTypes.STRING(100),

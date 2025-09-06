@@ -15,7 +15,6 @@ const initSchoolYear = (sequelize) => {
         year: {
             type: sequelize_1.DataTypes.STRING(20),
             allowNull: false,
-            unique: true,
         },
         description: {
             type: sequelize_1.DataTypes.STRING(200),

@@ -3,6 +3,9 @@ import { UserModel, UserSessionModel } from '../database';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
+/**
+ * Extended Express Request interface with user information
+ */
 interface ExpressRequest extends Request {
     user?: {
         id: number;
@@ -10,16 +13,24 @@ interface ExpressRequest extends Request {
     };
 }
 
-// Generate a secure session token
+/**
+ * Generate a secure session token using crypto
+ * @returns {string} A 64-character hexadecimal token
+ */
 const generateSessionToken = (): string => {
     return crypto.randomBytes(32).toString('hex');
 };
 
-// Create a new session for a user
-export const createSession = async (userId: number, expiresInHours: number = 168): Promise<string> => {
+/**
+ * Create a new session for a user
+ * @param {number} userId - The user ID to create session for
+ * @param {number} expiresInHours - Hours until session expires (default: 87600 = 10 years)
+ * @returns {Promise<string>} The generated session token
+ */
+export const createSession = async (userId: number, expiresInHours: number = 87600): Promise<string> => {
     const sessionToken = generateSessionToken();
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + expiresInHours); // 168 hours = 7 days
+    expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
     await UserSessionModel.create({
         userId,
@@ -71,7 +82,7 @@ export const loginAndCreateSession = async (req: Request, res: Response, next: N
                 role: user.role
             },
             sessionToken,
-            expiresIn: '24 hours'
+            expiresIn: '10 years'
         });
 
     } catch (error) {
@@ -135,24 +146,26 @@ export const refreshSession = async (req: ExpressRequest, res: Response, next: N
             return;
         }
 
-        // Check if session expires within the next 24 hours
+        // Check if session expires within the next 30 days
         const now = new Date();
-        const expiresIn24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const expiresIn30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
         
-        if (session.expiresAt <= expiresIn24Hours) {
-            // Extend session by 7 days
+        if (session.expiresAt <= expiresIn30Days) {
+            // Extend session by 10 years
             const newExpiresAt = new Date();
-            newExpiresAt.setHours(newExpiresAt.getHours() + 168);
+            newExpiresAt.setHours(newExpiresAt.getHours() + 87600);
             
             await session.update({ expiresAt: newExpiresAt });
             
             res.json({
                 message: 'Session refreshed',
+                sessionToken: sessionToken, // Return the same session token
                 expiresAt: newExpiresAt
             });
         } else {
             res.json({
                 message: 'Session is still valid',
+                sessionToken: sessionToken, // Return the same session token
                 expiresAt: session.expiresAt
             });
         }

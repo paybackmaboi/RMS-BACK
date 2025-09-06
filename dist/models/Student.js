@@ -24,7 +24,6 @@ const initStudent = (sequelize) => {
         studentNumber: {
             type: sequelize_1.DataTypes.STRING(20),
             allowNull: false,
-            unique: true,
         },
         // I. PERSONAL DATA
         fullName: {

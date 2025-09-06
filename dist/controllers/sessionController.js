@@ -12,16 +12,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCurrentSession = exports.logoutAndDestroySession = exports.loginAndCreateSession = exports.createSession = void 0;
+exports.refreshSession = exports.getCurrentSession = exports.logoutAndDestroySession = exports.loginAndCreateSession = exports.createSession = void 0;
 const database_1 = require("../database");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const crypto_1 = __importDefault(require("crypto"));
-// Generate a secure session token
+/**
+ * Generate a secure session token using crypto
+ * @returns {string} A 64-character hexadecimal token
+ */
 const generateSessionToken = () => {
     return crypto_1.default.randomBytes(32).toString('hex');
 };
-// Create a new session for a user
-const createSession = (userId_1, ...args_1) => __awaiter(void 0, [userId_1, ...args_1], void 0, function* (userId, expiresInHours = 24) {
+/**
+ * Create a new session for a user
+ * @param {number} userId - The user ID to create session for
+ * @param {number} expiresInHours - Hours until session expires (default: 87600 = 10 years)
+ * @returns {Promise<string>} The generated session token
+ */
+const createSession = (userId_1, ...args_1) => __awaiter(void 0, [userId_1, ...args_1], void 0, function* (userId, expiresInHours = 87600) {
     const sessionToken = generateSessionToken();
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + expiresInHours);
@@ -68,7 +76,7 @@ const loginAndCreateSession = (req, res, next) => __awaiter(void 0, void 0, void
                 role: user.role
             },
             sessionToken,
-            expiresIn: '24 hours'
+            expiresIn: '10 years'
         });
     }
     catch (error) {
@@ -113,3 +121,48 @@ const getCurrentSession = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.getCurrentSession = getCurrentSession;
+// Refresh session if it's close to expiring
+const refreshSession = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
+        if (!sessionToken) {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+        // Find the session
+        const session = yield database_1.UserSessionModel.findOne({
+            where: { sessionToken }
+        });
+        if (!session) {
+            res.status(401).json({ message: 'Invalid session' });
+            return;
+        }
+        // Check if session expires within the next 30 days
+        const now = new Date();
+        const expiresIn30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        if (session.expiresAt <= expiresIn30Days) {
+            // Extend session by 10 years
+            const newExpiresAt = new Date();
+            newExpiresAt.setHours(newExpiresAt.getHours() + 87600);
+            yield session.update({ expiresAt: newExpiresAt });
+            res.json({
+                message: 'Session refreshed',
+                sessionToken: sessionToken, // Return the same session token
+                expiresAt: newExpiresAt
+            });
+        }
+        else {
+            res.json({
+                message: 'Session is still valid',
+                sessionToken: sessionToken, // Return the same session token
+                expiresAt: session.expiresAt
+            });
+        }
+    }
+    catch (error) {
+        console.error('Session refresh error:', error);
+        next(error);
+    }
+});
+exports.refreshSession = refreshSession;

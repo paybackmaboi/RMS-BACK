@@ -16,7 +16,7 @@ const initStudentEnrollment = (sequelize) => {
             type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
             references: {
-                model: 'students',
+                model: 'users',
                 key: 'id'
             }
         },

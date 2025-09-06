@@ -790,3 +790,25 @@ export const updateApprovedRegistrationsToEnrolled = async (req: ExpressRequest,
         next(error);
     }
 };
+
+// Get student balance
+export const getStudentBalance = async (req: ExpressRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user?.id;
+        
+        if (!userId) {
+            res.status(401).json({ message: 'User not authenticated' });
+            return;
+        }
+
+        // For now, return a default balance of 0
+        // In a real system, this would query a billing/balance table
+        res.json({
+            tuitionBalance: 0,
+            message: 'Balance retrieved successfully'
+        });
+    } catch (error) {
+        console.error('Error getting student balance:', error);
+        next(error);
+    }
+};

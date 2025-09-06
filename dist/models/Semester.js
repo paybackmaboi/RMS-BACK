@@ -19,7 +19,6 @@ const initSemester = (sequelize) => {
         code: {
             type: sequelize_1.DataTypes.STRING(10),
             allowNull: false,
-            unique: true,
         },
         description: {
             type: sequelize_1.DataTypes.STRING(200),

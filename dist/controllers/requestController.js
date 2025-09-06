@@ -15,56 +15,52 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteRequest = exports.getRequestById = exports.getRequestDocument = exports.getRequestsByStudentId = exports.updateRequestStatus = exports.getAllRequests = exports.getStudentRequests = exports.createRequest = void 0;
 const database_1 = require("../database");
 const path_1 = __importDefault(require("path"));
+/**
+ * Create a new document request
+ * @route POST /api/requests
+ * @access Student only
+ */
 const createRequest = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         console.log('🔍 Creating request - User info:', req.user);
         console.log('🔍 Request body:', req.body);
         console.log('🔍 Request files:', req.files);
-        console.log('🔍 RequestModel available:', !!database_1.RequestModel);
-        console.log('🔍 RequestModel type:', typeof database_1.RequestModel);
-        console.log('🔍 RequestModel value:', database_1.RequestModel);
-        console.log('🔍 NotificationModel available:', !!database_1.NotificationModel);
-        console.log('🔍 NotificationModel type:', typeof database_1.NotificationModel);
-        console.log('🔍 NotificationModel value:', database_1.NotificationModel);
-        // Test if models are properly initialized
-        if (!database_1.RequestModel || !database_1.NotificationModel) {
-            console.error('❌ Models not properly initialized!');
-            console.error('❌ RequestModel:', database_1.RequestModel);
-            console.error('❌ NotificationModel:', database_1.NotificationModel);
-            res.status(500).json({ message: 'Server configuration error: Models not initialized' });
-            return;
-        }
-        const documentType = req.body.documentType;
-        const purpose = req.body.purpose;
-        const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-        if (!studentId) {
-            console.log('❌ No student ID found in req.user:', req.user);
-            res.status(401).json({ message: 'Unauthorized: Student ID not found.' });
+        const { documentType, purpose } = req.body;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!userId) {
+            res.status(401).json({ message: 'User not authenticated' });
             return;
         }
         if (!documentType || !purpose) {
-            res.status(400).json({ message: 'Document type and purpose are required.' });
+            res.status(400).json({ message: 'Document type and purpose are required' });
             return;
         }
-        const files = req.files;
-        const filePaths = files ? files.map(file => file.filename) : undefined;
+        // Create the request
         const newRequest = yield database_1.RequestModel.create({
-            studentId,
+            studentId: userId,
             documentType,
             purpose,
             status: 'pending',
-            filePath: filePaths,
+            notes: '',
+            documents: req.files ? req.files.map(file => file.filename).join(',') : ''
         });
+        // Create notification for admin
         yield database_1.NotificationModel.create({
-            userId: studentId,
+            userId: userId,
             requestId: newRequest.id,
-            message: `You have submitted your request for ${documentType}.`,
+            message: `New ${documentType} request submitted`,
             isRead: false,
+            type: 'request'
         });
-        res.status(201).json(newRequest);
+        console.log('✅ Request created successfully:', newRequest.id);
+        res.status(201).json({
+            message: 'Request submitted successfully',
+            request: newRequest
+        });
     }
     catch (error) {
+        console.error('❌ Error creating request:', error);
         next(error);
     }
 });
@@ -73,22 +69,15 @@ const getStudentRequests = (req, res, next) => __awaiter(void 0, void 0, void 0,
     var _a;
     try {
         console.log('🔍 Getting student requests - User info:', req.user);
-        console.log('🔍 RequestModel available:', !!database_1.RequestModel);
-        console.log('🔍 RequestModel type:', typeof database_1.RequestModel);
-        console.log('🔍 RequestModel value:', database_1.RequestModel);
-        // Test if model is properly initialized
-        if (!database_1.RequestModel) {
-            console.error('❌ RequestModel not properly initialized!');
-            res.status(500).json({ message: 'Server configuration error: RequestModel not initialized' });
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!userId) {
+            res.status(401).json({ message: 'User not authenticated' });
             return;
         }
-        const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-        if (!studentId) {
-            res.status(401).json({ message: 'Unauthorized' });
-            return;
-        }
-        console.log('🔍 Student ID:', studentId);
-        const requests = yield database_1.RequestModel.findAll({ where: { studentId }, order: [['createdAt', 'DESC']] });
+        const requests = yield database_1.RequestModel.findAll({
+            where: { studentId: userId },
+            order: [['createdAt', 'DESC']]
+        });
         console.log('🔍 Found requests:', requests.length);
         res.json(requests);
     }
@@ -100,18 +89,20 @@ const getStudentRequests = (req, res, next) => __awaiter(void 0, void 0, void 0,
 exports.getStudentRequests = getStudentRequests;
 const getAllRequests = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log('🔍 Getting all requests - User info:', req.user);
         const requests = yield database_1.RequestModel.findAll({
+            order: [['createdAt', 'DESC']],
             include: [{
                     model: database_1.UserModel,
                     as: 'student',
-                    attributes: ['idNumber', 'firstName', 'lastName', 'middleName']
-                }],
-            order: [['createdAt', 'DESC']],
+                    attributes: ['firstName', 'lastName', 'idNumber']
+                }]
         });
+        console.log('🔍 Found requests:', requests.length);
         res.json(requests);
     }
     catch (error) {
-        console.error('Error fetching requests:', error);
+        console.error('❌ Error fetching requests:', error);
         next(error);
     }
 });

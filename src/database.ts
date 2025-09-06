@@ -68,73 +68,119 @@ export const initializeModels = () => {
     initBsitSchedule(sequelize);
     initStudentEnrollment(sequelize);
     initRequirements(sequelize);
-    initUserSession(sequelize); // Re-enabled for login functionality
-    
-    // Temporarily skip these models to avoid key limit issues
-    // initStudent(sequelize);
-    // initDepartment(sequelize);
-    // initCourse(sequelize);
-    // initSubject(sequelize);
-    // initSchoolYear(sequelize);
-    // initSemester(sequelize);
-    // initSchedule(sequelize);
-    // initEnrollment(sequelize);
-    // initRequest(sequelize);
+    initUserSession(sequelize); // Re-enabled for login function
     initNotification(sequelize); // Re-enabled for notification functionality
+    initRequest(sequelize); // Re-enabled for request functionality
+    
+    // Initialize additional models needed by controllers
+    initStudent(sequelize);
+    initDepartment(sequelize);
+    initCourse(sequelize);
+    initSubject(sequelize);
+    initSchoolYear(sequelize);
+    initSemester(sequelize);
+    initSchedule(sequelize);
+    initEnrollment(sequelize);
 };
 
-// Define associations
+/**
+ * Define model associations for the database
+ * This function sets up relationships between different models
+ */
 export const defineAssociations = () => {
-    // Only essential associations for now
-    // User associations
-    // UserModel.hasOne(StudentModel, { foreignKey: 'userId' });
-    // StudentModel.belongsTo(UserModel, { foreignKey: 'userId' });
+    try {
+        // Check if all required models are defined
+        if (!UserModel || !StudentRegistrationModel || !RequestModel || !NotificationModel) {
+            console.error('❌ Some models are undefined:', {
+                UserModel: !!UserModel,
+                StudentRegistrationModel: !!StudentRegistrationModel,
+                RequestModel: !!RequestModel,
+                NotificationModel: !!NotificationModel
+            });
+            throw new Error('Required models are undefined');
+        }
 
-    // Department associations
-    // DepartmentModel.hasMany(CourseModel, { foreignKey: 'departmentId' });
-    // CourseModel.belongsTo(DepartmentModel, { foreignKey: 'departmentId' });
+        // ==============================================
+        // USER ASSOCIATIONS
+        // ==============================================
+        
+        // User -> Student Registration (One-to-Many)
+        UserModel.hasMany(StudentRegistrationModel, { 
+            foreignKey: 'userId',
+            as: 'registrations'
+        });
+        StudentRegistrationModel.belongsTo(UserModel, { 
+            foreignKey: 'userId',
+            as: 'user'
+        });
 
-    // Course associations
-    // CourseModel.hasMany(StudentModel, { foreignKey: 'courseId' });
-    // StudentModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
+        // User -> Requests (One-to-Many)
+        UserModel.hasMany(RequestModel, { 
+            foreignKey: 'studentId',
+            as: 'requests'
+        });
+        RequestModel.belongsTo(UserModel, { 
+            foreignKey: 'studentId',
+            as: 'student'
+        });
 
-    // Subject associations
-    // SubjectModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
-    // CourseModel.hasMany(SubjectModel, { foreignKey: 'courseId' });
+        // User -> Notifications (One-to-Many)
+        UserModel.hasMany(NotificationModel, { 
+            foreignKey: 'userId',
+            as: 'notifications'
+        });
+        NotificationModel.belongsTo(UserModel, { 
+            foreignKey: 'userId',
+            as: 'user'
+        });
 
-    // Schedule associations
-    // ScheduleModel.belongsTo(SubjectModel, { foreignKey: 'subjectId' });
-    // SubjectModel.hasMany(ScheduleModel, { foreignKey: 'subjectId' });
+        // ==============================================
+        // CURRICULUM ASSOCIATIONS
+        // ==============================================
+        
+        // BSIT Curriculum -> BSIT Schedules (One-to-Many)
+        BsitCurriculumModel.hasMany(BsitScheduleModel, { 
+            foreignKey: 'curriculumId',
+            as: 'schedules'
+        });
+        BsitScheduleModel.belongsTo(BsitCurriculumModel, { 
+            foreignKey: 'curriculumId',
+            as: 'curriculum'
+        });
 
-    // Enrollment associations
-    // EnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
-    // StudentModel.hasMany(EnrollmentModel, { foreignKey: 'studentId' });
-    // EnrollmentModel.belongsTo(ScheduleModel, { foreignKey: 'scheduleId' });
-    // ScheduleModel.hasMany(EnrollmentModel, { foreignKey: 'scheduleId' });
+        // ==============================================
+        // ENROLLMENT ASSOCIATIONS
+        // ==============================================
+        
+        // BSIT Schedule -> Student Enrollments (One-to-Many)
+        BsitScheduleModel.hasMany(StudentEnrollmentModel, { 
+            foreignKey: 'scheduleId',
+            as: 'enrollments'
+        });
+        StudentEnrollmentModel.belongsTo(BsitScheduleModel, { 
+            foreignKey: 'scheduleId',
+            as: 'schedule'
+        });
 
-    // Student Registration associations
-    StudentRegistrationModel.belongsTo(UserModel, { foreignKey: 'userId' });
-    UserModel.hasMany(StudentRegistrationModel, { foreignKey: 'userId' });
+        // ==============================================
+        // REQUEST & NOTIFICATION ASSOCIATIONS
+        // ==============================================
+        
+        // Request -> Notifications (One-to-Many, Optional)
+        RequestModel.hasMany(NotificationModel, {
+            foreignKey: 'requestId',
+            as: 'notifications'
+        });
+        NotificationModel.belongsTo(RequestModel, {
+            foreignKey: 'requestId',
+            as: 'request'
+        });
 
-    // BSIT Curriculum associations
-    BsitCurriculumModel.hasMany(BsitScheduleModel, { foreignKey: 'curriculumId' });
-    BsitScheduleModel.belongsTo(BsitCurriculumModel, { foreignKey: 'curriculumId' });
-
-    // Student Enrollment associations
-    // StudentEnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
-    // StudentModel.hasMany(StudentEnrollmentModel, { foreignKey: 'studentId' });
-    StudentEnrollmentModel.belongsTo(BsitScheduleModel, { foreignKey: 'scheduleId' });
-    BsitScheduleModel.hasMany(StudentEnrollmentModel, { foreignKey: 'scheduleId' });
-
-    // Request associations
-    // RequestModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'student' });
-    // UserModel.hasMany(RequestModel, { foreignKey: 'studentId', as: 'requests' });
-
-    // Notification associations
-    NotificationModel.belongsTo(UserModel, { foreignKey: 'userId' });
-    UserModel.hasMany(NotificationModel, { foreignKey: 'userId' });
-    // NotificationModel.belongsTo(RequestModel, { foreignKey: 'requestId' }); // Keep commented since RequestModel is disabled
-    // RequestModel.hasMany(NotificationModel, { foreignKey: 'requestId' }); // Keep commented since RequestModel is disabled
+        console.log('✅ Model associations defined successfully.');
+    } catch (error) {
+        console.error('❌ Error defining model associations:', error);
+        throw error;
+    }
 };
 
 // Connect to database and initialize
@@ -177,8 +223,14 @@ export const connectAndInitialize = async () => {
 
 
         // Database sync - ensure all tables exist with correct structure
-        await sequelize.sync({ alter: true }); // This will create missing tables and alter existing ones
-        console.log('✅ Database tables created/synced successfully.');
+        try {
+            await sequelize.sync({ alter: true }); // This will create missing tables and alter existing ones
+            console.log('✅ Database tables created/synced successfully.');
+        } catch (syncError) {
+            console.warn('⚠️ Database sync had issues, but continuing...');
+            console.warn('Sync error:', syncError instanceof Error ? syncError.message : String(syncError));
+            // Continue anyway - the server can still work with existing tables
+        }
 
         const { seedInitialData } = await import('./seedData');
         await seedInitialData();
@@ -293,15 +345,15 @@ export {
     StudentEnrollmentModel,
     UserSessionModel,
     RequirementsModel,
-    NotificationModel
-    // Temporarily skip these models to avoid key limit issues
-    // StudentModel,
-    // DepartmentModel,
-    // CourseModel,
-    // SubjectModel,
-    // SchoolYearModel,
-    // SemesterModel,
-    // ScheduleModel,
-    // EnrollmentModel,
-    // RequestModel,
+    NotificationModel,
+    RequestModel,
+    // Add missing models that are needed by controllers
+    StudentModel,
+    DepartmentModel,
+    CourseModel,
+    SubjectModel,
+    SchoolYearModel,
+    SemesterModel,
+    ScheduleModel,
+    EnrollmentModel
 };

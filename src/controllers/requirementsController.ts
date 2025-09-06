@@ -149,7 +149,7 @@ export const sendAnnouncement = asyncHandler(async (req: Request, res: Response)
         userId: parseInt(studentId),
         message: message,
         type: type || 'requirements_reminder',
-        isRead: false,
+        isRead: false
         // requestId is optional for requirements announcements
       });
       

@@ -15,7 +15,6 @@ const initDepartment = (sequelize) => {
         code: {
             type: sequelize_1.DataTypes.STRING(10),
             allowNull: false,
-            unique: true,
         },
         name: {
             type: sequelize_1.DataTypes.STRING(100),

@@ -9,15 +9,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearAllNotifications = exports.markAllAsRead = exports.getMyNotifications = void 0;
+exports.getNotificationsByStudentId = exports.clearAllNotifications = exports.markAllAsRead = exports.getMyNotifications = void 0;
 const database_1 = require("../database");
 // Get all notifications for the logged-in user
 const getMyNotifications = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
+        console.log('🔍 Notification controller - req.user:', req.user);
+        console.log('🔍 Notification controller - req.headers:', req.headers);
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        console.log('🔍 Notification controller - User ID from req.user:', userId);
         if (!userId) {
-            res.status(401).json({ message: 'Unauthorized' });
+            console.log('❌ No user ID found in request');
+            console.log('❌ Full req.user object:', req.user);
+            res.status(401).json({ message: 'Unauthorized: No user ID found' });
             return;
         }
         const notifications = yield database_1.NotificationModel.findAll({
@@ -25,9 +30,13 @@ const getMyNotifications = (req, res, next) => __awaiter(void 0, void 0, void 0,
             order: [['createdAt', 'DESC']],
             limit: 20 // Limit to the last 20 notifications for performance
         });
+        console.log('✅ Notification controller - Successfully fetched notifications for user ID:', userId);
+        console.log('✅ Notification controller - Number of notifications found:', notifications.length);
         res.json(notifications);
     }
     catch (error) {
+        console.error('❌ Notification controller getMyNotifications error:', error);
+        console.error('❌ Notification controller getMyNotifications error stack:', error instanceof Error ? error.stack : 'No stack trace');
         next(error);
     }
 });
@@ -47,6 +56,8 @@ const markAllAsRead = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         res.status(200).json({ message: 'All notifications marked as read.' });
     }
     catch (error) {
+        console.error('❌ Notification controller markAllAsRead error:', error);
+        console.error('❌ Notification controller markAllAsRead error stack:', error instanceof Error ? error.stack : 'No stack trace');
         next(error);
     }
 });
@@ -65,7 +76,31 @@ const clearAllNotifications = (req, res, next) => __awaiter(void 0, void 0, void
         res.status(200).json({ message: 'All notifications cleared.' });
     }
     catch (error) {
+        console.error('❌ Notification controller clearAllNotifications error:', error);
+        console.error('❌ Notification controller clearAllNotifications error stack:', error instanceof Error ? error.stack : 'No stack trace');
         next(error);
     }
 });
 exports.clearAllNotifications = clearAllNotifications;
+// Get notifications by student ID (admin function)
+const getNotificationsByStudentId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { studentId } = req.params;
+        if (!studentId) {
+            res.status(400).json({ message: 'Student ID is required' });
+            return;
+        }
+        const notifications = yield database_1.NotificationModel.findAll({
+            where: { userId: studentId },
+            order: [['createdAt', 'DESC']],
+            limit: 50 // Allow more notifications for admin view
+        });
+        console.log(`✅ Admin fetched ${notifications.length} notifications for student ID: ${studentId}`);
+        res.json(notifications);
+    }
+    catch (error) {
+        console.error('❌ Notification controller getNotificationsByStudentId error:', error);
+        next(error);
+    }
+});
+exports.getNotificationsByStudentId = getNotificationsByStudentId;

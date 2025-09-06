@@ -58,7 +58,11 @@ export const adminSessionAuthMiddleware = async (req: Request, res: Response, ne
         // First authenticate the session
         const sessionToken = req.cookies?.sessionToken || req.headers['x-session-token'] as string;
         
-        if (!sessionToken) {
+        console.log('🔐 Admin session auth - Headers:', req.headers);
+        console.log('🔐 Admin session auth - Cookies:', req.cookies);
+        console.log('🔐 Admin session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
+        
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
             res.status(401).json({ message: 'No session token provided' });
             return;
         }
@@ -112,7 +116,7 @@ export const studentSessionAuthMiddleware = async (req: Request, res: Response, 
         // Get session token from cookies or headers
         const sessionToken = req.cookies?.sessionToken || req.headers['x-session-token'] as string;
         
-        if (!sessionToken) {
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
             res.status(401).json({ message: 'No session token provided' });
             return;
         }

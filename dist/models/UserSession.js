@@ -13,7 +13,7 @@ const initUserSession = (sequelize) => {
             primaryKey: true,
         },
         userId: {
-            type: sequelize_1.DataTypes.INTEGER,
+            type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
             references: {
                 model: 'users',
@@ -23,7 +23,6 @@ const initUserSession = (sequelize) => {
         sessionToken: {
             type: sequelize_1.DataTypes.STRING(255),
             allowNull: false,
-            unique: true,
         },
         expiresAt: {
             type: sequelize_1.DataTypes.DATE,

@@ -23,6 +23,8 @@ router.post('/create-and-enroll', sessionAuthMiddleware_1.adminSessionAuthMiddle
 router.post('/complete-registration', sessionAuthMiddleware_1.studentSessionAuthMiddleware, studentController_1.completeStudentRegistration);
 // Get current student profile (requires session authentication)
 router.get('/profile', sessionAuthMiddleware_1.studentSessionAuthMiddleware, studentController_1.getCurrentStudentProfile);
+// Get student balance (requires session authentication)
+router.get('/me/balance', sessionAuthMiddleware_1.studentSessionAuthMiddleware, studentController_1.getStudentBalance);
 // Get student registration data by user ID (admin only)
 router.get('/registration/:userId', studentController_1.getStudentRegistrationData);
 // Get student enrolled subjects by year level and semester

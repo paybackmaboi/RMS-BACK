@@ -1,12 +1,13 @@
 {
   "name": "record-management-backend",
   "version": "1.0.0",
-  "main": "start-production.js",
+  "main": "dist/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
-    "start": "node start-production.js",
+    "start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "dev:watch": "nodemon",
     "dev:local": "nodemon src/app.ts",
     "migrate": "node migrate-database.js",
     "test-registration": "node test-registration.js",
