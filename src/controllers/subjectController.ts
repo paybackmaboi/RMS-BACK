@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-// import { SubjectModel, CourseModel } from '../database';
+import { SubjectModel, CourseModel } from '../database';
 
 interface ExpressRequest extends Request {
     user?: {

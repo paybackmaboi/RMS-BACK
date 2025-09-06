@@ -45,13 +45,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RequestModel = exports.NotificationModel = exports.RequirementsModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
+exports.EnrollmentModel = exports.ScheduleModel = exports.SemesterModel = exports.SchoolYearModel = exports.SubjectModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.RequestModel = exports.NotificationModel = exports.RequirementsModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 const mysql2_1 = __importDefault(require("mysql2"));
 // Import all model initializers
 const User_1 = require("./models/User");
 Object.defineProperty(exports, "UserModel", { enumerable: true, get: function () { return User_1.User; } });
+const Student_1 = require("./models/Student");
+Object.defineProperty(exports, "StudentModel", { enumerable: true, get: function () { return Student_1.Student; } });
+const Department_1 = require("./models/Department");
+Object.defineProperty(exports, "DepartmentModel", { enumerable: true, get: function () { return Department_1.Department; } });
+const Course_1 = require("./models/Course");
+Object.defineProperty(exports, "CourseModel", { enumerable: true, get: function () { return Course_1.Course; } });
+const Subject_1 = require("./models/Subject");
+Object.defineProperty(exports, "SubjectModel", { enumerable: true, get: function () { return Subject_1.Subject; } });
+const SchoolYear_1 = require("./models/SchoolYear");
+Object.defineProperty(exports, "SchoolYearModel", { enumerable: true, get: function () { return SchoolYear_1.SchoolYear; } });
+const Semester_1 = require("./models/Semester");
+Object.defineProperty(exports, "SemesterModel", { enumerable: true, get: function () { return Semester_1.Semester; } });
+const Schedule_1 = require("./models/Schedule");
+Object.defineProperty(exports, "ScheduleModel", { enumerable: true, get: function () { return Schedule_1.Schedule; } });
+const Enrollment_1 = require("./models/Enrollment");
+Object.defineProperty(exports, "EnrollmentModel", { enumerable: true, get: function () { return Enrollment_1.Enrollment; } });
 const StudentRegistration_1 = require("./models/StudentRegistration");
 Object.defineProperty(exports, "StudentRegistrationModel", { enumerable: true, get: function () { return StudentRegistration_1.StudentRegistration; } });
 const BsitCurriculum_1 = require("./models/BsitCurriculum");
@@ -103,23 +119,45 @@ exports.sequelize = new sequelize_1.Sequelize({
 });
 // Initialize all models
 const initializeModels = () => {
+    console.log('🔄 Initializing models...');
+    // Initialize core models first
     (0, User_1.initUser)(exports.sequelize);
+    console.log('✅ User model initialized');
     (0, StudentRegistration_1.initStudentRegistration)(exports.sequelize);
+    console.log('✅ StudentRegistration model initialized');
+    (0, UserSession_1.initUserSession)(exports.sequelize);
+    console.log('✅ UserSession model initialized');
+    (0, Request_1.initRequest)(exports.sequelize);
+    console.log('✅ Request model initialized');
+    (0, Notification_1.initNotification)(exports.sequelize);
+    console.log('✅ Notification model initialized');
+    // Initialize curriculum models
     (0, BsitCurriculum_1.initBsitCurriculum)(exports.sequelize);
+    console.log('✅ BsitCurriculum model initialized');
     (0, BsitSchedule_1.initBsitSchedule)(exports.sequelize);
+    console.log('✅ BsitSchedule model initialized');
     (0, StudentEnrollment_1.initStudentEnrollment)(exports.sequelize);
+    console.log('✅ StudentEnrollment model initialized');
     (0, Requirements_1.initRequirements)(exports.sequelize);
-    (0, UserSession_1.initUserSession)(exports.sequelize); // Re-enabled for login function    initNotification(sequelize); // Re-enabled for notification functionality
-    (0, Request_1.initRequest)(exports.sequelize); // Re-enabled for request functionality
-    // Temporarily skip these models to avoid key limit issues
-    // initStudent(sequelize);
-    // initDepartment(sequelize);
-    // initCourse(sequelize);
-    // initSubject(sequelize);
-    // initSchoolYear(sequelize);
-    // initSemester(sequelize);
-    // initSchedule(sequelize);
-    // initEnrollment(sequelize);
+    console.log('✅ Requirements model initialized');
+    // Initialize additional models needed by controllers
+    (0, Student_1.initStudent)(exports.sequelize);
+    console.log('✅ Student model initialized');
+    (0, Department_1.initDepartment)(exports.sequelize);
+    console.log('✅ Department model initialized');
+    (0, Course_1.initCourse)(exports.sequelize);
+    console.log('✅ Course model initialized');
+    (0, Subject_1.initSubject)(exports.sequelize);
+    console.log('✅ Subject model initialized');
+    (0, SchoolYear_1.initSchoolYear)(exports.sequelize);
+    console.log('✅ SchoolYear model initialized');
+    (0, Semester_1.initSemester)(exports.sequelize);
+    console.log('✅ Semester model initialized');
+    (0, Schedule_1.initSchedule)(exports.sequelize);
+    console.log('✅ Schedule model initialized');
+    (0, Enrollment_1.initEnrollment)(exports.sequelize);
+    console.log('✅ Enrollment model initialized');
+    console.log('✅ All models initialized successfully');
 };
 exports.initializeModels = initializeModels;
 /**
@@ -128,6 +166,36 @@ exports.initializeModels = initializeModels;
  */
 const defineAssociations = () => {
     try {
+        // Check if all required models are defined
+        if (!User_1.User) {
+            console.error('❌ UserModel is undefined');
+            throw new Error('UserModel is undefined');
+        }
+        if (!StudentRegistration_1.StudentRegistration) {
+            console.error('❌ StudentRegistrationModel is undefined');
+            throw new Error('StudentRegistrationModel is undefined');
+        }
+        if (!Request_1.Request) {
+            console.error('❌ RequestModel is undefined');
+            throw new Error('RequestModel is undefined');
+        }
+        if (!Notification_1.Notification) {
+            console.error('❌ NotificationModel is undefined');
+            throw new Error('NotificationModel is undefined');
+        }
+        if (!BsitCurriculum_1.BsitCurriculum) {
+            console.error('❌ BsitCurriculumModel is undefined');
+            throw new Error('BsitCurriculumModel is undefined');
+        }
+        if (!BsitSchedule_1.BsitSchedule) {
+            console.error('❌ BsitScheduleModel is undefined');
+            throw new Error('BsitScheduleModel is undefined');
+        }
+        if (!StudentEnrollment_1.StudentEnrollment) {
+            console.error('❌ StudentEnrollmentModel is undefined');
+            throw new Error('StudentEnrollmentModel is undefined');
+        }
+        console.log('✅ All required models are defined');
         // ==============================================
         // USER ASSOCIATIONS
         // ==============================================
@@ -230,12 +298,30 @@ const connectAndInitialize = () => __awaiter(void 0, void 0, void 0, function* (
         // Initialize models
         (0, exports.initializeModels)();
         console.log('✅ Models initialized successfully.');
+        // Small delay to ensure all models are properly loaded
+        yield new Promise(resolve => setTimeout(resolve, 200));
+        // Re-check models after delay
+        console.log('🔍 Checking models after initialization...');
+        console.log('UserModel:', !!User_1.User);
+        console.log('StudentRegistrationModel:', !!StudentRegistration_1.StudentRegistration);
+        console.log('RequestModel:', !!Request_1.Request);
+        console.log('NotificationModel:', !!Notification_1.Notification);
+        console.log('BsitCurriculumModel:', !!BsitCurriculum_1.BsitCurriculum);
+        console.log('BsitScheduleModel:', !!BsitSchedule_1.BsitSchedule);
+        console.log('StudentEnrollmentModel:', !!StudentEnrollment_1.StudentEnrollment);
         // Define associations
         (0, exports.defineAssociations)();
         console.log('✅ Model associations defined successfully.');
         // Database sync - ensure all tables exist with correct structure
-        yield exports.sequelize.sync({ alter: true }); // This will create missing tables and alter existing ones
-        console.log('✅ Database tables created/synced successfully.');
+        try {
+            yield exports.sequelize.sync({ alter: true }); // This will create missing tables and alter existing ones
+            console.log('✅ Database tables created/synced successfully.');
+        }
+        catch (syncError) {
+            console.warn('⚠️ Database sync had issues, but continuing...');
+            console.warn('Sync error:', syncError instanceof Error ? syncError.message : String(syncError));
+            // Continue anyway - the server can still work with existing tables
+        }
         const { seedInitialData } = yield Promise.resolve().then(() => __importStar(require('./seedData')));
         yield seedInitialData();
         // Create sample admin user if it doesn't exist

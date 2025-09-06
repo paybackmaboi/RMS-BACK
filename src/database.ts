@@ -62,25 +62,63 @@ export const sequelize = new Sequelize({
 
 // Initialize all models
 export const initializeModels = () => {
+    console.log('🔄 Initializing models...');
+    
+    // Initialize core models first
     initUser(sequelize);
+    console.log('✅ User model initialized');
+    
     initStudentRegistration(sequelize);
+    console.log('✅ StudentRegistration model initialized');
+    
+    initUserSession(sequelize);
+    console.log('✅ UserSession model initialized');
+    
+    initRequest(sequelize);
+    console.log('✅ Request model initialized');
+    
+    initNotification(sequelize);
+    console.log('✅ Notification model initialized');
+    
+    // Initialize curriculum models
     initBsitCurriculum(sequelize);
+    console.log('✅ BsitCurriculum model initialized');
+    
     initBsitSchedule(sequelize);
+    console.log('✅ BsitSchedule model initialized');
+    
     initStudentEnrollment(sequelize);
+    console.log('✅ StudentEnrollment model initialized');
+    
     initRequirements(sequelize);
-    initUserSession(sequelize); // Re-enabled for login function
-    initNotification(sequelize); // Re-enabled for notification functionality
-    initRequest(sequelize); // Re-enabled for request functionality
+    console.log('✅ Requirements model initialized');
     
     // Initialize additional models needed by controllers
     initStudent(sequelize);
+    console.log('✅ Student model initialized');
+    
     initDepartment(sequelize);
+    console.log('✅ Department model initialized');
+    
     initCourse(sequelize);
+    console.log('✅ Course model initialized');
+    
     initSubject(sequelize);
+    console.log('✅ Subject model initialized');
+    
     initSchoolYear(sequelize);
+    console.log('✅ SchoolYear model initialized');
+    
     initSemester(sequelize);
+    console.log('✅ Semester model initialized');
+    
     initSchedule(sequelize);
+    console.log('✅ Schedule model initialized');
+    
     initEnrollment(sequelize);
+    console.log('✅ Enrollment model initialized');
+    
+    console.log('✅ All models initialized successfully');
 };
 
 /**
@@ -90,15 +128,36 @@ export const initializeModels = () => {
 export const defineAssociations = () => {
     try {
         // Check if all required models are defined
-        if (!UserModel || !StudentRegistrationModel || !RequestModel || !NotificationModel) {
-            console.error('❌ Some models are undefined:', {
-                UserModel: !!UserModel,
-                StudentRegistrationModel: !!StudentRegistrationModel,
-                RequestModel: !!RequestModel,
-                NotificationModel: !!NotificationModel
-            });
-            throw new Error('Required models are undefined');
+        if (!UserModel) {
+            console.error('❌ UserModel is undefined');
+            throw new Error('UserModel is undefined');
         }
+        if (!StudentRegistrationModel) {
+            console.error('❌ StudentRegistrationModel is undefined');
+            throw new Error('StudentRegistrationModel is undefined');
+        }
+        if (!RequestModel) {
+            console.error('❌ RequestModel is undefined');
+            throw new Error('RequestModel is undefined');
+        }
+        if (!NotificationModel) {
+            console.error('❌ NotificationModel is undefined');
+            throw new Error('NotificationModel is undefined');
+        }
+        if (!BsitCurriculumModel) {
+            console.error('❌ BsitCurriculumModel is undefined');
+            throw new Error('BsitCurriculumModel is undefined');
+        }
+        if (!BsitScheduleModel) {
+            console.error('❌ BsitScheduleModel is undefined');
+            throw new Error('BsitScheduleModel is undefined');
+        }
+        if (!StudentEnrollmentModel) {
+            console.error('❌ StudentEnrollmentModel is undefined');
+            throw new Error('StudentEnrollmentModel is undefined');
+        }
+
+        console.log('✅ All required models are defined');
 
         // ==============================================
         // USER ASSOCIATIONS
@@ -215,6 +274,19 @@ export const connectAndInitialize = async () => {
         // Initialize models
         initializeModels();
         console.log('✅ Models initialized successfully.');
+
+        // Small delay to ensure all models are properly loaded
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Re-check models after delay
+        console.log('🔍 Checking models after initialization...');
+        console.log('UserModel:', !!UserModel);
+        console.log('StudentRegistrationModel:', !!StudentRegistrationModel);
+        console.log('RequestModel:', !!RequestModel);
+        console.log('NotificationModel:', !!NotificationModel);
+        console.log('BsitCurriculumModel:', !!BsitCurriculumModel);
+        console.log('BsitScheduleModel:', !!BsitScheduleModel);
+        console.log('StudentEnrollmentModel:', !!StudentEnrollmentModel);
 
         // Define associations
         defineAssociations();
