@@ -26,6 +26,8 @@ import photoRoutes from './routes/photoRoutes';
 import requirementsRoutes from './routes/requirementsRoutes';
 import studentDocumentRoutes from './routes/studentDocumentRoutes';
 import paymentRoutes from './routes/paymentRoutes';
+import settingsRoutes from './routes/settingsRoutes';
+import activityLogRoutes from './routes/activityLogRoutes';
 
 
 dotenv.config();
@@ -90,6 +92,8 @@ app.use('/api/photos', photoRoutes);
 app.use('/api/requirements', requirementsRoutes);
 app.use('/api/students', studentDocumentRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
 
 // --- Error Handling Middleware ---
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

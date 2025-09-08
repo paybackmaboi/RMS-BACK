@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.refreshSession = exports.getCurrentSession = exports.logoutAndDestroySession = exports.loginAndCreateSession = exports.createSession = void 0;
 const database_1 = require("../database");
+const activityLogController_1 = require("./activityLogController");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const crypto_1 = __importDefault(require("crypto"));
 /**
@@ -66,6 +67,8 @@ const loginAndCreateSession = (req, res, next) => __awaiter(void 0, void 0, void
         // Create session
         const sessionToken = yield (0, exports.createSession)(user.id);
         // Return user info and session token
+        // Log successful login activity
+        yield (0, activityLogController_1.logActivity)(user.id, 'login', `User ${user.idNumber} logged in successfully via session`, req, { role: user.role, loginMethod: 'session' });
         res.json({
             message: 'Login successful',
             user: {
@@ -91,6 +94,19 @@ const logoutAndDestroySession = (req, res, next) => __awaiter(void 0, void 0, vo
     try {
         const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
         if (sessionToken) {
+            // Find the session to get user info before destroying
+            // First find the session
+            const session = yield database_1.UserSessionModel.findOne({
+                where: { sessionToken }
+            });
+            if (session) {
+                // Then get the user separately since we don't have a direct association
+                const user = yield database_1.UserModel.findByPk(session.userId);
+                if (user) {
+                    // Log logout activity
+                    yield (0, activityLogController_1.logActivity)(session.userId, 'logout', `User ${user.idNumber} logged out`, req, { role: user.role });
+                }
+            }
             yield database_1.UserSessionModel.destroy({
                 where: { sessionToken }
             });

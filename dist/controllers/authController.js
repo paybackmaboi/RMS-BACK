@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.login = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const database_1 = require("../database");
+const activityLogController_1 = require("./activityLogController");
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { idNumber, password } = req.body;
@@ -35,6 +36,8 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         const token = jsonwebtoken_1.default.sign(
         // NOTE: Using '(user as any)' to access model properties.
         { id: user.id, idNumber: user.idNumber, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+        // Log successful login activity
+        yield (0, activityLogController_1.logActivity)(user.id, 'login', `User ${user.idNumber} logged in successfully`, req, { role: user.role, loginMethod: 'password' });
         res.json({
             token,
             user: {

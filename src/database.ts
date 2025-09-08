@@ -21,6 +21,8 @@ import { Request as RequestModel, initRequest } from './models/Request';
 import { Notification as NotificationModel, initNotification } from './models/Notification';
 import { Requirements as RequirementsModel, initRequirements } from './models/Requirements';
 import { Payment as PaymentModel, initPayment } from './models/Payment';
+import { Settings as SettingsModel, initSettings } from './models/Settings';
+import { ActivityLog as ActivityLogModel, initActivityLog } from './models/ActivityLog';
 
 // Load environment variables
 dotenv.config();
@@ -96,6 +98,12 @@ export const initializeModels = () => {
     
     initPayment(sequelize);
     console.log('✅ Payment model initialized');
+    
+    initSettings(sequelize);
+    console.log('✅ Settings model initialized');
+    
+    initActivityLog(sequelize);
+    console.log('✅ ActivityLog model initialized');
     
     // Initialize additional models needed by controllers
     initStudent(sequelize);
@@ -246,7 +254,7 @@ export const defineAssociations = () => {
         // ==============================================
         // PAYMENT ASSOCIATIONS
         // ==============================================
-        
+
         // Request -> Payment (One-to-One)
         RequestModel.hasOne(PaymentModel, {
             foreignKey: 'requestId',
@@ -255,6 +263,20 @@ export const defineAssociations = () => {
         PaymentModel.belongsTo(RequestModel, {
             foreignKey: 'requestId',
             as: 'request'
+        });
+
+        // ==============================================
+        // ACTIVITY LOG ASSOCIATIONS
+        // ==============================================
+
+        // User -> Activity Logs (One-to-Many)
+        UserModel.hasMany(ActivityLogModel, {
+            foreignKey: 'userId',
+            as: 'activityLogs'
+        });
+        ActivityLogModel.belongsTo(UserModel, {
+            foreignKey: 'userId',
+            as: 'user'
         });
 
         console.log('✅ Model associations defined successfully.');
@@ -409,6 +431,11 @@ export const connectAndInitialize = async () => {
             console.log('✅ Sample student user created (2022-00037/password) - Student record creation skipped');
         }
 
+        // Initialize default settings
+        const { initializeDefaultSettings } = await import('./controllers/settingsController');
+        await initializeDefaultSettings();
+        console.log('✅ Default settings initialized');
+
         console.log('🎉 Database initialization completed successfully!');
         
     } catch (error) {
@@ -442,6 +469,8 @@ export {
     NotificationModel,
     RequestModel,
     PaymentModel,
+    SettingsModel,
+    ActivityLogModel,
     // Add missing models that are needed by controllers
     StudentModel,
     DepartmentModel,

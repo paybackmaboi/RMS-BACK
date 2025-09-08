@@ -39,6 +39,8 @@ const photoRoutes_1 = __importDefault(require("./routes/photoRoutes"));
 const requirementsRoutes_1 = __importDefault(require("./routes/requirementsRoutes"));
 const studentDocumentRoutes_1 = __importDefault(require("./routes/studentDocumentRoutes"));
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
+const settingsRoutes_1 = __importDefault(require("./routes/settingsRoutes"));
+const activityLogRoutes_1 = __importDefault(require("./routes/activityLogRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -90,6 +92,8 @@ app.use('/api/photos', photoRoutes_1.default);
 app.use('/api/requirements', requirementsRoutes_1.default);
 app.use('/api/students', studentDocumentRoutes_1.default);
 app.use('/api/payments', paymentRoutes_1.default);
+app.use('/api/settings', settingsRoutes_1.default);
+app.use('/api/activity-logs', activityLogRoutes_1.default);
 // --- Error Handling Middleware ---
 const errorHandler = (err, req, res, next) => {
     console.error("An error occurred:", err.message);

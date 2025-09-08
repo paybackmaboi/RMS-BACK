@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { UserModel, UserSessionModel } from '../database';
+import { logActivity } from './activityLogController';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
@@ -72,6 +73,15 @@ export const loginAndCreateSession = async (req: Request, res: Response, next: N
         const sessionToken = await createSession(user.id);
 
         // Return user info and session token
+        // Log successful login activity
+        await logActivity(
+            user.id, 
+            'login', 
+            `User ${user.idNumber} logged in successfully via session`,
+            req,
+            { role: user.role, loginMethod: 'session' }
+        );
+
         res.json({
             message: 'Login successful',
             user: {
@@ -97,6 +107,27 @@ export const logoutAndDestroySession = async (req: ExpressRequest, res: Response
         const sessionToken = req.cookies?.sessionToken || req.headers['x-session-token'] as string;
         
         if (sessionToken) {
+            // Find the session to get user info before destroying
+            // First find the session
+            const session = await UserSessionModel.findOne({
+                where: { sessionToken }
+            });
+
+            if (session) {
+                // Then get the user separately since we don't have a direct association
+                const user = await UserModel.findByPk(session.userId);
+                if (user) {
+                    // Log logout activity
+                    await logActivity(
+                        session.userId, 
+                        'logout', 
+                        `User ${user.idNumber} logged out`,
+                        req,
+                        { role: user.role }
+                    );
+                }
+            }
+
             await UserSessionModel.destroy({
                 where: { sessionToken }
             });

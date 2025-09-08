@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserModel } from '../database';
+import { logActivity } from './activityLogController';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
@@ -30,6 +31,15 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
             { id: (user as any).id, idNumber: (user as any).idNumber, role: (user as any).role },
             JWT_SECRET,
             { expiresIn: '1h' }
+        );
+
+        // Log successful login activity
+        await logActivity(
+            user.id, 
+            'login', 
+            `User ${user.idNumber} logged in successfully`,
+            req,
+            { role: user.role, loginMethod: 'password' }
         );
 
         res.json({ 

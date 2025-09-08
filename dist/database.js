@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EnrollmentModel = exports.ScheduleModel = exports.SemesterModel = exports.SchoolYearModel = exports.SubjectModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.PaymentModel = exports.RequestModel = exports.NotificationModel = exports.RequirementsModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
+exports.EnrollmentModel = exports.ScheduleModel = exports.SemesterModel = exports.SchoolYearModel = exports.SubjectModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.ActivityLogModel = exports.SettingsModel = exports.PaymentModel = exports.RequestModel = exports.NotificationModel = exports.RequirementsModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 const mysql2_1 = __importDefault(require("mysql2"));
@@ -86,6 +86,10 @@ const Requirements_1 = require("./models/Requirements");
 Object.defineProperty(exports, "RequirementsModel", { enumerable: true, get: function () { return Requirements_1.Requirements; } });
 const Payment_1 = require("./models/Payment");
 Object.defineProperty(exports, "PaymentModel", { enumerable: true, get: function () { return Payment_1.Payment; } });
+const Settings_1 = require("./models/Settings");
+Object.defineProperty(exports, "SettingsModel", { enumerable: true, get: function () { return Settings_1.Settings; } });
+const ActivityLog_1 = require("./models/ActivityLog");
+Object.defineProperty(exports, "ActivityLogModel", { enumerable: true, get: function () { return ActivityLog_1.ActivityLog; } });
 // Load environment variables
 dotenv_1.default.config();
 // Check if we're in production
@@ -144,6 +148,10 @@ const initializeModels = () => {
     console.log('✅ Requirements model initialized');
     (0, Payment_1.initPayment)(exports.sequelize);
     console.log('✅ Payment model initialized');
+    (0, Settings_1.initSettings)(exports.sequelize);
+    console.log('✅ Settings model initialized');
+    (0, ActivityLog_1.initActivityLog)(exports.sequelize);
+    console.log('✅ ActivityLog model initialized');
     // Initialize additional models needed by controllers
     (0, Student_1.initStudent)(exports.sequelize);
     console.log('✅ Student model initialized');
@@ -282,6 +290,18 @@ const defineAssociations = () => {
             foreignKey: 'requestId',
             as: 'request'
         });
+        // ==============================================
+        // ACTIVITY LOG ASSOCIATIONS
+        // ==============================================
+        // User -> Activity Logs (One-to-Many)
+        User_1.User.hasMany(ActivityLog_1.ActivityLog, {
+            foreignKey: 'userId',
+            as: 'activityLogs'
+        });
+        ActivityLog_1.ActivityLog.belongsTo(User_1.User, {
+            foreignKey: 'userId',
+            as: 'user'
+        });
         console.log('✅ Model associations defined successfully.');
     }
     catch (error) {
@@ -414,6 +434,10 @@ const connectAndInitialize = () => __awaiter(void 0, void 0, void 0, function* (
             // });
             console.log('✅ Sample student user created (2022-00037/password) - Student record creation skipped');
         }
+        // Initialize default settings
+        const { initializeDefaultSettings } = yield Promise.resolve().then(() => __importStar(require('./controllers/settingsController')));
+        yield initializeDefaultSettings();
+        console.log('✅ Default settings initialized');
         console.log('🎉 Database initialization completed successfully!');
     }
     catch (error) {
