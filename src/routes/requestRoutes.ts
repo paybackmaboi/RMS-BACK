@@ -7,23 +7,27 @@ import {
     deleteRequest,
     getStudentRequests,
     getRequestDocument,
-    getRequestsByStudentId
+    getRequestsByStudentId,
+    requestDocumentFromAccounting,
+    approveRequest,
+    markAsPrinted,
+    getStudentBilling
 } from '../controllers/requestController';
 import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware';
-import { studentSessionAuthMiddleware, adminSessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
+import { studentSessionAuthMiddleware, adminSessionAuthMiddleware, adminOrAccountingSessionAuthMiddleware, allRolesSessionAuthMiddleware } from '../middleware/sessionAuthMiddleware';
 import upload from '../middleware/fileUpload';
 
 const router = express.Router();
 
 // Get all requests (admin/accounting can see all, students see their own)
-router.get('/', adminSessionAuthMiddleware, getAllRequests);
+router.get('/', adminOrAccountingSessionAuthMiddleware, getAllRequests);
 
 // Get student's own requests (must come before /:id route)
 router.get('/my-requests', studentSessionAuthMiddleware, getStudentRequests);
 router.get('/student/:studentId', adminSessionAuthMiddleware, getRequestsByStudentId);
 
-// Create new request (students only) - with file upload support
-router.post('/', studentSessionAuthMiddleware, upload.array('documents', 5), createRequest);
+// Create new request (all roles can create) - with file upload support
+router.post('/', allRolesSessionAuthMiddleware, upload.array('documents', 5), createRequest);
 
 // Get specific request by ID
 router.get('/:id', adminSessionAuthMiddleware, getRequestById);
@@ -36,5 +40,18 @@ router.patch('/:id', adminSessionAuthMiddleware, updateRequestStatus);
 
 // Delete request (admin only)
 router.delete('/:id', adminSessionAuthMiddleware, deleteRequest);
+
+// New workflow endpoints
+// Registrar requests document from accounting
+router.post('/:id/request-document', adminSessionAuthMiddleware, requestDocumentFromAccounting);
+
+// Registrar approves request after payment confirmation
+router.post('/:id/approve', adminSessionAuthMiddleware, approveRequest);
+
+// Mark request as printed
+router.post('/:id/print', adminSessionAuthMiddleware, markAsPrinted);
+
+// Get student billing information
+router.get('/student/:studentId/billing', studentSessionAuthMiddleware, getStudentBilling);
 
 export default router;

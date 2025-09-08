@@ -25,7 +25,7 @@ const initRequest = (sequelize) => {
             allowNull: false,
         },
         status: {
-            type: sequelize_1.DataTypes.ENUM('pending', 'approved', 'rejected', 'ready for pick-up'),
+            type: sequelize_1.DataTypes.ENUM('pending', 'payment_required', 'payment_pending', 'payment_approved', 'approved', 'rejected', 'ready for pick-up'),
             defaultValue: 'pending',
             allowNull: false,
         },
@@ -36,6 +36,30 @@ const initRequest = (sequelize) => {
         filePath: {
             // FIX: Changed to JSON type to store an array of strings
             type: sequelize_1.DataTypes.JSON,
+            allowNull: true,
+        },
+        amount: {
+            type: sequelize_1.DataTypes.DECIMAL(10, 2),
+            allowNull: true,
+        },
+        requestedBy: {
+            type: sequelize_1.DataTypes.STRING(100),
+            allowNull: true,
+        },
+        requestedAt: {
+            type: sequelize_1.DataTypes.DATE,
+            allowNull: true,
+        },
+        approvedBy: {
+            type: sequelize_1.DataTypes.STRING(100),
+            allowNull: true,
+        },
+        approvedAt: {
+            type: sequelize_1.DataTypes.DATE,
+            allowNull: true,
+        },
+        printedAt: {
+            type: sequelize_1.DataTypes.DATE,
             allowNull: true,
         },
     }, {

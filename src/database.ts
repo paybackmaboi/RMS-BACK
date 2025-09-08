@@ -20,6 +20,7 @@ import { UserSession as UserSessionModel, initUserSession } from './models/UserS
 import { Request as RequestModel, initRequest } from './models/Request';
 import { Notification as NotificationModel, initNotification } from './models/Notification';
 import { Requirements as RequirementsModel, initRequirements } from './models/Requirements';
+import { Payment as PaymentModel, initPayment } from './models/Payment';
 
 // Load environment variables
 dotenv.config();
@@ -93,6 +94,9 @@ export const initializeModels = () => {
     initRequirements(sequelize);
     console.log('✅ Requirements model initialized');
     
+    initPayment(sequelize);
+    console.log('✅ Payment model initialized');
+    
     // Initialize additional models needed by controllers
     initStudent(sequelize);
     console.log('✅ Student model initialized');
@@ -155,6 +159,10 @@ export const defineAssociations = () => {
         if (!StudentEnrollmentModel) {
             console.error('❌ StudentEnrollmentModel is undefined');
             throw new Error('StudentEnrollmentModel is undefined');
+        }
+        if (!PaymentModel) {
+            console.error('❌ PaymentModel is undefined');
+            throw new Error('PaymentModel is undefined');
         }
 
         console.log('✅ All required models are defined');
@@ -231,6 +239,20 @@ export const defineAssociations = () => {
             as: 'notifications'
         });
         NotificationModel.belongsTo(RequestModel, {
+            foreignKey: 'requestId',
+            as: 'request'
+        });
+
+        // ==============================================
+        // PAYMENT ASSOCIATIONS
+        // ==============================================
+        
+        // Request -> Payment (One-to-One)
+        RequestModel.hasOne(PaymentModel, {
+            foreignKey: 'requestId',
+            as: 'payment'
+        });
+        PaymentModel.belongsTo(RequestModel, {
             foreignKey: 'requestId',
             as: 'request'
         });
@@ -419,6 +441,7 @@ export {
     RequirementsModel,
     NotificationModel,
     RequestModel,
+    PaymentModel,
     // Add missing models that are needed by controllers
     StudentModel,
     DepartmentModel,

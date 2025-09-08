@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.studentSessionAuthMiddleware = exports.adminSessionAuthMiddleware = exports.sessionAuthMiddleware = void 0;
+exports.studentSessionAuthMiddleware = exports.allRolesSessionAuthMiddleware = exports.adminOrAccountingSessionAuthMiddleware = exports.accountingSessionAuthMiddleware = exports.adminSessionAuthMiddleware = exports.sessionAuthMiddleware = void 0;
 const database_1 = require("../database");
 const sequelize_1 = require("sequelize");
 const sessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -109,6 +109,156 @@ const adminSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0,
     }
 });
 exports.adminSessionAuthMiddleware = adminSessionAuthMiddleware;
+const accountingSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        // First authenticate the session
+        const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
+        console.log('🔐 Accounting session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+        // Find valid session in database
+        const session = yield database_1.UserSessionModel.findOne({
+            where: {
+                sessionToken: sessionToken,
+                expiresAt: {
+                    [sequelize_1.Op.gt]: new Date() // expiresAt > current time
+                }
+            }
+        });
+        if (!session) {
+            res.status(401).json({ message: 'Invalid or expired session' });
+            return;
+        }
+        // Get user details separately
+        const user = yield database_1.UserModel.findByPk(session.userId);
+        if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+        // Check if user is accounting or admin
+        if (user.role !== 'accounting' && user.role !== 'admin') {
+            res.status(403).json({ message: 'Access restricted to accounting staff only' });
+            return;
+        }
+        // Set user info in request
+        req.user = {
+            id: session.userId,
+            role: user.role,
+            idNumber: user.idNumber,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+        next();
+    }
+    catch (error) {
+        console.error('Accounting session auth error:', error);
+        res.status(500).json({ message: 'Authentication error' });
+    }
+});
+exports.accountingSessionAuthMiddleware = accountingSessionAuthMiddleware;
+const adminOrAccountingSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        // First authenticate the session
+        const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
+        console.log('🔐 Admin/Accounting session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+        // Find valid session in database
+        const session = yield database_1.UserSessionModel.findOne({
+            where: {
+                sessionToken: sessionToken,
+                expiresAt: {
+                    [sequelize_1.Op.gt]: new Date() // expiresAt > current time
+                }
+            }
+        });
+        if (!session) {
+            res.status(401).json({ message: 'Invalid or expired session' });
+            return;
+        }
+        // Get user details separately
+        const user = yield database_1.UserModel.findByPk(session.userId);
+        if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+        // Check if user is admin or accounting
+        if (user.role !== 'admin' && user.role !== 'accounting') {
+            res.status(403).json({ message: 'Access restricted to administrators and accounting staff only' });
+            return;
+        }
+        // Set user info in request
+        req.user = {
+            id: session.userId,
+            role: user.role,
+            idNumber: user.idNumber,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+        next();
+    }
+    catch (error) {
+        console.error('Admin/Accounting session auth error:', error);
+        res.status(500).json({ message: 'Authentication error' });
+    }
+});
+exports.adminOrAccountingSessionAuthMiddleware = adminOrAccountingSessionAuthMiddleware;
+const allRolesSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        // First authenticate the session
+        const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
+        console.log('🔐 All roles session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+        // Find valid session in database
+        const session = yield database_1.UserSessionModel.findOne({
+            where: {
+                sessionToken: sessionToken,
+                expiresAt: {
+                    [sequelize_1.Op.gt]: new Date() // expiresAt > current time
+                }
+            }
+        });
+        if (!session) {
+            res.status(401).json({ message: 'Invalid or expired session' });
+            return;
+        }
+        // Get user details separately
+        const user = yield database_1.UserModel.findByPk(session.userId);
+        if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+        // Allow all valid roles
+        if (!['student', 'admin', 'accounting'].includes(user.role)) {
+            res.status(403).json({ message: 'Invalid user role' });
+            return;
+        }
+        // Set user info in request
+        req.user = {
+            id: session.userId,
+            role: user.role,
+            idNumber: user.idNumber,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+        next();
+    }
+    catch (error) {
+        console.error('All roles session auth error:', error);
+        res.status(500).json({ message: 'Authentication error' });
+    }
+});
+exports.allRolesSessionAuthMiddleware = allRolesSessionAuthMiddleware;
 const studentSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {

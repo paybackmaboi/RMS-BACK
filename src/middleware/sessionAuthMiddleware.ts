@@ -111,6 +111,174 @@ export const adminSessionAuthMiddleware = async (req: Request, res: Response, ne
     }
 };
 
+export const accountingSessionAuthMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        // First authenticate the session
+        const sessionToken = req.cookies?.sessionToken || req.headers['x-session-token'] as string;
+        
+        console.log('🔐 Accounting session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
+        
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+
+        // Find valid session in database
+        const session = await UserSessionModel.findOne({
+            where: {
+                sessionToken: sessionToken,
+                expiresAt: {
+                    [Op.gt]: new Date() // expiresAt > current time
+                }
+            }
+        });
+
+        if (!session) {
+            res.status(401).json({ message: 'Invalid or expired session' });
+            return;
+        }
+
+        // Get user details separately
+        const user = await UserModel.findByPk(session.userId);
+        if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+
+        // Check if user is accounting or admin
+        if (user.role !== 'accounting' && user.role !== 'admin') {
+            res.status(403).json({ message: 'Access restricted to accounting staff only' });
+            return;
+        }
+
+        // Set user info in request
+        req.user = {
+            id: session.userId,
+            role: user.role,
+            idNumber: user.idNumber,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+
+        next();
+    } catch (error) {
+        console.error('Accounting session auth error:', error);
+        res.status(500).json({ message: 'Authentication error' });
+    }
+};
+
+export const adminOrAccountingSessionAuthMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        // First authenticate the session
+        const sessionToken = req.cookies?.sessionToken || req.headers['x-session-token'] as string;
+        
+        console.log('🔐 Admin/Accounting session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
+        
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+
+        // Find valid session in database
+        const session = await UserSessionModel.findOne({
+            where: {
+                sessionToken: sessionToken,
+                expiresAt: {
+                    [Op.gt]: new Date() // expiresAt > current time
+                }
+            }
+        });
+
+        if (!session) {
+            res.status(401).json({ message: 'Invalid or expired session' });
+            return;
+        }
+
+        // Get user details separately
+        const user = await UserModel.findByPk(session.userId);
+        if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+
+        // Check if user is admin or accounting
+        if (user.role !== 'admin' && user.role !== 'accounting') {
+            res.status(403).json({ message: 'Access restricted to administrators and accounting staff only' });
+            return;
+        }
+
+        // Set user info in request
+        req.user = {
+            id: session.userId,
+            role: user.role,
+            idNumber: user.idNumber,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+
+        next();
+    } catch (error) {
+        console.error('Admin/Accounting session auth error:', error);
+        res.status(500).json({ message: 'Authentication error' });
+    }
+};
+
+export const allRolesSessionAuthMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        // First authenticate the session
+        const sessionToken = req.cookies?.sessionToken || req.headers['x-session-token'] as string;
+        
+        console.log('🔐 All roles session auth - Session token:', sessionToken ? 'EXISTS' : 'MISSING');
+        
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+
+        // Find valid session in database
+        const session = await UserSessionModel.findOne({
+            where: {
+                sessionToken: sessionToken,
+                expiresAt: {
+                    [Op.gt]: new Date() // expiresAt > current time
+                }
+            }
+        });
+
+        if (!session) {
+            res.status(401).json({ message: 'Invalid or expired session' });
+            return;
+        }
+
+        // Get user details separately
+        const user = await UserModel.findByPk(session.userId);
+        if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+
+        // Allow all valid roles
+        if (!['student', 'admin', 'accounting'].includes(user.role)) {
+            res.status(403).json({ message: 'Invalid user role' });
+            return;
+        }
+
+        // Set user info in request
+        req.user = {
+            id: session.userId,
+            role: user.role,
+            idNumber: user.idNumber,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+
+        next();
+    } catch (error) {
+        console.error('All roles session auth error:', error);
+        res.status(500).json({ message: 'Authentication error' });
+    }
+};
+
 export const studentSessionAuthMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         // Get session token from cookies or headers

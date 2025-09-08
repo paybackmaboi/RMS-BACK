@@ -5,10 +5,16 @@ export class Request extends Model {
     public studentId!: number;
     public documentType!: string;
     public purpose!: string;
-    public status!: 'pending' | 'approved' | 'rejected' | 'ready for pick-up'; 
+    public status!: 'pending' | 'payment_required' | 'payment_pending' | 'payment_approved' | 'approved' | 'rejected' | 'ready for pick-up'; 
     public notes?: string;
     // FIX: Changed to store multiple file paths
     public filePath?: string[];
+    public amount?: number;
+    public requestedBy?: string; // Registrar who requested the document
+    public requestedAt?: Date;
+    public approvedBy?: string; // Registrar who approved the request
+    public approvedAt?: Date;
+    public printedAt?: Date;
 
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -34,7 +40,7 @@ export const initRequest = (sequelize: Sequelize) => {
             allowNull: false,
         },
         status: {
-            type: DataTypes.ENUM('pending', 'approved', 'rejected', 'ready for pick-up'),
+            type: DataTypes.ENUM('pending', 'payment_required', 'payment_pending', 'payment_approved', 'approved', 'rejected', 'ready for pick-up'),
             defaultValue: 'pending',
             allowNull: false,
         },
@@ -46,6 +52,30 @@ export const initRequest = (sequelize: Sequelize) => {
             // FIX: Changed to JSON type to store an array of strings
             type: DataTypes.JSON,
             allowNull: true, 
+        },
+        amount: {
+            type: DataTypes.DECIMAL(10, 2),
+            allowNull: true,
+        },
+        requestedBy: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        requestedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        approvedBy: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        approvedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        printedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
         },
     }, {
         tableName: 'requests',

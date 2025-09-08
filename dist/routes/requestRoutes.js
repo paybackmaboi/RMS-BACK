@@ -9,12 +9,12 @@ const sessionAuthMiddleware_1 = require("../middleware/sessionAuthMiddleware");
 const fileUpload_1 = __importDefault(require("../middleware/fileUpload"));
 const router = express_1.default.Router();
 // Get all requests (admin/accounting can see all, students see their own)
-router.get('/', sessionAuthMiddleware_1.adminSessionAuthMiddleware, requestController_1.getAllRequests);
+router.get('/', sessionAuthMiddleware_1.adminOrAccountingSessionAuthMiddleware, requestController_1.getAllRequests);
 // Get student's own requests (must come before /:id route)
 router.get('/my-requests', sessionAuthMiddleware_1.studentSessionAuthMiddleware, requestController_1.getStudentRequests);
 router.get('/student/:studentId', sessionAuthMiddleware_1.adminSessionAuthMiddleware, requestController_1.getRequestsByStudentId);
-// Create new request (students only) - with file upload support
-router.post('/', sessionAuthMiddleware_1.studentSessionAuthMiddleware, fileUpload_1.default.array('documents', 5), requestController_1.createRequest);
+// Create new request (all roles can create) - with file upload support
+router.post('/', sessionAuthMiddleware_1.allRolesSessionAuthMiddleware, fileUpload_1.default.array('documents', 5), requestController_1.createRequest);
 // Get specific request by ID
 router.get('/:id', sessionAuthMiddleware_1.adminSessionAuthMiddleware, requestController_1.getRequestById);
 // Get document by request ID and document index (admin/accounting only)
@@ -23,4 +23,13 @@ router.get('/:id/document/:docIndex', sessionAuthMiddleware_1.adminSessionAuthMi
 router.patch('/:id', sessionAuthMiddleware_1.adminSessionAuthMiddleware, requestController_1.updateRequestStatus);
 // Delete request (admin only)
 router.delete('/:id', sessionAuthMiddleware_1.adminSessionAuthMiddleware, requestController_1.deleteRequest);
+// New workflow endpoints
+// Registrar requests document from accounting
+router.post('/:id/request-document', sessionAuthMiddleware_1.adminSessionAuthMiddleware, requestController_1.requestDocumentFromAccounting);
+// Registrar approves request after payment confirmation
+router.post('/:id/approve', sessionAuthMiddleware_1.adminSessionAuthMiddleware, requestController_1.approveRequest);
+// Mark request as printed
+router.post('/:id/print', sessionAuthMiddleware_1.adminSessionAuthMiddleware, requestController_1.markAsPrinted);
+// Get student billing information
+router.get('/student/:studentId/billing', sessionAuthMiddleware_1.studentSessionAuthMiddleware, requestController_1.getStudentBilling);
 exports.default = router;

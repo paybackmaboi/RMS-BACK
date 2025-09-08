@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EnrollmentModel = exports.ScheduleModel = exports.SemesterModel = exports.SchoolYearModel = exports.SubjectModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.RequestModel = exports.NotificationModel = exports.RequirementsModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
+exports.EnrollmentModel = exports.ScheduleModel = exports.SemesterModel = exports.SchoolYearModel = exports.SubjectModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.PaymentModel = exports.RequestModel = exports.NotificationModel = exports.RequirementsModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 const mysql2_1 = __importDefault(require("mysql2"));
@@ -84,6 +84,8 @@ const Notification_1 = require("./models/Notification");
 Object.defineProperty(exports, "NotificationModel", { enumerable: true, get: function () { return Notification_1.Notification; } });
 const Requirements_1 = require("./models/Requirements");
 Object.defineProperty(exports, "RequirementsModel", { enumerable: true, get: function () { return Requirements_1.Requirements; } });
+const Payment_1 = require("./models/Payment");
+Object.defineProperty(exports, "PaymentModel", { enumerable: true, get: function () { return Payment_1.Payment; } });
 // Load environment variables
 dotenv_1.default.config();
 // Check if we're in production
@@ -140,6 +142,8 @@ const initializeModels = () => {
     console.log('✅ StudentEnrollment model initialized');
     (0, Requirements_1.initRequirements)(exports.sequelize);
     console.log('✅ Requirements model initialized');
+    (0, Payment_1.initPayment)(exports.sequelize);
+    console.log('✅ Payment model initialized');
     // Initialize additional models needed by controllers
     (0, Student_1.initStudent)(exports.sequelize);
     console.log('✅ Student model initialized');
@@ -194,6 +198,10 @@ const defineAssociations = () => {
         if (!StudentEnrollment_1.StudentEnrollment) {
             console.error('❌ StudentEnrollmentModel is undefined');
             throw new Error('StudentEnrollmentModel is undefined');
+        }
+        if (!Payment_1.Payment) {
+            console.error('❌ PaymentModel is undefined');
+            throw new Error('PaymentModel is undefined');
         }
         console.log('✅ All required models are defined');
         // ==============================================
@@ -259,6 +267,18 @@ const defineAssociations = () => {
             as: 'notifications'
         });
         Notification_1.Notification.belongsTo(Request_1.Request, {
+            foreignKey: 'requestId',
+            as: 'request'
+        });
+        // ==============================================
+        // PAYMENT ASSOCIATIONS
+        // ==============================================
+        // Request -> Payment (One-to-One)
+        Request_1.Request.hasOne(Payment_1.Payment, {
+            foreignKey: 'requestId',
+            as: 'payment'
+        });
+        Payment_1.Payment.belongsTo(Request_1.Request, {
             foreignKey: 'requestId',
             as: 'request'
         });
