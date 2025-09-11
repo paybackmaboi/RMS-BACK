@@ -19,6 +19,9 @@ const generatePassword = (length = 6) => {
 const getAllStudentAccounts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log('Fetching students from database...');
+        // Get query parameters for filtering
+        const { schoolYear, semester } = req.query;
+        console.log('Filter parameters:', { schoolYear, semester });
         // Only fetch students who have completed their registration form
         const students = yield database_1.UserModel.findAll({
             where: { role: 'student', isActive: true },
@@ -32,21 +35,43 @@ const getAllStudentAccounts = (req, res, next) => __awaiter(void 0, void 0, void
         });
         // Filter to only include students who have submitted registration form
         const studentsWithRegistrations = yield Promise.all(students.map((student) => __awaiter(void 0, void 0, void 0, function* () {
+            // Build where clause for registration filtering
+            const registrationWhere = { userId: student.id };
+            // Add school year and semester filters if provided
+            if (schoolYear) {
+                registrationWhere.schoolYear = schoolYear;
+            }
+            if (semester) {
+                registrationWhere.semester = semester;
+            }
             const registration = yield database_1.StudentRegistrationModel.findOne({
-                where: { userId: student.id },
+                where: registrationWhere,
                 order: [['createdAt', 'DESC']]
             });
             return { student, registration };
         })));
-        // Keep ALL students, not just those with registrations
-        const allStudents = studentsWithRegistrations.map(item => item.student);
+        // Filter students based on registration criteria
+        let filteredStudents;
+        if (schoolYear || semester) {
+            // If filters are applied, only show students with matching registrations
+            filteredStudents = studentsWithRegistrations
+                .filter(item => item.registration !== null)
+                .map(item => item.student);
+            console.log('Filtered students with matching registrations:', filteredStudents.length);
+        }
+        else {
+            // If no filters, show all students
+            filteredStudents = studentsWithRegistrations.map(item => item.student);
+            console.log('All students (no filters):', filteredStudents.length);
+        }
         console.log('Found students:', students.length);
         console.log('Students with registrations:', studentsWithRegistrations.filter(item => item.registration !== null).length);
-        // Get registration and enrollment data for ALL students
-        const studentsWithDetails = yield Promise.all(allStudents.map((student, index) => __awaiter(void 0, void 0, void 0, function* () {
+        // Get registration and enrollment data for filtered students
+        const studentsWithDetails = yield Promise.all(filteredStudents.map((student) => __awaiter(void 0, void 0, void 0, function* () {
             const studentDetails = student.get('Student');
-            // Use the registration data we already fetched
-            const registration = studentsWithRegistrations[index].registration;
+            // Find the corresponding registration data for this student
+            const studentWithRegistration = studentsWithRegistrations.find(item => item.student.id === student.id);
+            const registration = studentWithRegistration === null || studentWithRegistration === void 0 ? void 0 : studentWithRegistration.registration;
             // Get student enrollment count
             const enrollmentCount = yield database_1.StudentEnrollmentModel.count({
                 where: { studentId: student.id }
@@ -63,7 +88,7 @@ const getAllStudentAccounts = (req, res, next) => __awaiter(void 0, void 0, void
                 registrationStatus = registration.registrationStatus;
                 registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
                 // Calculate total units from curriculum
-                const curriculum = yield database_1.BsitCurriculumModel.findAll({
+                const curriculum = yield database_1.SubjectsModel.findAll({
                     where: {
                         yearLevel: registration.yearLevel,
                         semester: registration.semester,

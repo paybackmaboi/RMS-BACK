@@ -10,57 +10,47 @@ export const getStudentSchedule = async (req: Request, res: Response, next: Next
         
         console.log('📅 Fetching schedule for:', { userId, yearLevel, semester, schoolYear });
 
-        // Build the query to get curriculum and schedule data
         const scheduleQuery = `
             SELECT 
-                c.id as curriculumId,
-                c.courseCode,
-                c.courseDescription,
-                c.units,
-                c.courseType,
-                c.prerequisites,
+                sub.id as subjectId,
+                sub.courseCode,
+                sub.courseDescription,
+                sub.units,
+                sub.courseType,
+                sub.prerequisites,
                 s.id as scheduleId,
-                s.day,
+                s.dayOfWeek,
                 s.startTime,
                 s.endTime,
                 s.room,
-                s.instructor,
-                s.maxStudents,
-                s.currentEnrollment,
-                s.scheduleStatus,
-                s.remarks
-            FROM bsit_curriculum c
-            LEFT JOIN bsit_schedules s ON c.id = s.curriculumId 
-                AND s.schoolYear = ? 
-                AND s.semester = ? 
-                AND s.yearLevel = ?
-            WHERE c.yearLevel = ? 
-                AND c.semester = ? 
-                AND c.isActive = TRUE
+                s.isActive as scheduleActive,
+                sy.year as schoolYearName,
+                sem.name as semesterName
+            FROM subjects sub
+            LEFT JOIN schedules s ON sub.id = s.subjectId
+            LEFT JOIN school_years sy ON s.schoolYearId = sy.id
+            LEFT JOIN semesters sem ON s.semesterId = sem.id
+            WHERE sub.yearLevel = ? 
+                AND sub.semester = ? 
+                AND sub.isActive = TRUE
+                AND sy.year = ?
             ORDER BY 
-                CASE s.day 
-                    WHEN 'Monday' THEN 1
-                    WHEN 'Tuesday' THEN 2
-                    WHEN 'Wednesday' THEN 3
-                    WHEN 'Thursday' THEN 4
-                    WHEN 'Friday' THEN 5
-                    WHEN 'Saturday' THEN 6
-                    WHEN 'Sunday' THEN 7
-                    ELSE 8
-                END,
-                s.startTime ASC,
-                c.courseCode ASC
+                sub.courseCode ASC,
+                sub.courseType ASC
         `;
 
         const scheduleData = await sequelize.query(scheduleQuery, {
-            replacements: [schoolYear || '2025-2026', semester || '1st', yearLevel || '1st', yearLevel || '1st', semester || '1st'],
+            replacements: [
+                yearLevel || '1st Year', 
+                semester || '1st Semester', 
+                schoolYear || '2025-2026'
+            ],
             type: QueryTypes.SELECT
         }) as any[];
 
-        console.log('📅 Found schedule entries:', scheduleData.length);
-
-        // Group subjects by course code (combining lecture and lab)
-        const groupedSubjects = new Map<string, {
+        // **FIX:** Group by unique subjectId to separate Lec and Lab
+        const groupedSubjects = new Map<number, {
+            subjectId: number;
             courseCode: string;
             courseDescription: string;
             units: number;
@@ -70,10 +60,11 @@ export const getStudentSchedule = async (req: Request, res: Response, next: Next
         }>();
         
         scheduleData.forEach((item: any) => {
-            const key = item.courseCode;
+            const key = item.subjectId; // Use unique subjectId as the key
             
             if (!groupedSubjects.has(key)) {
                 groupedSubjects.set(key, {
+                    subjectId: item.subjectId,
                     courseCode: item.courseCode,
                     courseDescription: item.courseDescription,
                     units: item.units,
@@ -86,62 +77,36 @@ export const getStudentSchedule = async (req: Request, res: Response, next: Next
             if (item.scheduleId) {
                 groupedSubjects.get(key)!.schedules.push({
                     id: item.scheduleId,
-                    day: item.day,
+                    day: item.dayOfWeek,
                     startTime: item.startTime,
                     endTime: item.endTime,
                     room: item.room,
-                    instructor: item.instructor,
-                    maxStudents: item.maxStudents,
-                    currentEnrollment: item.currentEnrollment,
-                    scheduleStatus: item.scheduleStatus,
-                    remarks: item.remarks
+                    instructor: 'TBA',
+                    scheduleStatus: item.scheduleActive ? 'Open' : 'Closed'
                 });
             }
         });
 
-        // Convert to array and add schedule summary
-        const subjectsWithSchedules = Array.from(groupedSubjects.values()).map(subject => {
-            const totalUnits = subject.units;
-            const hasSchedule = subject.schedules.length > 0;
-            
-            return {
-                ...subject,
-                hasSchedule,
-                totalUnits,
-                scheduleSummary: hasSchedule ? `${subject.schedules.length} schedule(s)` : 'No schedule assigned'
-            };
-        });
+        const subjectsWithSchedules = Array.from(groupedSubjects.values()).map(subject => ({
+            ...subject,
+            hasSchedule: subject.schedules.length > 0
+        }));
 
-        // Calculate totals
-        const totalUnits = subjectsWithSchedules.reduce((sum, subject) => sum + subject.totalUnits, 0);
+        const totalUnits = subjectsWithSchedules.reduce((sum, subject) => sum + subject.units, 0);
         const totalSubjects = subjectsWithSchedules.length;
         const scheduledSubjects = subjectsWithSchedules.filter(s => s.hasSchedule).length;
 
-        const response = {
-            yearLevel: yearLevel || '1st',
-            semester: semester || '1st',
-            schoolYear: schoolYear || '2025-2026',
-            totalUnits,
-            totalSubjects,
-            scheduledSubjects,
+        res.json({
+            yearLevel, semester, schoolYear,
+            totalUnits, totalSubjects, scheduledSubjects,
             subjects: subjectsWithSchedules
-        };
-
-        console.log('📅 Schedule response prepared:', {
-            yearLevel: response.yearLevel,
-            semester: response.semester,
-            totalUnits: response.totalUnits,
-            totalSubjects: response.totalSubjects,
-            scheduledSubjects: response.scheduledSubjects
         });
-
-        res.json(response);
 
     } catch (error) {
         console.error('❌ Error fetching student schedule:', error);
         res.status(500).json({ 
             message: 'Internal server error occurred while fetching schedule',
-            error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Contact administrator'
+            error: (error as Error).message
         });
     }
 };
@@ -155,47 +120,45 @@ export const getAllSchedules = async (req: Request, res: Response, next: NextFun
 
         const query = `
             SELECT 
-                c.id as curriculumId,
-                c.courseCode,
-                c.courseDescription,
-                c.units,
-                c.courseType,
-                c.prerequisites,
+                sub.id as subjectId,
+                sub.courseCode,
+                sub.courseDescription,
+                sub.units,
+                sub.courseType,
+                sub.prerequisites,
+                sub.yearLevel,
+                sub.semester as semesterName,
                 s.id as scheduleId,
-                s.schoolYear,
-                s.semester,
-                s.yearLevel,
-                s.day,
+                s.dayOfWeek,
                 s.startTime,
                 s.endTime,
                 s.room,
-                s.instructor,
                 s.maxStudents,
-                s.currentEnrollment,
-                s.scheduleStatus,
-                s.remarks
-            FROM bsit_curriculum c
-            LEFT JOIN bsit_schedules s ON c.id = s.curriculumId
-            WHERE c.isActive = TRUE
-                ${yearLevel ? 'AND c.yearLevel = ?' : ''}
-                ${semester ? 'AND c.semester = ?' : ''}
-                ${schoolYear ? 'AND s.schoolYear = ?' : ''}
+                s.currentEnrolled,
+                s.isActive as scheduleActive,
+                sy.year as schoolYearName,
+                COALESCE(enrollment_counts.enrolled_count, 0) as actualEnrolledCount
+            FROM subjects sub
+            LEFT JOIN schedules s ON sub.id = s.subjectId
+            LEFT JOIN school_years sy ON s.schoolYearId = sy.id
+            LEFT JOIN semesters sem ON s.semesterId = sem.id
+            LEFT JOIN (
+                SELECT 
+                    se.scheduleId,
+                    COUNT(se.id) as enrolled_count
+                FROM student_enrollments se
+                WHERE se.enrollmentStatus = 'Enrolled'
+                GROUP BY se.scheduleId
+            ) enrollment_counts ON s.id = enrollment_counts.scheduleId
+            WHERE sub.isActive = TRUE
+                ${yearLevel ? 'AND sub.yearLevel = ?' : ''}
+                ${semester ? 'AND sub.semester = ?' : ''}
+                ${schoolYear ? 'AND sy.year = ?' : ''}
             ORDER BY 
-                c.yearLevel,
-                c.semester,
-                CASE s.day 
-                    WHEN 'Monday' THEN 1
-                    WHEN 'Tuesday' THEN 2
-                    WHEN 'Wednesday' THEN 3
-                    WHEN 'Thursday' THEN 4
-                    WHEN 'Friday' THEN 5
-                    WHEN 'Saturday' THEN 6
-                    WHEN 'Sunday' THEN 7
-                    ELSE 8
-                END,
-                s.startTime ASC,
-                c.courseCode ASC
-        `;
+                sub.yearLevel,
+                sub.semester,
+                sub.courseCode,
+                sub.courseType`;
 
         const replacements = [];
         if (yearLevel) replacements.push(yearLevel);
@@ -207,73 +170,75 @@ export const getAllSchedules = async (req: Request, res: Response, next: NextFun
             type: QueryTypes.SELECT
         }) as any[];
 
-        console.log('📅 Admin found schedule entries:', scheduleData.length);
-
-        // Group by year level and semester
+        // **FIX:** Group by year/semester, then by unique subjectId to separate Lec/Lab
         const groupedSchedules = new Map<string, {
             yearLevel: string;
             semester: string;
-            subjects: Map<string, {
+            subjects: Map<number, {
+                subjectId: number;
                 courseCode: string;
                 courseDescription: string;
                 units: number;
                 courseType: string;
-                prerequisites: string;
                 schedules: any[];
             }>;
         }>();
         
         scheduleData.forEach((item: any) => {
-            const key = `${item.yearLevel}-${item.semester}`;
+            const groupKey = `${item.yearLevel}-${item.semesterName}`;
             
-            if (!groupedSchedules.has(key)) {
-                groupedSchedules.set(key, {
+            if (!groupedSchedules.has(groupKey)) {
+                groupedSchedules.set(groupKey, {
                     yearLevel: item.yearLevel,
-                    semester: item.semester,
+                    semester: item.semesterName,
                     subjects: new Map()
                 });
             }
             
-            const group = groupedSchedules.get(key)!;
-            const subjectKey = item.courseCode;
+            const group = groupedSchedules.get(groupKey)!;
+            const subjectKey = item.subjectId; // Use unique subjectId
             
             if (!group.subjects.has(subjectKey)) {
                 group.subjects.set(subjectKey, {
+                    subjectId: item.subjectId,
                     courseCode: item.courseCode,
                     courseDescription: item.courseDescription,
                     units: item.units,
                     courseType: item.courseType,
-                    prerequisites: item.prerequisites,
                     schedules: []
                 });
             }
             
             if (item.scheduleId) {
-                group.subjects.get(subjectKey)!.schedules.push({
-                    id: item.scheduleId,
-                    schoolYear: item.schoolYear,
-                    day: item.day,
-                    startTime: item.startTime,
-                    endTime: item.endTime,
-                    room: item.room,
-                    instructor: item.instructor,
-                    maxStudents: item.maxStudents,
-                    currentEnrollment: item.currentEnrollment,
-                    scheduleStatus: item.scheduleStatus,
-                    remarks: item.remarks
-                });
+                const currentSubject = group.subjects.get(subjectKey)!;
+                // Add robust check to prevent adding logically identical schedules
+                 const scheduleExists = currentSubject.schedules.some(s => 
+                    s.id === item.scheduleId
+                );
+
+                if (!scheduleExists) {
+                    currentSubject.schedules.push({
+                        id: item.scheduleId,
+                        schoolYear: item.schoolYearName,
+                        day: item.dayOfWeek,
+                        startTime: item.startTime,
+                        endTime: item.endTime,
+                        room: item.room,
+                        instructor: 'TBA',
+                        maxStudents: item.maxStudents || 40, // Default max students if not set
+                        currentEnrollment: item.actualEnrolledCount || 0, // Use actual count from enrollment table
+                        scheduleStatus: item.scheduleActive ? 'Open' : 'Closed'
+                    });
+                }
             }
         });
 
-        // Convert to array format
         const response = Array.from(groupedSchedules.values()).map(group => ({
             yearLevel: group.yearLevel,
             semester: group.semester,
             subjects: Array.from(group.subjects.values()).map(subject => ({
                 ...subject,
-                hasSchedule: subject.schedules.length > 0,
-                totalUnits: subject.units,
-                scheduleSummary: subject.schedules.length > 0 ? `${subject.schedules.length} schedule(s)` : 'No schedule assigned'
+                hasSchedule: subject.schedules.length > 0
             }))
         }));
 
@@ -283,7 +248,7 @@ export const getAllSchedules = async (req: Request, res: Response, next: NextFun
         console.error('❌ Error fetching all schedules:', error);
         res.status(500).json({ 
             message: 'Internal server error occurred while fetching schedules',
-            error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Contact administrator'
+            error: (error as Error).message
         });
     }
 }; 
@@ -315,15 +280,14 @@ export const getScheduleEnrolledStudents = async (req: Request, res: Response, n
                     COALESCE(s.studentType, 'N/A') as studentType,
                     COALESCE(s.yearOfEntry, 'N/A') as yearOfEntry,
                     bs.id as actualScheduleId,
-                    bs.day,
+                    bs.dayOfWeek,
                     bs.startTime,
                     bs.endTime,
-                    bs.room,
-                    bs.instructor
+                    bs.room
                 FROM student_enrollments se
                 LEFT JOIN students s ON se.studentId = s.id
                 LEFT JOIN users u ON s.userId = u.id
-                LEFT JOIN bsit_schedules bs ON se.scheduleId = bs.id
+                LEFT JOIN schedules bs ON se.scheduleId = bs.id
                 WHERE se.scheduleId = ?  -- Look for students enrolled in THIS specific schedule
                 ORDER BY COALESCE(s.currentYearLevel, 'Unknown'), COALESCE(u.lastName, 'Unknown'), COALESCE(u.firstName, 'Unknown')
             `;
@@ -435,13 +399,51 @@ export const getScheduleEnrolledStudents = async (req: Request, res: Response, n
                 grade: student.grade,
                 remarks: student.remarks,
                 actualScheduleId: student.actualScheduleId,
-                day: student.day,
+                day: student.dayOfWeek,
                 startTime: student.startTime,
                 endTime: student.endTime,
                 room: student.room,
-                instructor: student.instructor
+                instructor: 'TBA'
             });
         });
+
+        // Get schedule details
+        let scheduleDetails = null;
+        try {
+            const scheduleDetailsQuery = `
+                SELECT 
+                    s.id,
+                    s.dayOfWeek,
+                    s.startTime,
+                    s.endTime,
+                    s.room,
+                    s.currentEnrolled,
+                    s.maxStudents,
+                    sub.courseCode,
+                    sub.courseDescription,
+                    sub.units,
+                    sub.courseType,
+                    sub.yearLevel,
+                    sub.semester,
+                    sy.year as schoolYear
+                FROM schedules s
+                JOIN subjects sub ON s.subjectId = sub.id
+                JOIN school_years sy ON s.schoolYearId = sy.id
+                WHERE s.id = ?
+            `;
+            
+            const scheduleResult = await sequelize.query(scheduleDetailsQuery, {
+                replacements: [scheduleId],
+                type: QueryTypes.SELECT
+            }) as any[];
+            
+            if (scheduleResult.length > 0) {
+                scheduleDetails = scheduleResult[0];
+                console.log('📅 Schedule details found:', scheduleDetails);
+            }
+        } catch (error) {
+            console.error('❌ Error fetching schedule details:', error);
+        }
 
         // Convert to array format and sort by year level
         const response = Array.from(studentsByYearLevel.values())
@@ -450,8 +452,11 @@ export const getScheduleEnrolledStudents = async (req: Request, res: Response, n
                 return (yearOrder[a.yearLevel] || 999) - (yearOrder[b.yearLevel] || 999);
             });
 
-        console.log('👥 Sending grouped students response:', response);
-        res.json(response);
+        console.log('👥 Sending grouped students response with schedule details:', response);
+        res.json({
+            students: response,
+            scheduleDetails: scheduleDetails
+        });
 
     } catch (error) {
         console.error('❌ Error fetching enrolled students:', error);
@@ -462,6 +467,124 @@ export const getScheduleEnrolledStudents = async (req: Request, res: Response, n
         });
     }
 }; 
+
+// Function to update enrollment counts in schedules table
+export const updateEnrollmentCounts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        console.log('🔄 Updating enrollment counts in schedules table...');
+        
+        // Update all schedules with actual enrollment counts
+        const updateQuery = `
+            UPDATE schedules s
+            SET currentEnrolled = (
+                SELECT COALESCE(COUNT(se.id), 0)
+                FROM student_enrollments se
+                WHERE se.scheduleId = s.id
+                AND se.enrollmentStatus = 'Enrolled'
+            )
+        `;
+        
+        const result = await sequelize.query(updateQuery, {
+            type: QueryTypes.UPDATE
+        });
+        
+        console.log('✅ Enrollment counts updated successfully');
+        
+        res.json({
+            message: 'Enrollment counts updated successfully',
+            updatedSchedules: 'All schedules updated'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error updating enrollment counts:', error);
+        res.status(500).json({ 
+            message: 'Error updating enrollment counts',
+            error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Contact administrator'
+        });
+    }
+};
+
+// Helper function to update enrollment counts for a specific schedule
+export const updateScheduleEnrollmentCount = async (scheduleId: number): Promise<void> => {
+    try {
+        const updateQuery = `
+            UPDATE schedules 
+            SET currentEnrolled = (
+                SELECT COALESCE(COUNT(se.id), 0)
+                FROM student_enrollments se
+                WHERE se.scheduleId = ?
+                AND se.enrollmentStatus = 'Enrolled'
+            )
+            WHERE id = ?
+        `;
+        
+        await sequelize.query(updateQuery, {
+            replacements: [scheduleId, scheduleId],
+            type: QueryTypes.UPDATE
+        });
+        
+        console.log(`✅ Updated enrollment count for schedule ${scheduleId}`);
+    } catch (error) {
+        console.error(`❌ Error updating enrollment count for schedule ${scheduleId}:`, error);
+    }
+};
+
+// Function to get enrollment statistics for debugging
+export const getEnrollmentStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        console.log('📊 Getting enrollment statistics...');
+        
+        // Get total enrollments
+        const totalEnrollments = await sequelize.query(`
+            SELECT COUNT(*) as count FROM student_enrollments WHERE enrollmentStatus = 'Enrolled'
+        `, { type: QueryTypes.SELECT }) as any[];
+        
+        // Get enrollments by schedule
+        const enrollmentsBySchedule = await sequelize.query(`
+            SELECT 
+                s.id as scheduleId,
+                sub.courseCode,
+                sub.courseDescription,
+                sub.courseType,
+                s.currentEnrolled,
+                COUNT(se.id) as actualEnrolled
+            FROM schedules s
+            LEFT JOIN subjects sub ON s.subjectId = sub.id
+            LEFT JOIN student_enrollments se ON s.id = se.scheduleId AND se.enrollmentStatus = 'Enrolled'
+            GROUP BY s.id, sub.courseCode, sub.courseDescription, sub.courseType, s.currentEnrolled
+            ORDER BY sub.courseCode, sub.courseType
+        `, { type: QueryTypes.SELECT });
+        
+        // Get students with enrollments
+        const studentsWithEnrollments = await sequelize.query(`
+            SELECT 
+                u.idNumber,
+                u.firstName,
+                u.lastName,
+                COUNT(se.id) as enrollmentCount
+            FROM users u
+            JOIN students s ON u.id = s.userId
+            JOIN student_enrollments se ON s.id = se.studentId
+            WHERE se.enrollmentStatus = 'Enrolled'
+            GROUP BY u.id, u.idNumber, u.firstName, u.lastName
+            ORDER BY u.lastName, u.firstName
+        `, { type: QueryTypes.SELECT });
+        
+        res.json({
+            totalEnrollments: totalEnrollments[0].count,
+            enrollmentsBySchedule,
+            studentsWithEnrollments,
+            message: 'Enrollment statistics retrieved successfully'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error getting enrollment statistics:', error);
+        res.status(500).json({ 
+            message: 'Error getting enrollment statistics',
+            error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Contact administrator'
+        });
+    }
+};
 
 // Diagnostic function to check database structure
 export const checkDatabaseStructure = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -483,7 +606,7 @@ export const checkDatabaseStructure = async (req: Request, res: Response, next: 
         console.log('🔍 Available tables:', tables.map(t => t.table_name));
         
         // Check specific tables we need
-        const requiredTables = ['users', 'students', 'student_enrollments', 'bsit_curriculum', 'bsit_schedules'];
+        const requiredTables = ['users', 'students', 'student_enrollments', 'subjects', 'schedules'];
         const tableStatus: { [key: string]: any } = {};
         
         for (const tableName of requiredTables) {

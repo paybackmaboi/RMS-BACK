@@ -1,6 +1,6 @@
-import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
+import { Model, DataTypes, Sequelize } from 'sequelize';
 
-interface ScheduleAttributes {
+export interface SchedulesAttributes {
     id: number;
     subjectId: number;
     schoolYearId: number;
@@ -12,11 +12,15 @@ interface ScheduleAttributes {
     maxStudents?: number;
     currentEnrolled: number;
     isActive: boolean;
+    
+    // Timestamps
+    createdAt: Date;
+    updatedAt: Date;
 }
 
-interface ScheduleCreationAttributes extends Optional<ScheduleAttributes, 'id'> {}
+export interface SchedulesCreationAttributes extends Omit<SchedulesAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
 
-export class Schedule extends Model<ScheduleAttributes, ScheduleCreationAttributes> implements ScheduleAttributes {
+export class Schedules extends Model<SchedulesAttributes, SchedulesCreationAttributes> implements SchedulesAttributes {
     public id!: number;
     public subjectId!: number;
     public schoolYearId!: number;
@@ -28,13 +32,14 @@ export class Schedule extends Model<ScheduleAttributes, ScheduleCreationAttribut
     public maxStudents!: number;
     public currentEnrolled!: number;
     public isActive!: boolean;
-
+    
+    // Timestamps
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 }
 
-export const initSchedule = (sequelize: Sequelize) => {
-    Schedule.init({
+export const initSchedules = (sequelize: Sequelize) => {
+    Schedules.init({
         id: {
             type: DataTypes.INTEGER.UNSIGNED,
             autoIncrement: true,
@@ -43,14 +48,26 @@ export const initSchedule = (sequelize: Sequelize) => {
         subjectId: {
             type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
+            references: {
+                model: 'subjects',
+                key: 'id'
+            }
         },
         schoolYearId: {
             type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
+            references: {
+                model: 'school_years',
+                key: 'id'
+            }
         },
         semesterId: {
             type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
+            references: {
+                model: 'semesters',
+                key: 'id'
+            }
         },
         dayOfWeek: {
             type: DataTypes.STRING(20),
@@ -83,8 +100,25 @@ export const initSchedule = (sequelize: Sequelize) => {
             allowNull: false,
             defaultValue: true,
         },
+        createdAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+        },
     }, {
         tableName: 'schedules',
         sequelize: sequelize,
+        timestamps: true,
+        indexes: [
+            {
+                name: 'idx_schedule_lookup',
+                fields: ['subjectId', 'schoolYearId', 'semesterId']
+            }
+        ]
     });
 };

@@ -25,6 +25,8 @@ import dashboardRoutes from './routes/dashboardRoutes';
 import photoRoutes from './routes/photoRoutes';
 import requirementsRoutes from './routes/requirementsRoutes';
 import accountingRoutes from './routes/accountingRoutes';
+import semesterRoutes from './routes/semesterRoutes';
+import curriculumRoutes from './routes/curriculumRoutes';
 
 dotenv.config();
 
@@ -93,10 +95,26 @@ app.use('/api/bsit-curriculum', bsitCurriculumRoutes);
 app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/requirements', requirementsRoutes);
+app.use('/api/semesters', semesterRoutes);
+app.use('/api/curriculum', curriculumRoutes);
 
 // --- Error Handling Middleware ---
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     console.error("An error occurred:", err.message);
+    
+    // Handle multer errors specifically
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'File too large. Maximum size is 5MB.' });
+    }
+    
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({ message: 'Unexpected field name in file upload.' });
+    }
+    
+    if (err.message && err.message.includes('File upload only supports')) {
+        return res.status(400).json({ message: err.message });
+    }
+    
     if (res.headersSent) {
         return next(err);
     }

@@ -244,7 +244,7 @@ const getAllStudents = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 registrationStatus = registration.registrationStatus;
                 registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
                 // Calculate total units from curriculum
-                const curriculum = yield database_1.BsitCurriculumModel.findAll({
+                const curriculum = yield database_1.SubjectsModel.findAll({
                     where: {
                         yearLevel: registration.yearLevel,
                         semester: registration.semester,
@@ -398,7 +398,7 @@ const getStudentEnrolledSubjects = (req, res, next) => __awaiter(void 0, void 0,
         const { yearLevel, semester } = studentRegistration;
         console.log('📚 Student is in:', yearLevel, semester);
         // Get the curriculum for this year level and semester
-        const curriculum = yield database_1.BsitCurriculumModel.findAll({
+        const curriculum = yield database_1.SubjectsModel.findAll({
             where: {
                 yearLevel: yearLevel,
                 semester: semester,

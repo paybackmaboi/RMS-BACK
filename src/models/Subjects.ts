@@ -1,6 +1,6 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
-export interface BsitCurriculumAttributes {
+export interface SubjectsAttributes {
     id: number;
     courseCode: string;
     courseDescription: string;
@@ -14,9 +14,9 @@ export interface BsitCurriculumAttributes {
     updatedAt: Date;
 }
 
-export interface BsitCurriculumCreationAttributes extends Omit<BsitCurriculumAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+export interface SubjectsCreationAttributes extends Omit<SubjectsAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
 
-export class BsitCurriculum extends Model<BsitCurriculumAttributes, BsitCurriculumCreationAttributes> implements BsitCurriculumAttributes {
+export class Subjects extends Model<SubjectsAttributes, SubjectsCreationAttributes> implements SubjectsAttributes {
     public id!: number;
     public courseCode!: string;
     public courseDescription!: string;
@@ -30,8 +30,8 @@ export class BsitCurriculum extends Model<BsitCurriculumAttributes, BsitCurricul
     public readonly updatedAt!: Date;
 }
 
-export const initBsitCurriculum = (sequelize: Sequelize) => {
-    BsitCurriculum.init({
+export const initSubjects = (sequelize: Sequelize) => {
+    Subjects.init({
         id: {
             type: DataTypes.INTEGER.UNSIGNED,
             autoIncrement: true,
@@ -42,7 +42,8 @@ export const initBsitCurriculum = (sequelize: Sequelize) => {
             allowNull: false,
         },
         courseDescription: {
-            type: DataTypes.TEXT,
+            // **FIX: Changed TEXT to STRING to allow indexing.**
+            type: DataTypes.STRING, 
             allowNull: false,
         },
         units: {
@@ -81,14 +82,14 @@ export const initBsitCurriculum = (sequelize: Sequelize) => {
             defaultValue: DataTypes.NOW,
         },
     }, {
-        tableName: 'bsit_curriculum',
+        tableName: 'subjects',
         sequelize: sequelize,
         timestamps: true,
         indexes: [
             {
-                name: 'unique_course_year_sem',
+                name: 'unique_course_year_sem_type',
                 unique: true,
-                fields: ['courseCode', 'yearLevel', 'semester']
+                fields: ['courseCode', 'yearLevel', 'semester', 'courseType']
             }
         ]
     });

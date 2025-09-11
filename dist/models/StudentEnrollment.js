@@ -24,7 +24,7 @@ const initStudentEnrollment = (sequelize) => {
             type: sequelize_1.DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
             references: {
-                model: 'bsit_schedules',
+                model: 'schedules',
                 key: 'id'
             }
         },
@@ -55,14 +55,6 @@ const initStudentEnrollment = (sequelize) => {
                 name: 'unique_student_schedule',
                 unique: true,
                 fields: ['studentId', 'scheduleId']
-            },
-            {
-                name: 'idx_student_enrollments_studentId',
-                fields: ['studentId']
-            },
-            {
-                name: 'idx_student_enrollments_scheduleId',
-                fields: ['scheduleId']
             }
         ]
     });

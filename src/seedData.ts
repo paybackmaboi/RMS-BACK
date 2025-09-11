@@ -1,4 +1,4 @@
-import { DepartmentModel, CourseModel, SchoolYearModel, SemesterModel, BsitCurriculumModel, BsitScheduleModel } from './database';
+import { DepartmentModel, CourseModel, SchoolYearModel, SemesterModel, SubjectsModel, SchedulesModel } from './database';
 
 export const seedInitialData = async () => {
     try {
@@ -10,18 +10,6 @@ export const seedInitialData = async () => {
                 code: 'CIT',
                 name: 'College of Information Technology',
                 description: 'Computer and IT programs',
-                isActive: true
-            },
-            {
-                code: 'CBE',
-                name: 'College of Business and Economics',
-                description: 'Business and economics programs',
-                isActive: true
-            },
-            {
-                code: 'CAS',
-                name: 'College of Arts and Sciences',
-                description: 'Liberal arts and sciences programs',
                 isActive: true
             }
         ], { ignoreDuplicates: true });
@@ -38,24 +26,6 @@ export const seedInitialData = async () => {
                 duration: 4,
                 level: 'Undergraduate',
                 isActive: true
-            },
-            {
-                code: 'BSCS',
-                name: 'Bachelor of Science in Computer Science',
-                departmentId: 1, // CIT
-                totalUnits: 144,
-                duration: 4,
-                level: 'Undergraduate',
-                isActive: true
-            },
-            {
-                code: 'BSBA',
-                name: 'Bachelor of Science in Business Administration',
-                departmentId: 2, // CBE
-                totalUnits: 144,
-                duration: 4,
-                level: 'Undergraduate',
-                isActive: true
             }
         ], { ignoreDuplicates: true });
 
@@ -66,27 +36,11 @@ export const seedInitialData = async () => {
             {
                 year: '2025-2026',
                 description: 'Academic Year 2025-2026',
-                startDate: new Date('2025-06-01'),
-                endDate: new Date('2026-05-31'),
+                startDate: new Date('2025-08-01'),
+                endDate: new Date('2026-07-31'),
                 isCurrent: true,
                 isActive: true
-            },
-            {
-                year: '2024-2025',
-                description: 'Academic Year 2024-2025',
-                startDate: new Date('2024-06-01'),
-                endDate: new Date('2025-05-31'),
-                isCurrent: false,
-                isActive: true
-            },
-            {
-                year: '2023-2024',
-                description: 'Academic Year 2023-2024',
-                startDate: new Date('2023-06-01'),
-                endDate: new Date('2024-05-31'),
-                isCurrent: false,
-                isActive: true
-            },
+            }
         ], { ignoreDuplicates: true });
 
         console.log('✅ School years created');
@@ -97,24 +51,24 @@ export const seedInitialData = async () => {
                 name: 'First Semester',
                 code: '1ST',
                 description: 'First semester of the academic year',
-                startDate: new Date('2024-06-01'),
-                endDate: new Date('2024-10-31'),
+                startDate: new Date('2025-08-01'),
+                endDate: new Date('2025-12-31'),
                 isActive: true
             },
             {
                 name: 'Second Semester',
                 code: '2ND',
                 description: 'Second semester of the academic year',
-                startDate: new Date('2024-11-01'),
-                endDate: new Date('2025-03-31'),
+                startDate: new Date('2026-01-01'),
+                endDate: new Date('2026-05-31'),
                 isActive: true
             },
             {
                 name: 'Summer',
                 code: 'SUM',
                 description: 'Summer semester',
-                startDate: new Date('2025-04-01'),
-                endDate: new Date('2025-05-31'),
+                startDate: new Date('2026-06-01'),
+                endDate: new Date('2026-07-31'),
                 isActive: true
             }
         ], { ignoreDuplicates: true });
@@ -124,8 +78,8 @@ export const seedInitialData = async () => {
         // Seed BSIT Curriculum
         await seedBsitCurriculum();
         
-        // Seed BSIT Schedules
-        await seedBsitSchedules();
+        // Seed Schedules
+        await seedSchedules();
 
         console.log('🎉 Initial data seeding completed successfully!');
     } catch (error) {
@@ -134,7 +88,7 @@ export const seedInitialData = async () => {
     }
 };
 
-// BSIT Curriculum Seeding
+// BSIT Curriculum Seeding - Based on provided curriculum images
 export const seedBsitCurriculum = async () => {
     try {
         console.log('📚 Seeding BSIT Curriculum...');
@@ -150,473 +104,61 @@ export const seedBsitCurriculum = async () => {
             isActive: boolean;
         }> = [
             // First Year - First Semester
-            {
-                courseCode: 'GE 1',
-                courseDescription: 'Understanding the Self',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'GE 2',
-                courseDescription: 'Readings in Philippine History',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'GE 3',
-                courseDescription: 'Mathematics in the Modern World',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'GE 4',
-                courseDescription: 'Science, Technology and Society',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'GE 5',
-                courseDescription: 'Purposive Communication',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'GE 6',
-                courseDescription: 'Art Appreciation',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'GE 7',
-                courseDescription: 'Ethics',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'GE 8',
-                courseDescription: 'The Contemporary World',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'GE 9',
-                courseDescription: 'Life and Works of Rizal',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'PE 1',
-                courseDescription: 'Physical Education 1',
-                units: 2,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Laboratory',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'NSTP 1',
-                courseDescription: 'National Service Training Program 1',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Laboratory',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'IT 101',
-                courseDescription: 'Introduction to Information Technology',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'IT 102',
-                courseDescription: 'Computer Programming 1',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: undefined,
-                isActive: true
-            },
-
-            // First Year - Second Semester
-            {
-                courseCode: 'IT 103',
-                courseDescription: 'Computer Programming 2',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '2nd Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 102',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 104',
-                courseDescription: 'Computer Organization and Architecture',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '2nd Semester',
-                courseType: 'Both',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'IT 105',
-                courseDescription: 'Discrete Mathematics',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '2nd Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'IT 106',
-                courseDescription: 'Web Development Fundamentals',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '2nd Semester',
-                courseType: 'Both',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'PE 2',
-                courseDescription: 'Physical Education 2',
-                units: 2,
-                yearLevel: '1st Year',
-                semester: '2nd Semester',
-                courseType: 'Laboratory',
-                prerequisites: 'PE 1',
-                isActive: true
-            },
-            {
-                courseCode: 'NSTP 2',
-                courseDescription: 'National Service Training Program 2',
-                units: 3,
-                yearLevel: '1st Year',
-                semester: '2nd Semester',
-                courseType: 'Laboratory',
-                prerequisites: 'NSTP 1',
-                isActive: true
-            },
+            { courseCode: 'FIL 1-A', courseDescription: 'Wikang Filipino', units: 3, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'IT110', courseDescription: 'Introduction to Computing - Lec', units: 2, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'IT110', courseDescription: 'Introduction to Computing - Lab', units: 1, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: undefined, isActive: true },
+            { courseCode: 'IT111', courseDescription: 'Computer Programming 1 - Lec', units: 2, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'IT111', courseDescription: 'Computer Programming 1 - Lab', units: 1, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: undefined, isActive: true },
+            { courseCode: 'IT 112', courseDescription: 'PC Assembly & Troubleshooting - Lec', units: 2, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'IT 112', courseDescription: 'PC Assembly & Troubleshooting - Lab', units: 1, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: undefined, isActive: true },
+            { courseCode: 'MATHWORLD-B', courseDescription: 'Mathematics in the Modern World', units: 3, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'NSTP1 - C', courseDescription: 'National Service Training Prog. 1', units: 3, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'PATHFIT 1 - C', courseDescription: 'Movement Competency Training', units: 2, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'UTS - A', courseDescription: 'Understanding the Self', units: 3, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'MATHPREP', courseDescription: 'Pre Calculus for Non-STEM', units: 3, yearLevel: '1st Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
 
             // Second Year - First Semester
-            {
-                courseCode: 'IT 201',
-                courseDescription: 'Data Structures and Algorithms',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 103',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 202',
-                courseDescription: 'Database Management Systems',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 101',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 203',
-                courseDescription: 'Object-Oriented Programming',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 103',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 204',
-                courseDescription: 'Computer Networks',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 104',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 205',
-                courseDescription: 'Systems Analysis and Design',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: 'IT 101',
-                isActive: true
-            },
-            {
-                courseCode: 'PE 3',
-                courseDescription: 'Physical Education 3',
-                units: 2,
-                yearLevel: '2nd Year',
-                semester: '1st Semester',
-                courseType: 'Laboratory',
-                prerequisites: 'PE 2',
-                isActive: true
-            },
-
-            // Second Year - Second Semester
-            {
-                courseCode: 'IT 206',
-                courseDescription: 'Software Engineering',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '2nd Semester',
-                courseType: 'Lecture',
-                prerequisites: 'IT 205',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 207',
-                courseDescription: 'Web Application Development',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '2nd Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 106, IT 203',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 208',
-                courseDescription: 'Mobile Application Development',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '2nd Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 203',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 209',
-                courseDescription: 'Information Security',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '2nd Semester',
-                courseType: 'Lecture',
-                prerequisites: 'IT 204',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 210',
-                courseDescription: 'IT Project Management',
-                units: 3,
-                yearLevel: '2nd Year',
-                semester: '2nd Semester',
-                courseType: 'Lecture',
-                prerequisites: 'IT 205',
-                isActive: true
-            },
-            {
-                courseCode: 'PE 4',
-                courseDescription: 'Physical Education 4',
-                units: 2,
-                yearLevel: '2nd Year',
-                semester: '2nd Semester',
-                courseType: 'Laboratory',
-                prerequisites: 'PE 3',
-                isActive: true
-            },
+            { courseCode: 'ARTAPP - B', courseDescription: 'Art Appreciation', units: 3, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'CW - B', courseDescription: 'The Contemporary World', units: 3, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'IT210', courseDescription: 'Data Structures & Algorithms - Lec', units: 2, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT111', isActive: true },
+            { courseCode: 'IT210', courseDescription: 'Data Structures & Algorithms - Lab', units: 1, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT111', isActive: true },
+            { courseCode: 'IT 211', courseDescription: 'Platform Technologies (Intangible) - Lec', units: 2, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT110', isActive: true },
+            { courseCode: 'IT 211', courseDescription: 'Platform Technologies (Intangible) - Lab', units: 1, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT110', isActive: true },
+            { courseCode: 'IT 212', courseDescription: 'Web Systems & Technologies 1 - Lec', units: 2, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT111', isActive: true },
+            { courseCode: 'IT 212', courseDescription: 'Web Systems & Technologies 1 - Lab', units: 1, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT111', isActive: true },
+            { courseCode: 'IT 213', courseDescription: 'Introduction to Human Computer Interaction - Lec', units: 2, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'IT 213', courseDescription: 'Introduction to Human Computer Interaction - Lab', units: 1, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: undefined, isActive: true },
+            { courseCode: 'PATHFIT 3-B', courseDescription: 'Sports', units: 2, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'STAT', courseDescription: 'Statistics & Probability', units: 3, yearLevel: '2nd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'MATHWORLD-B', isActive: true },
 
             // Third Year - First Semester
-            {
-                courseCode: 'IT 301',
-                courseDescription: 'Advanced Database Systems',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 202',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 302',
-                courseDescription: 'Web Services and APIs',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 207',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 303',
-                courseDescription: 'Cloud Computing',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 204',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 304',
-                courseDescription: 'Data Analytics',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 201',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 305',
-                courseDescription: 'IT Elective 1',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-
-            // Third Year - Second Semester
-            {
-                courseCode: 'IT 306',
-                courseDescription: 'IT Capstone Project 1',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '2nd Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 206, IT 210',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 307',
-                courseDescription: 'Enterprise Systems',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '2nd Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 202, IT 205',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 308',
-                courseDescription: 'IT Elective 2',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '2nd Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-            {
-                courseCode: 'IT 309',
-                courseDescription: 'IT Elective 3',
-                units: 3,
-                yearLevel: '3rd Year',
-                semester: '2nd Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
+            { courseCode: 'IT310', courseDescription: 'Applications Dev\'t. & Emerging Technologies - Lec', units: 2, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT 212', isActive: true },
+            { courseCode: 'IT310', courseDescription: 'Applications Dev\'t. & Emerging Technologies - Lab', units: 1, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT 212', isActive: true },
+            { courseCode: 'IT311', courseDescription: 'Operating Systems - Lec', units: 2, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT 112', isActive: true },
+            { courseCode: 'IT311', courseDescription: 'Operating Systems - Lab', units: 1, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT 112', isActive: true },
+            { courseCode: 'IT312', courseDescription: 'Human Computer Interaction - Lec', units: 2, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT 213', isActive: true },
+            { courseCode: 'IT312', courseDescription: 'Human Computer Interaction - Lab', units: 1, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT 213', isActive: true },
+            { courseCode: 'ITELEC1', courseDescription: 'IT Elective I - Lec', units: 2, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'ITELEC1', courseDescription: 'IT Elective I - Lab', units: 1, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: undefined, isActive: true },
+            { courseCode: 'ITTEL2', courseDescription: 'IT Track Elective II - Lec', units: 2, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'ITTEL2', courseDescription: 'IT Track Elective II - Lab', units: 1, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: undefined, isActive: true },
+            { courseCode: 'STAT', courseDescription: 'Statistics & Probability', units: 3, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'MATHWORLD-B', isActive: true },
+            { courseCode: 'TECHNO', courseDescription: 'Technopreneurship - Lec', units: 2, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'TECHNO', courseDescription: 'Technopreneurship - Lab', units: 1, yearLevel: '3rd Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: undefined, isActive: true },
 
             // Fourth Year - First Semester
-            {
-                courseCode: 'IT 401',
-                courseDescription: 'IT Capstone Project 2',
-                units: 3,
-                yearLevel: '4th Year',
-                semester: '1st Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 306',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 402',
-                courseDescription: 'IT Internship',
-                units: 6,
-                yearLevel: '4th Year',
-                semester: '1st Semester',
-                courseType: 'Laboratory',
-                prerequisites: 'Completion of 3rd Year',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 403',
-                courseDescription: 'IT Elective 4',
-                units: 3,
-                yearLevel: '4th Year',
-                semester: '1st Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            },
-
-            // Fourth Year - Second Semester
-            {
-                courseCode: 'IT 404',
-                courseDescription: 'IT Thesis',
-                units: 6,
-                yearLevel: '4th Year',
-                semester: '2nd Semester',
-                courseType: 'Both',
-                prerequisites: 'IT 401',
-                isActive: true
-            },
-            {
-                courseCode: 'IT 405',
-                courseDescription: 'IT Elective 5',
-                units: 3,
-                yearLevel: '4th Year',
-                semester: '2nd Semester',
-                courseType: 'Lecture',
-                prerequisites: undefined,
-                isActive: true
-            }
+            { courseCode: 'IT410', courseDescription: 'Capstone Project II - Lec', units: 2, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT 401', isActive: true },
+            { courseCode: 'IT410', courseDescription: 'Capstone Project II - Lab', units: 1, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT 401', isActive: true },
+            { courseCode: 'IT411', courseDescription: 'Integrative Programming & Technologies - Lec', units: 2, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT310', isActive: true },
+            { courseCode: 'IT411', courseDescription: 'Integrative Programming & Technologies - Lab', units: 1, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT310', isActive: true },
+            { courseCode: 'IT 412', courseDescription: 'Systems Administration & Maintenance - Lec', units: 2, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: 'IT311', isActive: true },
+            { courseCode: 'IT 412', courseDescription: 'Systems Administration & Maintenance - Lab', units: 1, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: 'IT311', isActive: true },
+            { courseCode: 'ITELEC3', courseDescription: 'IT Elective III - Lec', units: 2, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true },
+            { courseCode: 'ITELEC3', courseDescription: 'IT Elective III - Lab', units: 1, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Laboratory', prerequisites: undefined, isActive: true },
+            { courseCode: 'RIZAL', courseDescription: 'Rizal\'s Life & Works', units: 3, yearLevel: '4th Year', semester: '1st Semester', courseType: 'Lecture', prerequisites: undefined, isActive: true }
         ];
 
-        await BsitCurriculumModel.bulkCreate(bsitCurriculum, { ignoreDuplicates: true });
+        await SubjectsModel.bulkCreate(bsitCurriculum, { ignoreDuplicates: true });
         console.log('✅ BSIT Curriculum seeded successfully');
     } catch (error) {
         console.error('❌ Error seeding BSIT Curriculum:', error);
@@ -624,257 +166,114 @@ export const seedBsitCurriculum = async () => {
     }
 };
 
-// BSIT Schedule Seeding
-export const seedBsitSchedules = async () => {
+// **FIX:** Schedules Seeding - Updated to match all curriculum images
+export const seedSchedules = async () => {
     try {
-        console.log('📅 Seeding BSIT Schedules...');
+        console.log('📅 Seeding Schedules...');
 
-        // Get curriculum IDs for reference
-        const curriculum = await BsitCurriculumModel.findAll();
-        const curriculumMap = new Map();
-        curriculum.forEach(course => {
-            const key = `${course.courseCode}-${course.yearLevel}-${course.semester}`;
-            curriculumMap.set(key, course.id);
-        });
+        const schoolYear = await SchoolYearModel.findOne({ where: { year: '2025-2026' } });
+        const firstSemester = await SemesterModel.findOne({ where: { code: '1ST' } });
 
-        const schedules: Array<{
-            curriculumId: number;
-            schoolYear: string;
-            semester: string;
-            yearLevel: string;
-            day: string;
-            startTime: Date;
-            endTime: Date;
-            room: string;
-            instructor: string;
-            maxStudents: number;
-            currentEnrollment: number;
-            scheduleStatus: 'Open' | 'Closed' | 'Cancelled';
-        }> = [
-            // First Year - First Semester Schedules
-            {
-                curriculumId: curriculumMap.get('IT 101-1st Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '1st Year',
-                day: 'Monday',
-                startTime: new Date('2025-06-02T08:00:00'),
-                endTime: new Date('2025-06-02T11:00:00'),
-                room: 'IT Lab 1',
-                instructor: 'Prof. Santos',
-                maxStudents: 40,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-            {
-                curriculumId: curriculumMap.get('IT 102-1st Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '1st Year',
-                day: 'Tuesday',
-                startTime: new Date('2025-06-03T08:00:00'),
-                endTime: new Date('2025-06-03T11:00:00'),
-                room: 'IT Lab 2',
-                instructor: 'Prof. Garcia',
-                maxStudents: 40,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-            {
-                curriculumId: curriculumMap.get('GE 1-1st Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '1st Year',
-                day: 'Wednesday',
-                startTime: new Date('2025-06-04T08:00:00'),
-                endTime: new Date('2025-06-04T11:00:00'),
-                room: 'Room 101',
-                instructor: 'Prof. Reyes',
-                maxStudents: 50,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-            {
-                curriculumId: curriculumMap.get('GE 2-1st Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '1st Year',
-                day: 'Thursday',
-                startTime: new Date('2025-06-05T08:00:00'),
-                endTime: new Date('2025-06-05T11:00:00'),
-                room: 'Room 102',
-                instructor: 'Prof. Cruz',
-                maxStudents: 50,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-            {
-                curriculumId: curriculumMap.get('PE 1-1st Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '1st Year',
-                day: 'Friday',
-                startTime: new Date('2025-06-06T08:00:00'),
-                endTime: new Date('2025-06-06T10:00:00'),
-                room: 'Gymnasium',
-                instructor: 'Coach Martinez',
-                maxStudents: 40,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-
-            // First Year - Second Semester Schedules
-            {
-                curriculumId: curriculumMap.get('IT 103-1st Year-2nd Semester'),
-                schoolYear: '2025-2026',
-                semester: '2nd Semester',
-                yearLevel: '1st Year',
-                day: 'Monday',
-                startTime: new Date('2025-11-03T08:00:00'),
-                endTime: new Date('2025-11-03T11:00:00'),
-                room: 'IT Lab 1',
-                instructor: 'Prof. Garcia',
-                maxStudents: 40,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-            {
-                curriculumId: curriculumMap.get('IT 104-1st Year-2nd Semester'),
-                schoolYear: '2025-2026',
-                semester: '2nd Semester',
-                yearLevel: '1st Year',
-                day: 'Tuesday',
-                startTime: new Date('2025-11-04T08:00:00'),
-                endTime: new Date('2025-11-04T11:00:00'),
-                room: 'IT Lab 2',
-                instructor: 'Prof. Santos',
-                maxStudents: 40,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-
-            // Second Year - First Semester Schedules
-            {
-                curriculumId: curriculumMap.get('IT 201-2nd Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '2nd Year',
-                day: 'Monday',
-                startTime: new Date('2025-06-02T13:00:00'),
-                endTime: new Date('2025-06-02T16:00:00'),
-                room: 'IT Lab 1',
-                instructor: 'Prof. Lopez',
-                maxStudents: 35,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-            {
-                curriculumId: curriculumMap.get('IT 202-2nd Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '2nd Year',
-                day: 'Tuesday',
-                startTime: new Date('2025-06-03T13:00:00'),
-                endTime: new Date('2025-06-03T16:00:00'),
-                room: 'IT Lab 2',
-                instructor: 'Prof. Torres',
-                maxStudents: 35,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-
-            // Second Year - Second Semester Schedules
-            {
-                curriculumId: curriculumMap.get('IT 206-2nd Year-2nd Semester'),
-                schoolYear: '2025-2026',
-                semester: '2nd Semester',
-                yearLevel: '2nd Year',
-                day: 'Monday',
-                startTime: new Date('2025-11-03T13:00:00'),
-                endTime: new Date('2025-11-03T16:00:00'),
-                room: 'Room 201',
-                instructor: 'Prof. Lopez',
-                maxStudents: 35,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-
-            // Third Year - First Semester Schedules
-            {
-                curriculumId: curriculumMap.get('IT 301-3rd Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '3rd Year',
-                day: 'Wednesday',
-                startTime: new Date('2025-06-04T13:00:00'),
-                endTime: new Date('2025-06-04T16:00:00'),
-                room: 'IT Lab 3',
-                instructor: 'Prof. Hernandez',
-                maxStudents: 30,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-
-            // Third Year - Second Semester Schedules
-            {
-                curriculumId: curriculumMap.get('IT 306-3rd Year-2nd Semester'),
-                schoolYear: '2025-2026',
-                semester: '2nd Semester',
-                yearLevel: '3rd Year',
-                day: 'Wednesday',
-                startTime: new Date('2025-11-05T13:00:00'),
-                endTime: new Date('2025-11-05T16:00:00'),
-                room: 'IT Lab 3',
-                instructor: 'Prof. Hernandez',
-                maxStudents: 30,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-
-            // Fourth Year - First Semester Schedules
-            {
-                curriculumId: curriculumMap.get('IT 401-4th Year-1st Semester'),
-                schoolYear: '2025-2026',
-                semester: '1st Semester',
-                yearLevel: '4th Year',
-                day: 'Thursday',
-                startTime: new Date('2025-06-05T13:00:00'),
-                endTime: new Date('2025-06-05T16:00:00'),
-                room: 'IT Lab 4',
-                instructor: 'Prof. Mendoza',
-                maxStudents: 25,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            },
-
-            // Fourth Year - Second Semester Schedules
-            {
-                curriculumId: curriculumMap.get('IT 404-4th Year-2nd Semester'),
-                schoolYear: '2025-2026',
-                semester: '2nd Semester',
-                yearLevel: '4th Year',
-                day: 'Thursday',
-                startTime: new Date('2025-11-06T13:00:00'),
-                endTime: new Date('2025-11-06T16:00:00'),
-                room: 'IT Lab 4',
-                instructor: 'Prof. Mendoza',
-                maxStudents: 25,
-                currentEnrollment: 0,
-                scheduleStatus: 'Open'
-            }
-        ];
-
-        // Filter out schedules with undefined curriculumId
-        const validSchedules = schedules.filter(schedule => schedule.curriculumId);
-        
-        if (validSchedules.length > 0) {
-            await BsitScheduleModel.bulkCreate(validSchedules, { ignoreDuplicates: true });
-            console.log(`✅ BSIT Schedules seeded successfully (${validSchedules.length} schedules)`);
-        } else {
-            console.log('⚠️  No valid schedules to seed (curriculum not found)');
+        if (!schoolYear || !firstSemester) {
+            throw new Error('School year or semester not found');
         }
+
+        const subjects = await SubjectsModel.findAll();
+        const schedules: any[] = [];
+
+        for (const subject of subjects) {
+            let subjectSchedules: Array<{ dayOfWeek: string; startTime: string; endTime: string; room: string; }> = [];
+
+            // 1st Year - 1st Semester schedules
+            if (subject.yearLevel === '1st Year' && subject.semester === '1st Semester') {
+                switch (subject.courseDescription) {
+                    case 'Wikang Filipino': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '05:00PM', endTime: '06:30PM', room: '314' }]; break;
+                    case 'Introduction to Computing - Lec': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '09:30AM', endTime: '10:30AM', room: '314' }]; break;
+                    case 'Introduction to Computing - Lab': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '10:30AM', endTime: '12:00PM', room: 'CL-1' }]; break;
+                    case 'Computer Programming 1 - Lec': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '08:00AM', endTime: '09:00AM', room: '309' }]; break;
+                    case 'Computer Programming 1 - Lab': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '09:00AM', endTime: '10:30AM', room: 'CL-1' }]; break;
+                    case 'PC Assembly & Troubleshooting - Lec': subjectSchedules = [{ dayOfWeek: 'F', startTime: '10:00AM', endTime: '12:00PM', room: '309' }]; break;
+                    case 'PC Assembly & Troubleshooting - Lab': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '10:30AM', endTime: '12:00PM', room: 'CL-1' }]; break;
+                    case 'Mathematics in the Modern World': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '01:00PM', endTime: '02:30PM', room: '309' }]; break;
+                    case 'National Service Training Prog. 1': subjectSchedules = [{ dayOfWeek: 'F', startTime: '01:00PM', endTime: '04:00PM', room: '314' }]; break;
+                    case 'Movement Competency Training': subjectSchedules = [{ dayOfWeek: 'F', startTime: '08:00AM', endTime: '10:00AM', room: 'Kinetics' }]; break;
+                    case 'Understanding the Self': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '02:30PM', endTime: '04:00PM', room: '309' }]; break;
+                    case 'Pre Calculus for Non-STEM': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '01:00PM', endTime: '02:30PM', room: '307' }]; break;
+                }
+            }
+
+            // 2nd Year - 1st Semester schedules
+            if (subject.yearLevel === '2nd Year' && subject.semester === '1st Semester') {
+                switch (subject.courseDescription) {
+                    case 'Art Appreciation': subjectSchedules = [{ dayOfWeek: 'TH', startTime: '09:00AM', endTime: '10:30AM', room: '307' }, { dayOfWeek: 'F', startTime: '04:00PM', endTime: '05:30PM', room: '307' }]; break;
+                    case 'The Contemporary World': subjectSchedules = [{ dayOfWeek: 'T', startTime: '06:00PM', endTime: '07:30PM', room: '308' }, { dayOfWeek: 'F', startTime: '02:30PM', endTime: '04:00PM', room: '308' }]; break;
+                    case 'Data Structures & Algorithms - Lec': subjectSchedules = [{ dayOfWeek: 'T', startTime: '08:30AM', endTime: '10:30AM', room: '307' }]; break;
+                    case 'Data Structures & Algorithms - Lab': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '10:30AM', endTime: '12:00PM', room: 'CL-2' }]; break;
+                    case 'Platform Technologies (Intangible) - Lec': subjectSchedules = [{ dayOfWeek: 'T', startTime: '01:30PM', endTime: '03:30PM', room: 'CL-1' }]; break;
+                    case 'Platform Technologies (Intangible) - Lab': subjectSchedules = [{ dayOfWeek: 'THF', startTime: '06:00PM', endTime: '07:30PM', room: 'CL-1' }]; break;
+                    case 'Web Systems & Technologies 1 - Lec': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '08:00AM', endTime: '09:00AM', room: '305' }]; break;
+                    case 'Web Systems & Technologies 1 - Lab': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '09:00AM', endTime: '10:30AM', room: 'CL-2' }]; break;
+                    case 'Introduction to Human Computer Interaction - Lec': subjectSchedules = [{ dayOfWeek: 'TH', startTime: '02:30PM', endTime: '04:30PM', room: 'CL-1' }]; break;
+                    case 'Introduction to Human Computer Interaction - Lab': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '10:30AM', endTime: '12:00PM', room: 'CL-2' }]; break;
+                    case 'Sports': subjectSchedules = [{ dayOfWeek: 'S', startTime: '10:00AM', endTime: '12:00PM', room: 'Kinetics' }]; break;
+                    case 'Statistics & Probability': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '04:30PM', endTime: '06:00PM', room: '320' }]; break;
+                }
+            }
+
+            // 3rd Year - 1st Semester schedules
+            if (subject.yearLevel === '3rd Year' && subject.semester === '1st Semester') {
+                switch (subject.courseDescription) {
+                    case 'Applications Dev\'t. & Emerging Technologies - Lec': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '08:00AM', endTime: '09:00AM', room: '307' }]; break;
+                    case 'Applications Dev\'t. & Emerging Technologies - Lab': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '09:00AM', endTime: '10:30AM', room: 'CL-1' }]; break;
+                    case 'Operating Systems - Lec': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '05:00PM', endTime: '06:00PM', room: 'CL-2' }]; break;
+                    case 'Operating Systems - Lab': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '06:00PM', endTime: '07:30PM', room: 'CL-2' }]; break;
+                    case 'Human Computer Interaction - Lec': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '08:00AM', endTime: '09:00AM', room: '308' }]; break;
+                    case 'Human Computer Interaction - Lab': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '09:00AM', endTime: '10:30AM', room: 'CL-2' }]; break;
+                    case 'IT Elective I - Lec': subjectSchedules = [{ dayOfWeek: 'T', startTime: '11:00AM', endTime: '01:00PM', room: '312' }]; break;
+                    case 'IT Elective I - Lab': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '12:00PM', endTime: '01:30PM', room: 'CL-2' }]; break;
+                    case 'IT Track Elective II - Lec': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '02:00PM', endTime: '03:00PM', room: 'CL-2' }]; break;
+                    case 'IT Track Elective II - Lab': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '03:00PM', endTime: '04:30PM', room: 'CL-2' }]; break;
+                    case 'Statistics & Probability': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '03:00PM', endTime: '04:30PM', room: '324' }]; break;
+                    case 'Technopreneurship - Lec': subjectSchedules = [{ dayOfWeek: 'TH', startTime: '06:00PM', endTime: '08:00PM', room: '308' }]; break;
+                    case 'Technopreneurship - Lab': subjectSchedules = [{ dayOfWeek: 'MW', startTime: '07:30PM', endTime: '09:00PM', room: 'CL-2' }]; break;
+                }
+            }
+
+            // 4th Year - 1st Semester schedules
+            if (subject.yearLevel === '4th Year' && subject.semester === '1st Semester') {
+                switch (subject.courseDescription) {
+                    case 'Capstone Project II - Lec': subjectSchedules = [{ dayOfWeek: 'W', startTime: '01:30PM', endTime: '03:30PM', room: 'CL-1' }]; break;
+                    case 'Capstone Project II - Lab': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '01:00PM', endTime: '02:30PM', room: 'CL-2' }]; break;
+                    case 'Integrative Programming & Technologies - Lec': subjectSchedules = [{ dayOfWeek: 'F', startTime: '08:00AM', endTime: '10:00AM', room: '307' }]; break;
+                    case 'Integrative Programming & Technologies - Lab': subjectSchedules = [{ dayOfWeek: 'F', startTime: '01:00PM', endTime: '04:00PM', room: 'CL-2' }]; break;
+                    case 'Systems Administration & Maintenance - Lec': subjectSchedules = [{ dayOfWeek: 'F', startTime: '10:00AM', endTime: '12:00PM', room: '307' }]; break;
+                    case 'Systems Administration & Maintenance - Lab': subjectSchedules = [{ dayOfWeek: 'F', startTime: '04:30PM', endTime: '07:30PM', room: 'CL-2' }]; break;
+                    case 'IT Elective III - Lec': subjectSchedules = [{ dayOfWeek: 'W', startTime: '04:00PM', endTime: '06:00PM', room: '307' }]; break;
+                    case 'IT Elective III - Lab': subjectSchedules = [{ dayOfWeek: 'T', startTime: '04:30PM', endTime: '07:30PM', room: 'CL-1' }]; break;
+                    case 'Rizal\'s Life & Works': subjectSchedules = [{ dayOfWeek: 'TTH', startTime: '02:30PM', endTime: '04:00PM', room: '308' }]; break;
+                }
+            }
+
+            subjectSchedules.forEach(schedule => {
+                schedules.push({
+                    subjectId: subject.id,
+                    schoolYearId: schoolYear.id,
+                    semesterId: firstSemester.id,
+                    dayOfWeek: schedule.dayOfWeek,
+                    startTime: schedule.startTime,
+                    endTime: schedule.endTime,
+                    room: schedule.room,
+                    maxStudents: 40,
+                    currentEnrolled: 0,
+                    isActive: true
+                });
+            });
+        }
+
+        await SchedulesModel.bulkCreate(schedules, { ignoreDuplicates: true });
+        console.log('✅ Schedules seeded successfully');
     } catch (error) {
-        console.error('❌ Error seeding BSIT Schedules:', error);
+        console.error('❌ Error seeding schedules:', error);
         throw error;
     }
-}; 
+};

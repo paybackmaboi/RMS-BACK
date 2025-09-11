@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotificationModel = exports.RequestModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.BsitScheduleModel = exports.BsitCurriculumModel = exports.StudentRegistrationModel = exports.EnrollmentModel = exports.ScheduleModel = exports.SemesterModel = exports.SchoolYearModel = exports.SubjectModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
+exports.LoginHistoryModel = exports.AccountingModel = exports.NotificationModel = exports.RequestModel = exports.UserSessionModel = exports.StudentEnrollmentModel = exports.SchedulesModel = exports.SubjectsModel = exports.StudentRegistrationModel = exports.EnrollmentModel = exports.SemesterModel = exports.SchoolYearModel = exports.CourseModel = exports.DepartmentModel = exports.StudentModel = exports.UserModel = exports.connectAndInitialize = exports.defineAssociations = exports.initializeModels = exports.sequelize = void 0;
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 const mysql2_1 = __importDefault(require("mysql2"));
@@ -58,22 +58,18 @@ const Department_1 = require("./models/Department");
 Object.defineProperty(exports, "DepartmentModel", { enumerable: true, get: function () { return Department_1.Department; } });
 const Course_1 = require("./models/Course");
 Object.defineProperty(exports, "CourseModel", { enumerable: true, get: function () { return Course_1.Course; } });
-const Subject_1 = require("./models/Subject");
-Object.defineProperty(exports, "SubjectModel", { enumerable: true, get: function () { return Subject_1.Subject; } });
 const SchoolYear_1 = require("./models/SchoolYear");
 Object.defineProperty(exports, "SchoolYearModel", { enumerable: true, get: function () { return SchoolYear_1.SchoolYear; } });
 const Semester_1 = require("./models/Semester");
 Object.defineProperty(exports, "SemesterModel", { enumerable: true, get: function () { return Semester_1.Semester; } });
-const Schedule_1 = require("./models/Schedule");
-Object.defineProperty(exports, "ScheduleModel", { enumerable: true, get: function () { return Schedule_1.Schedule; } });
 const Enrollment_1 = require("./models/Enrollment");
 Object.defineProperty(exports, "EnrollmentModel", { enumerable: true, get: function () { return Enrollment_1.Enrollment; } });
 const StudentRegistration_1 = require("./models/StudentRegistration");
 Object.defineProperty(exports, "StudentRegistrationModel", { enumerable: true, get: function () { return StudentRegistration_1.StudentRegistration; } });
-const BsitCurriculum_1 = require("./models/BsitCurriculum");
-Object.defineProperty(exports, "BsitCurriculumModel", { enumerable: true, get: function () { return BsitCurriculum_1.BsitCurriculum; } });
-const BsitSchedule_1 = require("./models/BsitSchedule");
-Object.defineProperty(exports, "BsitScheduleModel", { enumerable: true, get: function () { return BsitSchedule_1.BsitSchedule; } });
+const Subjects_1 = require("./models/Subjects");
+Object.defineProperty(exports, "SubjectsModel", { enumerable: true, get: function () { return Subjects_1.Subjects; } });
+const Schedules_1 = require("./models/Schedules");
+Object.defineProperty(exports, "SchedulesModel", { enumerable: true, get: function () { return Schedules_1.Schedules; } });
 const StudentEnrollment_1 = require("./models/StudentEnrollment");
 Object.defineProperty(exports, "StudentEnrollmentModel", { enumerable: true, get: function () { return StudentEnrollment_1.StudentEnrollment; } });
 const UserSession_1 = require("./models/UserSession");
@@ -82,6 +78,10 @@ const Request_1 = require("./models/Request");
 Object.defineProperty(exports, "RequestModel", { enumerable: true, get: function () { return Request_1.Request; } });
 const Notification_1 = require("./models/Notification");
 Object.defineProperty(exports, "NotificationModel", { enumerable: true, get: function () { return Notification_1.Notification; } });
+const LoginHistory_1 = require("./models/LoginHistory");
+Object.defineProperty(exports, "LoginHistoryModel", { enumerable: true, get: function () { return LoginHistory_1.LoginHistory; } });
+const Accounting_1 = require("./models/Accounting");
+Object.defineProperty(exports, "AccountingModel", { enumerable: true, get: function () { return Accounting_1.Accounting; } });
 // Load environment variables
 dotenv_1.default.config();
 // check if we are in production
@@ -125,18 +125,18 @@ const initializeModels = () => {
     (0, Student_1.initStudent)(exports.sequelize);
     (0, Department_1.initDepartment)(exports.sequelize);
     (0, Course_1.initCourse)(exports.sequelize);
-    (0, Subject_1.initSubject)(exports.sequelize);
     (0, SchoolYear_1.initSchoolYear)(exports.sequelize);
     (0, Semester_1.initSemester)(exports.sequelize);
-    (0, Schedule_1.initSchedule)(exports.sequelize);
     (0, Enrollment_1.initEnrollment)(exports.sequelize);
     (0, StudentRegistration_1.initStudentRegistration)(exports.sequelize);
-    (0, BsitCurriculum_1.initBsitCurriculum)(exports.sequelize);
-    (0, BsitSchedule_1.initBsitSchedule)(exports.sequelize);
+    (0, Subjects_1.initSubjects)(exports.sequelize);
+    (0, Schedules_1.initSchedules)(exports.sequelize);
     (0, StudentEnrollment_1.initStudentEnrollment)(exports.sequelize);
     (0, UserSession_1.initUserSession)(exports.sequelize);
     (0, Request_1.initRequest)(exports.sequelize);
     (0, Notification_1.initNotification)(exports.sequelize);
+    (0, Accounting_1.initAccounting)(exports.sequelize);
+    (0, LoginHistory_1.initLoginHistory)(exports.sequelize);
 };
 exports.initializeModels = initializeModels;
 // Define associations
@@ -144,34 +144,34 @@ const defineAssociations = () => {
     // User associations
     User_1.User.hasOne(Student_1.Student, { foreignKey: 'userId' });
     Student_1.Student.belongsTo(User_1.User, { foreignKey: 'userId' });
+    // A User (who is a student) has one Accounting record
+    User_1.User.hasOne(Accounting_1.Accounting, { foreignKey: 'studentId', as: 'accounting' });
+    Accounting_1.Accounting.belongsTo(User_1.User, { foreignKey: 'studentId', as: 'user' });
     // Department associations
     Department_1.Department.hasMany(Course_1.Course, { foreignKey: 'departmentId' });
     Course_1.Course.belongsTo(Department_1.Department, { foreignKey: 'departmentId' });
     // Course associations
     Course_1.Course.hasMany(Student_1.Student, { foreignKey: 'courseId' });
     Student_1.Student.belongsTo(Course_1.Course, { foreignKey: 'courseId' });
-    // Subject associations
-    Subject_1.Subject.belongsTo(Course_1.Course, { foreignKey: 'courseId' });
-    Course_1.Course.hasMany(Subject_1.Subject, { foreignKey: 'courseId' });
     // Schedule associations
-    Schedule_1.Schedule.belongsTo(Subject_1.Subject, { foreignKey: 'subjectId' });
-    Subject_1.Subject.hasMany(Schedule_1.Schedule, { foreignKey: 'subjectId' });
+    Schedules_1.Schedules.belongsTo(Subjects_1.Subjects, { foreignKey: 'subjectId' });
+    Subjects_1.Subjects.hasMany(Schedules_1.Schedules, { foreignKey: 'subjectId' });
     // Enrollment associations
     Enrollment_1.Enrollment.belongsTo(Student_1.Student, { foreignKey: 'studentId' });
     Student_1.Student.hasMany(Enrollment_1.Enrollment, { foreignKey: 'studentId' });
-    Enrollment_1.Enrollment.belongsTo(Schedule_1.Schedule, { foreignKey: 'scheduleId' });
-    Schedule_1.Schedule.hasMany(Enrollment_1.Enrollment, { foreignKey: 'scheduleId' });
+    Enrollment_1.Enrollment.belongsTo(Schedules_1.Schedules, { foreignKey: 'scheduleId' });
+    Schedules_1.Schedules.hasMany(Enrollment_1.Enrollment, { foreignKey: 'scheduleId' });
     // Student Registration associations
     StudentRegistration_1.StudentRegistration.belongsTo(User_1.User, { foreignKey: 'userId' });
     User_1.User.hasMany(StudentRegistration_1.StudentRegistration, { foreignKey: 'userId' });
-    // BSIT Curriculum associations
-    BsitCurriculum_1.BsitCurriculum.hasMany(BsitSchedule_1.BsitSchedule, { foreignKey: 'curriculumId' });
-    BsitSchedule_1.BsitSchedule.belongsTo(BsitCurriculum_1.BsitCurriculum, { foreignKey: 'curriculumId' });
+    // Subjects associations
+    Subjects_1.Subjects.hasMany(Schedules_1.Schedules, { foreignKey: 'subjectId' });
+    Schedules_1.Schedules.belongsTo(Subjects_1.Subjects, { foreignKey: 'subjectId' });
     // Student Enrollment associations
     StudentEnrollment_1.StudentEnrollment.belongsTo(Student_1.Student, { foreignKey: 'studentId' });
     Student_1.Student.hasMany(StudentEnrollment_1.StudentEnrollment, { foreignKey: 'studentId' });
-    StudentEnrollment_1.StudentEnrollment.belongsTo(BsitSchedule_1.BsitSchedule, { foreignKey: 'scheduleId' });
-    BsitSchedule_1.BsitSchedule.hasMany(StudentEnrollment_1.StudentEnrollment, { foreignKey: 'scheduleId' });
+    StudentEnrollment_1.StudentEnrollment.belongsTo(Schedules_1.Schedules, { foreignKey: 'scheduleId' });
+    Schedules_1.Schedules.hasMany(StudentEnrollment_1.StudentEnrollment, { foreignKey: 'scheduleId' });
     // Request associations
     Request_1.Request.belongsTo(User_1.User, { foreignKey: 'studentId', as: 'student' });
     User_1.User.hasMany(Request_1.Request, { foreignKey: 'studentId', as: 'requests' });
@@ -180,6 +180,9 @@ const defineAssociations = () => {
     User_1.User.hasMany(Notification_1.Notification, { foreignKey: 'userId' });
     Notification_1.Notification.belongsTo(Request_1.Request, { foreignKey: 'requestId' });
     Request_1.Request.hasMany(Notification_1.Notification, { foreignKey: 'requestId' });
+    // Login History associations
+    LoginHistory_1.LoginHistory.belongsTo(User_1.User, { foreignKey: 'userId' });
+    User_1.User.hasMany(LoginHistory_1.LoginHistory, { foreignKey: 'userId' });
 };
 exports.defineAssociations = defineAssociations;
 // Connect to database and initialize
@@ -213,8 +216,8 @@ const connectAndInitialize = () => __awaiter(void 0, void 0, void 0, function* (
         // Define associations
         (0, exports.defineAssociations)();
         console.log('✅ Model associations defined successfully.');
-        // Database sync disabled - using existing tables
-        yield exports.sequelize.sync({ alter: true }); // Use { force: true } to drop & recreate (DEV ONLY)
+        // Database sync with minimal changes to avoid key limit issues
+        yield exports.sequelize.sync({ alter: false }); // Don't alter existing tables to avoid key conflicts
         console.log('✅ Database tables created/synced successfully.');
         const { seedInitialData } = yield Promise.resolve().then(() => __importStar(require('./seedData')));
         yield seedInitialData();

@@ -4,10 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const accountingController_1 = require("../controllers/accountingController");
 const studentController_1 = require("../controllers/studentController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const sessionAuthMiddleware_1 = require("../middleware/sessionAuthMiddleware");
 const router = express_1.default.Router();
+router.get('/me/balance', sessionAuthMiddleware_1.studentSessionAuthMiddleware, accountingController_1.getMyBalance);
 // Student registration (no auth required - this creates the account)
 router.post('/register', studentController_1.registerStudent);
 // Debug endpoint

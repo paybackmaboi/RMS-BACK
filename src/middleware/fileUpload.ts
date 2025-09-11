@@ -27,20 +27,36 @@ const storage = multer.diskStorage({
 
 // File filter to allow only specific file types
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    console.log('🔍 File filter - Processing file:', {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        fieldname: file.fieldname
+    });
+    
     // Allowed extensions
-    const allowedTypes = /jpeg|jpg|png|pdf/;
+    const allowedExtensions = /\.(jpeg|jpg|png|pdf)$/i;
+    // Allowed mimetypes
+    const allowedMimeTypes = /^(image\/(jpeg|jpg|png)|application\/pdf)$/i;
+    
     // Check the file's extension
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const hasValidExtension = allowedExtensions.test(file.originalname);
     // Check the file's mimetype
-    const mimetype = allowedTypes.test(file.mimetype);
+    const hasValidMimeType = allowedMimeTypes.test(file.mimetype);
 
-    if (mimetype && extname) {
+    console.log('🔍 File filter - Validation results:', {
+        hasValidExtension,
+        hasValidMimeType,
+        extension: path.extname(file.originalname).toLowerCase()
+    });
+
+    if (hasValidExtension && hasValidMimeType) {
         // If the file type is allowed, accept the file
+        console.log('✅ File filter - File accepted');
         cb(null, true);
     } else {
         // If the file type is not allowed, reject the file
-        // This error will be passed to your error-handling middleware
-        const error = new Error('Error: File upload only supports the following filetypes - ' + allowedTypes);
+        console.log('❌ File filter - File rejected');
+        const error = new Error('File upload only supports JPEG, JPG, PNG, and PDF files');
         cb(error);
     }
 };

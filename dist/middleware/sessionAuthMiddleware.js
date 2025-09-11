@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.studentSessionAuthMiddleware = exports.adminSessionAuthMiddleware = exports.sessionAuthMiddleware = void 0;
+exports.accountingSessionAuthMiddleware = exports.studentSessionAuthMiddleware = exports.adminSessionAuthMiddleware = exports.sessionAuthMiddleware = void 0;
 const database_1 = require("../database");
 const sequelize_1 = require("sequelize");
 const sessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -155,3 +155,52 @@ const studentSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 
     }
 });
 exports.studentSessionAuthMiddleware = studentSessionAuthMiddleware;
+const accountingSessionAuthMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        // Get session token from cookies or headers
+        const sessionToken = ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.sessionToken) || req.headers['x-session-token'];
+        if (!sessionToken) {
+            res.status(401).json({ message: 'No session token provided' });
+            return;
+        }
+        // Find a valid, non-expired session
+        const session = yield database_1.UserSessionModel.findOne({
+            where: {
+                sessionToken: sessionToken,
+                expiresAt: {
+                    [sequelize_1.Op.gt]: new Date()
+                }
+            }
+        });
+        if (!session) {
+            res.status(401).json({ message: 'Invalid or expired session' });
+            return;
+        }
+        // Get the user associated with the session
+        const user = yield database_1.UserModel.findByPk(session.userId);
+        if (!user) {
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+        // IMPORTANT: Check if the user is 'accounting' OR 'admin'
+        if (user.role !== 'accounting' && user.role !== 'admin') {
+            res.status(403).json({ message: 'Access restricted to accounting or admin staff' });
+            return;
+        }
+        // Attach user info to the request object
+        req.user = {
+            id: session.userId,
+            role: user.role,
+            idNumber: user.idNumber,
+            firstName: user.firstName,
+            lastName: user.lastName
+        };
+        next();
+    }
+    catch (error) {
+        console.error('Accounting session auth error:', error);
+        res.status(500).json({ message: 'Authentication error' });
+    }
+});
+exports.accountingSessionAuthMiddleware = accountingSessionAuthMiddleware;

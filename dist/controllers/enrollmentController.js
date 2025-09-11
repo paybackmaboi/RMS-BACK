@@ -199,8 +199,8 @@ const getStudentEnrollmentHistory = (req, res, next) => __awaiter(void 0, void 0
                 bc.courseDescription,
                 bc.units
             FROM student_enrollments se
-            JOIN bsit_schedules bs ON se.scheduleId = bs.id
-            JOIN bsit_curriculum bc ON bs.curriculumId = bc.id
+            JOIN schedules bs ON se.scheduleId = bs.id
+            JOIN subjects bc ON bs.curriculumId = bc.id
             WHERE se.studentId = ?
             ORDER BY bs.schoolYear DESC, bs.semester ASC
         `, {

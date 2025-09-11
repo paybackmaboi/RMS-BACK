@@ -3,7 +3,7 @@ import {
     UserModel, 
     StudentModel, 
     StudentRegistrationModel,
-    BsitCurriculumModel,
+    SubjectsModel,
     StudentEnrollmentModel
 } from '../database';
 import { Op } from 'sequelize';
@@ -100,7 +100,7 @@ export const getAllStudentAccounts = async (req: ExpressRequest, res: Response, 
                 registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
                 
                 // Calculate total units from curriculum
-                const curriculum = await BsitCurriculumModel.findAll({
+                const curriculum = await SubjectsModel.findAll({
                     where: {
                         yearLevel: registration.yearLevel,
                         semester: registration.semester,

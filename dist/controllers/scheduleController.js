@@ -37,8 +37,8 @@ const getStudentSchedule = (req, res, next) => __awaiter(void 0, void 0, void 0,
                 s.currentEnrollment,
                 s.scheduleStatus,
                 s.remarks
-            FROM bsit_curriculum c
-            LEFT JOIN bsit_schedules s ON c.id = s.curriculumId 
+            FROM subjects c
+            LEFT JOIN schedules s ON c.id = s.curriculumId 
                 AND s.schoolYear = ? 
                 AND s.semester = ? 
                 AND s.yearLevel = ?
@@ -64,22 +64,26 @@ const getStudentSchedule = (req, res, next) => __awaiter(void 0, void 0, void 0,
             type: sequelize_1.QueryTypes.SELECT
         });
         console.log('📅 Found schedule entries:', scheduleData.length);
-        // Group subjects by course code (combining lecture and lab)
-        const groupedSubjects = new Map();
+        // Process subjects to display lecture and lab components as separate rows
+        const processedSubjects = [];
         scheduleData.forEach((item) => {
-            const key = item.courseCode;
-            if (!groupedSubjects.has(key)) {
-                groupedSubjects.set(key, {
+            // Find existing subject with same course code and type
+            let existingSubject = processedSubjects.find(s => s.courseCode === item.courseCode && s.courseType === item.courseType);
+            if (!existingSubject) {
+                // Create new subject entry
+                existingSubject = {
                     courseCode: item.courseCode,
                     courseDescription: item.courseDescription,
                     units: item.units,
                     courseType: item.courseType,
                     prerequisites: item.prerequisites,
                     schedules: []
-                });
+                };
+                processedSubjects.push(existingSubject);
             }
+            // Add schedule if it exists
             if (item.scheduleId) {
-                groupedSubjects.get(key).schedules.push({
+                existingSubject.schedules.push({
                     id: item.scheduleId,
                     day: item.day,
                     startTime: item.startTime,
@@ -93,8 +97,8 @@ const getStudentSchedule = (req, res, next) => __awaiter(void 0, void 0, void 0,
                 });
             }
         });
-        // Convert to array and add schedule summary
-        const subjectsWithSchedules = Array.from(groupedSubjects.values()).map(subject => {
+        // Add schedule summary to each subject
+        const subjectsWithSchedules = processedSubjects.map(subject => {
             const totalUnits = subject.units;
             const hasSchedule = subject.schedules.length > 0;
             return Object.assign(Object.assign({}, subject), { hasSchedule,
@@ -157,8 +161,8 @@ const getAllSchedules = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 s.currentEnrollment,
                 s.scheduleStatus,
                 s.remarks
-            FROM bsit_curriculum c
-            LEFT JOIN bsit_schedules s ON c.id = s.curriculumId
+            FROM subjects c
+            LEFT JOIN schedules s ON c.id = s.curriculumId
             WHERE c.isActive = TRUE
                 ${yearLevel ? 'AND c.yearLevel = ?' : ''}
                 ${semester ? 'AND c.semester = ?' : ''}
@@ -281,7 +285,7 @@ const getScheduleEnrolledStudents = (req, res, next) => __awaiter(void 0, void 0
                 FROM student_enrollments se
                 LEFT JOIN students s ON se.studentId = s.id
                 LEFT JOIN users u ON s.userId = u.id
-                LEFT JOIN bsit_schedules bs ON se.scheduleId = bs.id
+                LEFT JOIN schedules bs ON se.scheduleId = bs.id
                 WHERE se.scheduleId = ?  -- Look for students enrolled in THIS specific schedule
                 ORDER BY COALESCE(s.currentYearLevel, 'Unknown'), COALESCE(u.lastName, 'Unknown'), COALESCE(u.firstName, 'Unknown')
             `;
@@ -421,7 +425,7 @@ const checkDatabaseStructure = (req, res, next) => __awaiter(void 0, void 0, voi
         });
         console.log('🔍 Available tables:', tables.map(t => t.table_name));
         // Check specific tables we need
-        const requiredTables = ['users', 'students', 'student_enrollments', 'bsit_curriculum', 'bsit_schedules'];
+        const requiredTables = ['users', 'students', 'student_enrollments', 'subjects', 'schedules'];
         const tableStatus = {};
         for (const tableName of requiredTables) {
             try {

@@ -41,7 +41,7 @@ export const initStudentEnrollment = (sequelize: Sequelize) => {
             type: DataTypes.INTEGER.UNSIGNED,
             allowNull: false,
             references: {
-                model: 'bsit_schedules',
+                model: 'schedules',
                 key: 'id'
             }
         },

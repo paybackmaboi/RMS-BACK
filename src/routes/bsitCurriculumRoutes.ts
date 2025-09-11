@@ -1,12 +1,12 @@
 import express from 'express';
-import { BsitCurriculumModel } from '../database';
+import { SubjectsModel } from '../database';
 
 const router = express.Router();
 
 // Get all BSIT curriculum
 router.get('/', async (req, res) => {
     try {
-        const curriculum = await BsitCurriculumModel.findAll({
+        const curriculum = await SubjectsModel.findAll({
             where: { isActive: true },
             order: [
                 ['yearLevel', 'ASC'],

@@ -102,9 +102,9 @@ CREATE TABLE IF NOT EXISTS student_registrations (
 );
 
 -- =====================================================
--- 2. BSIT CURRICULUM TABLE
+-- 2. SUBJECTS TABLE (formerly bsit_curriculum)
 -- =====================================================
-CREATE TABLE IF NOT EXISTS bsit_curriculum (
+CREATE TABLE IF NOT EXISTS subjects (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     courseCode VARCHAR(20) NOT NULL,
     courseDescription TEXT NOT NULL,
@@ -117,13 +117,13 @@ CREATE TABLE IF NOT EXISTS bsit_curriculum (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
-    UNIQUE KEY unique_course_year_sem (courseCode, yearLevel, semester)
+    UNIQUE KEY unique_course_year_sem_type (courseCode, yearLevel, semester, courseType)
 );
 
 -- =====================================================
--- 3. BSIT SCHEDULES TABLE
+-- 3. SCHEDULES TABLE (formerly schedules)
 -- =====================================================
-CREATE TABLE IF NOT EXISTS bsit_schedules (
+CREATE TABLE IF NOT EXISTS schedules (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     curriculumId INT UNSIGNED NOT NULL,
     schoolYear VARCHAR(20) NOT NULL,
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS bsit_schedules (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (curriculumId) REFERENCES bsit_curriculum(id) ON DELETE CASCADE,
+    FOREIGN KEY (curriculumId) REFERENCES subjects(id) ON DELETE CASCADE,
     INDEX idx_schedule_lookup (schoolYear, semester, yearLevel, day)
 );
 
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS student_enrollments (
     remarks TEXT NULL,
     
     FOREIGN KEY (studentId) REFERENCES students(id) ON DELETE CASCADE,
-    FOREIGN KEY (scheduleId) REFERENCES bsit_schedules(id) ON DELETE CASCADE,
+    FOREIGN KEY (scheduleId) REFERENCES schedules(id) ON DELETE CASCADE,
     UNIQUE KEY unique_student_schedule (studentId, scheduleId)
 );
 
@@ -296,7 +296,7 @@ INSERT INTO bsit_curriculum (courseCode, courseDescription, units, yearLevel, se
 -- =====================================================
 -- 6. INSERT COMPLETE BSIT SCHEDULE DATA
 -- =====================================================
-INSERT INTO bsit_schedules (curriculumId, schoolYear, semester, yearLevel, day, startTime, endTime, room, instructor) VALUES
+INSERT INTO schedules (curriculumId, schoolYear, semester, yearLevel, day, startTime, endTime, room, instructor) VALUES
 -- =====================================================
 -- FIRST YEAR SCHEDULES
 -- =====================================================
@@ -389,7 +389,7 @@ INSERT INTO bsit_schedules (curriculumId, schoolYear, semester, yearLevel, day, 
 -- =====================================================
 -- 9. INSERT BSIT SCHEDULE DATA (4th Year, 1st Semester)
 -- =====================================================
-INSERT INTO bsit_schedules (curriculumId, schoolYear, semester, yearLevel, day, startTime, endTime, room, instructor) VALUES
+INSERT INTO schedules (curriculumId, schoolYear, semester, yearLevel, day, startTime, endTime, room, instructor) VALUES
 -- 4th Year, 1st Semester Schedules
 ((SELECT id FROM bsit_curriculum WHERE courseCode = 'IT 410' AND yearLevel = '4th' AND semester = '1st' AND courseType = 'Lecture'), '2025-2026', '1st', '4th', 'W', '13:30:00', '15:30:00', 'CL-1', 'Prof. Santos'),
 ((SELECT id FROM bsit_curriculum WHERE courseCode = 'IT 410' AND yearLevel = '4th' AND semester = '1st' AND courseType = 'Laboratory'), '2025-2026', '1st', '4th', 'TTH', '13:00:00', '14:30:00', 'CL-2', 'Prof. Santos'),
@@ -413,10 +413,10 @@ CREATE INDEX IF NOT EXISTS idx_bsit_curriculum_yearLevel ON bsit_curriculum(year
 CREATE INDEX IF NOT EXISTS idx_bsit_curriculum_semester ON bsit_curriculum(semester);
 CREATE INDEX IF NOT EXISTS idx_bsit_curriculum_courseCode ON bsit_curriculum(courseCode);
 
-CREATE INDEX IF NOT EXISTS idx_bsit_schedules_yearLevel ON bsit_schedules(yearLevel);
-CREATE INDEX IF NOT EXISTS idx_bsit_schedules_semester ON bsit_schedules(semester);
-CREATE INDEX IF NOT EXISTS idx_bsit_schedules_schoolYear ON bsit_schedules(schoolYear);
-CREATE INDEX IF NOT EXISTS idx_bsit_schedules_day ON bsit_schedules(day);
+CREATE INDEX IF NOT EXISTS idx_schedules_yearLevel ON schedules(yearLevel);
+CREATE INDEX IF NOT EXISTS idx_schedules_semester ON schedules(semester);
+CREATE INDEX IF NOT EXISTS idx_schedules_schoolYear ON schedules(schoolYear);
+CREATE INDEX IF NOT EXISTS idx_schedules_day ON schedules(day);
 
 CREATE INDEX IF NOT EXISTS idx_student_enrollments_studentId ON student_enrollments(studentId);
 CREATE INDEX IF NOT EXISTS idx_student_enrollments_scheduleId ON student_enrollments(scheduleId);
@@ -439,7 +439,7 @@ SELECT
     yearLevel, 
     semester, 
     COUNT(*) as totalSchedules
-FROM bsit_schedules 
+FROM schedules 
 WHERE schoolYear = '2025-2026'
 GROUP BY yearLevel, semester 
 ORDER BY yearLevel, semester;
@@ -454,7 +454,7 @@ SELECT
     s.endTime,
     s.room,
     s.instructor
-FROM bsit_schedules s
+FROM schedules s
 JOIN bsit_curriculum c ON s.curriculumId = c.id
 WHERE s.yearLevel = '1st' 
     AND s.semester = '1st' 

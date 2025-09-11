@@ -11,16 +11,16 @@ SELECT id, idNumber, firstName, lastName, role FROM users WHERE id = 21;
 SELECT COUNT(*) as total_enrollments FROM student_enrollments;
 
 -- Check existing BSIT curriculum
-SELECT COUNT(*) as total_curriculum FROM bsit_curriculum;
+SELECT COUNT(*) as total_curriculum FROM subjects;
 
 -- Check existing schedules
-SELECT COUNT(*) as total_schedules FROM bsit_schedules;
+SELECT COUNT(*) as total_schedules FROM schedules;
 
 -- If you want to create sample data, uncomment and run the following:
 
 /*
 -- Insert sample BSIT curriculum subjects (if they don't exist)
-INSERT INTO bsit_curriculum (courseCode, courseDescription, units, yearLevel, semester, courseType, isActive) VALUES
+INSERT INTO subjects (courseCode, courseDescription, units, yearLevel, semester, courseType, isActive) VALUES
 ('CS101', 'Introduction to Computer Science', 3, '1st', '1st', 'Lecture', 1),
 ('CS102', 'Programming Fundamentals', 3, '1st', '1st', 'Laboratory', 1),
 ('MATH101', 'College Algebra', 3, '1st', '1st', 'Lecture', 1),
@@ -30,7 +30,7 @@ INSERT INTO bsit_curriculum (courseCode, courseDescription, units, yearLevel, se
 ON DUPLICATE KEY UPDATE courseCode = courseCode;
 
 -- Insert sample schedules (if they don't exist)
-INSERT INTO bsit_schedules (curriculumId, schoolYear, semester, yearLevel, day, startTime, endTime, room, instructor, maxStudents, currentEnrollment, scheduleStatus) VALUES
+INSERT INTO schedules (curriculumId, schoolYear, semester, yearLevel, day, startTime, endTime, room, instructor, maxStudents, currentEnrollment, scheduleStatus) VALUES
 (1, '2025-2026', '1st', '1st', 'Monday', '08:00:00', '09:30:00', 'Room 101', 'Prof. Smith', 30, 0, 'Open'),
 (2, '2025-2026', '1st', '1st', 'Tuesday', '10:00:00', '11:30:00', 'Lab 201', 'Prof. Johnson', 25, 0, 'Open'),
 (3, '2025-2026', '1st', '1st', 'Wednesday', '13:00:00', '14:30:00', 'Room 102', 'Prof. Davis', 35, 0, 'Open'),

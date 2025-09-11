@@ -10,7 +10,7 @@ SELECT
     CREATE_TIME
 FROM information_schema.TABLES 
 WHERE TABLE_SCHEMA = DATABASE() 
-AND TABLE_NAME IN ('users', 'students', 'student_registrations', 'student_enrollments', 'bsit_curriculum', 'bsit_schedules')
+AND TABLE_NAME IN ('users', 'students', 'student_registrations', 'student_enrollments', 'subjects', 'schedules')
 ORDER BY TABLE_NAME;
 
 -- 2. Check users table for user ID 21
@@ -79,8 +79,8 @@ WHERE studentId = 21;
 -- 6. Check BSIT curriculum and schedules
 SELECT 'Checking BSIT curriculum...' as status;
 
-SELECT COUNT(*) as curriculum_count FROM bsit_curriculum;
-SELECT COUNT(*) as schedules_count FROM bsit_schedules;
+SELECT COUNT(*) as curriculum_count FROM subjects;
+SELECT COUNT(*) as schedules_count FROM schedules;
 
 -- 7. Sample data from each table
 SELECT 'Sample data from users:' as status;

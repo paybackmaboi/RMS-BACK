@@ -11,7 +11,7 @@ SELECT
     semester,
     units,
     courseType
-FROM bsit_curriculum 
+FROM subjects 
 WHERE yearLevel = '4th' 
 ORDER BY semester, courseCode;
 
@@ -25,7 +25,7 @@ SELECT
     semester,
     units,
     courseType
-FROM bsit_curriculum 
+FROM subjects 
 WHERE yearLevel = '3rd' 
 ORDER BY semester, courseCode;
 
@@ -41,7 +41,7 @@ SELECT
     instructor,
     yearLevel,
     semester
-FROM bsit_schedules 
+FROM schedules 
 WHERE yearLevel = '4th' 
 ORDER BY id;
 
@@ -57,7 +57,7 @@ SELECT
     instructor,
     yearLevel,
     semester
-FROM bsit_schedules 
+FROM schedules 
 WHERE yearLevel = '3rd' 
 ORDER BY id;
 

@@ -7,20 +7,19 @@ import { User as UserModel, initUser } from './models/User';
 import { Student as StudentModel, initStudent } from './models/Student';
 import { Department as DepartmentModel, initDepartment } from './models/Department';
 import { Course as CourseModel, initCourse } from './models/Course';
-import { Subject as SubjectModel, initSubject } from './models/Subject';
 import { SchoolYear as SchoolYearModel, initSchoolYear } from './models/SchoolYear';
 import { Semester as SemesterModel, initSemester } from './models/Semester';
-import { Schedule as ScheduleModel, initSchedule } from './models/Schedule';
 import { Enrollment as EnrollmentModel, initEnrollment } from './models/Enrollment';
 import { StudentRegistration as StudentRegistrationModel, initStudentRegistration } from './models/StudentRegistration';
-import { BsitCurriculum as BsitCurriculumModel, initBsitCurriculum } from './models/BsitCurriculum';
-import { BsitSchedule as BsitScheduleModel, initBsitSchedule } from './models/BsitSchedule';
+import { Subjects as SubjectsModel, initSubjects } from './models/Subjects';
+import { Schedules as SchedulesModel, initSchedules } from './models/Schedules';
 import { StudentEnrollment as StudentEnrollmentModel, initStudentEnrollment } from './models/StudentEnrollment';
 import { UserSession as UserSessionModel, initUserSession } from './models/UserSession';
 import { Request as RequestModel, initRequest } from './models/Request';
 import { Notification as NotificationModel, initNotification } from './models/Notification';
 import { LoginHistory as LoginHistoryModel, initLoginHistory } from './models/LoginHistory';
 import { Accounting as AccountingModel, initAccounting } from './models/Accounting';
+import { Document as DocumentModel, initDocument } from './models/Document';
 
 // Load environment variables
 dotenv.config();
@@ -69,20 +68,19 @@ export const initializeModels = () => {
     initStudent(sequelize);
     initDepartment(sequelize);
     initCourse(sequelize);
-    initSubject(sequelize);
     initSchoolYear(sequelize);
     initSemester(sequelize);
-    initSchedule(sequelize);
     initEnrollment(sequelize);
             initStudentRegistration(sequelize);
-        initBsitCurriculum(sequelize);
-        initBsitSchedule(sequelize);
+        initSubjects(sequelize);
+        initSchedules(sequelize);
         initStudentEnrollment(sequelize);
         initUserSession(sequelize);
         initRequest(sequelize);
         initNotification(sequelize);
         initAccounting(sequelize);
         initLoginHistory(sequelize);
+        initDocument(sequelize);
 };
 
 // Define associations
@@ -103,33 +101,29 @@ export const defineAssociations = () => {
     CourseModel.hasMany(StudentModel, { foreignKey: 'courseId' });
     StudentModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
 
-    // Subject associations
-    SubjectModel.belongsTo(CourseModel, { foreignKey: 'courseId' });
-    CourseModel.hasMany(SubjectModel, { foreignKey: 'courseId' });
-
     // Schedule associations
-    ScheduleModel.belongsTo(SubjectModel, { foreignKey: 'subjectId' });
-    SubjectModel.hasMany(ScheduleModel, { foreignKey: 'subjectId' });
+    SchedulesModel.belongsTo(SubjectsModel, { foreignKey: 'subjectId' });
+    SubjectsModel.hasMany(SchedulesModel, { foreignKey: 'subjectId' });
 
     // Enrollment associations
     EnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
     StudentModel.hasMany(EnrollmentModel, { foreignKey: 'studentId' });
-    EnrollmentModel.belongsTo(ScheduleModel, { foreignKey: 'scheduleId' });
-    ScheduleModel.hasMany(EnrollmentModel, { foreignKey: 'scheduleId' });
+    EnrollmentModel.belongsTo(SchedulesModel, { foreignKey: 'scheduleId' });
+    SchedulesModel.hasMany(EnrollmentModel, { foreignKey: 'scheduleId' });
 
     // Student Registration associations
     StudentRegistrationModel.belongsTo(UserModel, { foreignKey: 'userId' });
     UserModel.hasMany(StudentRegistrationModel, { foreignKey: 'userId' });
 
-    // BSIT Curriculum associations
-    BsitCurriculumModel.hasMany(BsitScheduleModel, { foreignKey: 'curriculumId' });
-    BsitScheduleModel.belongsTo(BsitCurriculumModel, { foreignKey: 'curriculumId' });
+    // Subjects associations
+    SubjectsModel.hasMany(SchedulesModel, { foreignKey: 'subjectId' });
+    SchedulesModel.belongsTo(SubjectsModel, { foreignKey: 'subjectId' });
 
     // Student Enrollment associations
     StudentEnrollmentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
     StudentModel.hasMany(StudentEnrollmentModel, { foreignKey: 'studentId' });
-    StudentEnrollmentModel.belongsTo(BsitScheduleModel, { foreignKey: 'scheduleId' });
-    BsitScheduleModel.hasMany(StudentEnrollmentModel, { foreignKey: 'scheduleId' });
+    StudentEnrollmentModel.belongsTo(SchedulesModel, { foreignKey: 'scheduleId' });
+    SchedulesModel.hasMany(StudentEnrollmentModel, { foreignKey: 'scheduleId' });
 
     // Request associations
     RequestModel.belongsTo(UserModel, { foreignKey: 'studentId', as: 'student' });
@@ -144,6 +138,12 @@ export const defineAssociations = () => {
     // Login History associations
     LoginHistoryModel.belongsTo(UserModel, { foreignKey: 'userId' });
     UserModel.hasMany(LoginHistoryModel, { foreignKey: 'userId' });
+
+    // Document associations
+    DocumentModel.belongsTo(StudentModel, { foreignKey: 'studentId' });
+    StudentModel.hasMany(DocumentModel, { foreignKey: 'studentId', as: 'documents' });
+    DocumentModel.belongsTo(UserModel, { foreignKey: 'reviewedBy', as: 'reviewer' });
+    UserModel.hasMany(DocumentModel, { foreignKey: 'reviewedBy', as: 'reviewedDocuments' });
 };
 
 // Connect to database and initialize
@@ -297,18 +297,17 @@ export {
     StudentModel,
     DepartmentModel,
     CourseModel,
-    SubjectModel,
     SchoolYearModel,
     SemesterModel,
-    ScheduleModel,
     EnrollmentModel,
     StudentRegistrationModel,
-    BsitCurriculumModel,
-    BsitScheduleModel,
+    SubjectsModel,
+    SchedulesModel,
     StudentEnrollmentModel,
     UserSessionModel,
     RequestModel,
     NotificationModel,
     AccountingModel,
-    LoginHistoryModel
+    LoginHistoryModel,
+    DocumentModel
 };

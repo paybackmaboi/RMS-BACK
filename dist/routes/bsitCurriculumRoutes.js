@@ -18,7 +18,7 @@ const router = express_1.default.Router();
 // Get all BSIT curriculum
 router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const curriculum = yield database_1.BsitCurriculumModel.findAll({
+        const curriculum = yield database_1.SubjectsModel.findAll({
             where: { isActive: true },
             order: [
                 ['yearLevel', 'ASC'],

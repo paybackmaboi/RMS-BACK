@@ -309,18 +309,6 @@ const initStudentRegistration = (sequelize) => {
             {
                 name: 'idx_student_registrations_userId',
                 fields: ['userId']
-            },
-            {
-                name: 'idx_student_registrations_yearLevel',
-                fields: ['yearLevel']
-            },
-            {
-                name: 'idx_student_registrations_semester',
-                fields: ['semester']
-            },
-            {
-                name: 'idx_student_registrations_schoolYear',
-                fields: ['schoolYear']
             }
         ]
     });

@@ -1,15 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { Op } from 'sequelize';
+import { Op, QueryTypes } from 'sequelize';
 import { 
     UserModel, 
     StudentModel, 
     CourseModel, 
     sequelize,
     StudentRegistrationModel,
-    BsitCurriculumModel,
-    BsitScheduleModel,
+    SubjectsModel,
+    SchedulesModel,
     StudentEnrollmentModel
 } from '../database';
+import { updateScheduleEnrollmentCount } from './scheduleController';
 
 interface ExpressRequest extends Request {
     user?: {
@@ -17,6 +18,126 @@ interface ExpressRequest extends Request {
         role: 'student' | 'admin' | 'accounting';
     };
 }
+
+// Helper function to enroll student in subjects based on year level and semester
+const enrollStudentInSubjects = async (studentId: number, yearLevel: string, semester: string): Promise<void> => {
+    try {
+        console.log(`🎓 Enrolling student ${studentId} in subjects for ${yearLevel} Year, ${semester} Semester`);
+        
+        // Convert year level and semester to match database format
+        const yearLevelMap: { [key: string]: string } = {
+            '1st': '1st Year',
+            '2nd': '2nd Year', 
+            '3rd': '3rd Year',
+            '4th': '4th Year',
+            '1': '1st Year',
+            '2': '2nd Year',
+            '3': '3rd Year',
+            '4': '4th Year'
+        };
+        
+        const semesterMap: { [key: string]: string } = {
+            '1st': '1st Semester',
+            '2nd': '2nd Semester',
+            'Summer': 'Summer',
+            '1': '1st Semester',
+            '2': '2nd Semester'
+        };
+        
+        const dbYearLevel = yearLevelMap[yearLevel] || `${yearLevel} Year`;
+        const dbSemester = semesterMap[semester] || `${semester} Semester`;
+        
+        console.log(`🎓 Looking for schedules: ${dbYearLevel}, ${dbSemester}`);
+        console.log(`🎓 Original values: yearLevel="${yearLevel}", semester="${semester}"`);
+        console.log(`🎓 Converted values: dbYearLevel="${dbYearLevel}", dbSemester="${dbSemester}"`);
+        
+        // Get all available schedules for the student's year level and semester
+        const schedulesQuery = `
+            SELECT 
+                s.id as scheduleId,
+                s.subjectId,
+                sub.courseCode,
+                sub.courseDescription
+            FROM schedules s
+            JOIN subjects sub ON s.subjectId = sub.id
+            JOIN school_years sy ON s.schoolYearId = sy.id
+            JOIN semesters sem ON s.semesterId = sem.id
+            WHERE sub.yearLevel = ? 
+                AND sub.semester = ?
+                AND sub.isActive = TRUE
+                AND s.isActive = TRUE
+                AND sy.year = '2025-2026'
+        `;
+        
+        const schedules = await sequelize.query(schedulesQuery, {
+            replacements: [dbYearLevel, dbSemester],
+            type: QueryTypes.SELECT
+        }) as any[];
+        
+        console.log(`📚 Found ${schedules.length} schedules for enrollment`);
+        console.log(`📚 Query used: ${schedulesQuery}`);
+        console.log(`📚 Parameters: [${dbYearLevel}, ${dbSemester}]`);
+        
+        if (schedules.length === 0) {
+            console.log('⚠️ No schedules found for the given year level and semester');
+            console.log('🔍 Checking what schedules exist in the database...');
+            
+            // Debug query to see what's in the database
+            const debugQuery = `
+                SELECT 
+                    sub.yearLevel,
+                    sub.semester,
+                    COUNT(*) as count
+                FROM subjects sub
+                WHERE sub.isActive = TRUE
+                GROUP BY sub.yearLevel, sub.semester
+                ORDER BY sub.yearLevel, sub.semester
+            `;
+            
+            const debugResults = await sequelize.query(debugQuery, { type: QueryTypes.SELECT });
+            console.log('🔍 Available year levels and semesters in database:');
+            debugResults.forEach((result: any) => {
+                console.log(`  - ${result.yearLevel}, ${result.semester}: ${result.count} subjects`);
+            });
+        }
+        
+        // Enroll student in each schedule
+        for (const schedule of schedules) {
+            try {
+                // Check if student is already enrolled in this schedule
+                const existingEnrollment = await StudentEnrollmentModel.findOne({
+                    where: {
+                        studentId: studentId,
+                        scheduleId: schedule.scheduleId
+                    }
+                });
+                
+                if (!existingEnrollment) {
+                    await StudentEnrollmentModel.create({
+                        studentId: studentId,
+                        scheduleId: schedule.scheduleId,
+                        enrollmentStatus: 'Enrolled'
+                    });
+                    
+                    // Update enrollment count for this schedule
+                    await updateScheduleEnrollmentCount(schedule.scheduleId);
+                    
+                    console.log(`✅ Enrolled in ${schedule.courseCode} - ${schedule.courseDescription}`);
+                } else {
+                    console.log(`⚠️ Already enrolled in ${schedule.courseCode}`);
+                }
+            } catch (enrollmentError) {
+                console.error(`❌ Failed to enroll in ${schedule.courseCode}:`, enrollmentError);
+                // Continue with other enrollments even if one fails
+            }
+        }
+        
+        console.log(`🎓 Enrollment process completed for student ${studentId}`);
+    } catch (error) {
+        console.error('❌ Error in enrollStudentInSubjects:', error);
+        throw error;
+    }
+};
 
 // Helper function to generate a unique ID Number
 const generateIdNumber = async (): Promise<string> => {
@@ -202,6 +323,17 @@ export const completeStudentRegistration = async (req: Request, res: Response, n
 
         console.log('✅ Created student registration record:', studentRegistration.id);
 
+        // Auto-enroll student in subjects based on their year level and semester
+        try {
+            // Use the year level and semester directly from registration data
+            const yearLevelStr = registrationData.yearLevel; // e.g., "4th"
+            const semesterStr = registrationData.semester; // e.g., "1st"
+            await enrollStudentInSubjects(student.id, yearLevelStr, semesterStr);
+            console.log('✅ Student auto-enrolled in subjects');
+        } catch (enrollmentError) {
+            console.warn('⚠️ Auto-enrollment failed, but registration succeeded:', enrollmentError);
+        }
+
         res.status(201).json({
             message: 'Student registration completed successfully',
             studentId: student.id,
@@ -266,7 +398,7 @@ export const getAllStudents = async (req: ExpressRequest, res: Response, next: N
                 registrationDate = new Date(registration.createdAt).toISOString().split('T')[0];
                 
                 // Calculate total units from curriculum
-                const curriculum = await BsitCurriculumModel.findAll({
+                const curriculum = await SubjectsModel.findAll({
                     where: {
                         yearLevel: registration.yearLevel,
                         semester: registration.semester,
@@ -437,36 +569,52 @@ export const getStudentEnrolledSubjects = async (req: ExpressRequest, res: Respo
         const { yearLevel, semester } = studentRegistration;
         console.log('📚 Student is in:', yearLevel, semester);
 
-        // Get the curriculum for this year level and semester
-        const curriculum = await BsitCurriculumModel.findAll({
-            where: {
-                yearLevel: yearLevel,
-                semester: semester,
-                isActive: true
-            },
-            order: [['courseCode', 'ASC']]
-        });
+        // Get actual enrolled subjects from student_enrollments table
+        // Group by subject to avoid duplicates for Lecture/Lab combinations
+        const enrolledSubjectsQuery = `
+            SELECT 
+                sub.id as subjectId,
+                sub.courseCode,
+                sub.courseDescription,
+                sub.units,
+                sub.yearLevel,
+                sub.semester,
+                MIN(se.enrollmentDate) as enrollmentDate
+            FROM student_enrollments se
+            JOIN schedules sched ON se.scheduleId = sched.id
+            JOIN subjects sub ON sched.subjectId = sub.id
+            JOIN students s ON se.studentId = s.id
+            WHERE s.userId = ? 
+                AND se.enrollmentStatus = 'Enrolled'
+            GROUP BY sub.id, sub.courseCode, sub.courseDescription, sub.units, sub.yearLevel, sub.semester
+            ORDER BY sub.courseCode ASC
+        `;
 
-        // For now, we'll show all curriculum subjects and mark them as enrolled
-        // In a real system, you'd need to join enrollments with schedules and curriculum
-        const subjects = curriculum.map(course => {
+        const enrolledSubjects = await sequelize.query(enrolledSubjectsQuery, {
+            replacements: [userId],
+            type: QueryTypes.SELECT
+        }) as any[];
+
+        console.log('📋 Found enrolled subjects:', enrolledSubjects.length);
+
+        // Transform the data to match frontend expectations
+        const subjects = enrolledSubjects.map(enrollment => {
             return {
-                id: course.id,
-                courseCode: course.courseCode,
-                courseTitle: course.courseDescription,
-                units: course.units,
-                courseType: course.courseType,
-                prerequisites: course.prerequisites,
-                isEnrolled: true, // For now, assume enrolled
-                enrollmentId: null,
-                finalGrade: 'N/A',
-                status: 'Enrolled',
-                yearLevel: course.yearLevel,
-                semester: course.semester
+                id: enrollment.subjectId,
+                courseCode: enrollment.courseCode,
+                courseTitle: enrollment.courseDescription,
+                units: enrollment.units,
+                prerequisites: null, // Not available in current query
+                isEnrolled: true,
+                finalGrade: 'N/A', // As requested
+                status: 'Taken', // As requested
+                yearLevel: enrollment.yearLevel,
+                semester: enrollment.semester,
+                enrollmentDate: enrollment.enrollmentDate
             };
         });
 
-        console.log('📋 Found subjects:', subjects.length);
+        console.log('📋 Processed subjects:', subjects.length);
         res.json({
             yearLevel,
             semester,
